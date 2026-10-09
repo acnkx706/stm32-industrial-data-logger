@@ -175,8 +175,22 @@ void freertos_demo(void)
 		Serial_Printf("!!! xQueueCreate FAILED (out of heap) !!!\r\n");
 		return; 
 	}
+		/* ★ 开机预读一次 BMP280（2026-10-09）
+	 *   为什么要这里读：task_sensor 有 500ms 相位错开 + 750ms DS18B20 转换 ✓
+	 *   → 它第一次读要等到 ~1.25 秒之后 ✗ → 前面 ~12 条记录 press=0 ✗
+	 *   在这里先读一次 → ACQ 第一条记录就有真实气压 ✓✓
+	 *   ★ 此时【调度器还没启动】✓ 没有并发 → 不需要拿互斥量 ✓✓ */
+	{
+		int32_t p_x10, t_c100;
+		if (BMP280_Read(&p_x10, &t_c100) == 0u)
+		{
+			g_press_x10pa   = p_x10;
+			g_bmp_temp_x100 = (int16_t)t_c100;
+		}
+	}
 	/* ★ 新增：I2C 互斥量（同样必须在 vTaskStartScheduler() 之前 ✓）*/
 	s_i2c_lock = xSemaphoreCreateMutex();
+	
 	if (s_i2c_lock == NULL)
 	{
 		Serial_Printf("!!! xSemaphoreCreateMutex FAILED (out of heap) !!!\r\n");
@@ -685,16 +699,11 @@ void task_sensor(void *pvParameters)
 		{
 			g_temp_x100 = DS18B20_INVALID;      /* 明确给一个"无效"值，别留旧值 ✓ */
 		}
-
-		/* ★★ BMP280 气压（2026-10-09 接入）—— 1 秒读一次 ✓
-		 *   ★★ 关键设计：它和 ACQ 里的 MPU6050【共用同一条软件 I2C】✗
-		 *      → 读到一半被 ACQ(prio 6) 抢走，ACQ 会发起自己的传输 ✗
-		 *        → 总线错乱、两边读数都失败 ✗（偶发、极难查 ✓）
-		 *      → 所以这里用【挂起调度器】把这一次读取包住 ✓✓
-		 *        ★ 为什么不用互斥量：这样【不新增任何内核对象】✓ 改动最小 ✓
-		 *        ★ 代价：这 ~10ms 内所有任务都不跑 ✓
-		 *          （BMP280 单次测量约 10ms ✓；每秒才一次 ✓；ACQ 最多晚 10ms 采一次 ✓）
-		 *        ★ 后续优化方向：改成"读上一次的测量结果"走非阻塞 ✓（那时可以去掉它 ✓）*/
+		/* ★★ BMP280 气压 —— 1 秒读一次 ✓
+		 *   ★ 与 ACQ 里的 MPU6050 共用同一条软件 I2C（PA2/PA3）✗
+		 *   ★★ 2026-10-09 升级：用【I2C 互斥量】串行化 ✓（见 30 号 §二十 ✓）
+		 *      —— 只挡另一个 I2C 用户（ACQ）✓ 其它任务不受影响 ✓✓
+		 *      （原来的 vTaskSuspendAll 会冻全场 10ms ✗ 已弃用 ✓）*/
 		{
 			int32_t p_x10, t_c100;
 			xSemaphoreTake(s_i2c_lock, portMAX_DELAY);
