@@ -11,6 +11,8 @@ DebugConfig/
 *.o
 *.htm
 *.sct
+*.log
+build.log
 
 # Keil 用户/调试配置（每人一份，不入库）
 *.uvguix.*
