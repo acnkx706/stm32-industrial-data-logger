@@ -1,0 +1,7 @@
+* text=auto eol=crlf
+
+*.c   text eol=crlf
+*.h   text eol=crlf
+*.md  text eol=crlf
+*.s   text eol=crlf
+*.uvprojx text eol=crlf

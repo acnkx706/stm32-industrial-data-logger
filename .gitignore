@@ -1,0 +1,40 @@
+# Keil MDK 构建产物
+Objects/
+Listings/
+DebugConfig/
+*.build_log.htm
+*.axf
+*.hex
+*.lnp
+*.crf
+*.d
+*.o
+*.htm
+*.sct
+
+# Keil 用户/调试配置（每人一份，不入库）
+*.uvguix.*
+*.uvoptx
+*.uvprojx.bak*
+JLinkLog.txt
+
+# 备份与临时文件
+*.bak
+*.bak-*
+_编码转换备份_*/
+*.tmp
+
+# 0 字节残留文件（待确认后删除，先不入库）
+/AD.c
+/LightCensor.c
+/LightCensor.h
+/LightSensor.c
+/LightSensor.h
+
+# FreeRTOS 原始英文版备份副本（与正式目录重复）
+FreeRTOS/_原始英文版备份/
+
+# 编辑器 / 脚本
+.vscode/
+*.code-workspace
+__pycache__/
