@@ -22,7 +22,8 @@
 #include "DS18B20.h"
 #include "BMP280.h"                /* ★ BMP280 气压（与 MPU6050 共用 PA2/PA3 软件 I2C ✓）*/
 #include "task_sd.h"                    /* ★ R1 集成：SD 交接接口/乒乓缓冲/task_SD 本体 */
-#include "MyRTC.h"
+#include "MyRTC.h" 
+#include "Crc16.h"
 /*==============================================================================
  *  数据记录仪 —— 应用层（任务总装）
  *      数据流： task_ACQ --Record_t--> [xQueueRec] --> task_PROC
@@ -450,14 +451,35 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 	 * seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc
 	 * ★ 改列序/列名 = 必须同步改 task_sd.c 的 csv_hdr，两边漂移 → PC 端解析全错 */
 	
-	rowlen = sprintf(row, "%lu,%lu,%lu,%lu,%d,%d,%d,%d,%d,%d,%d,%d,%u,%u,%u,%u",
+	/* ---- 第①步：拼 CSV 行（★ 先只拼【前 15 列】✓）----
+	 * seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc
+	 * ★ 改列序/列名 = 必须同步改 task_sd.c 的 csv_hdr，两边漂移 → PC 端解析全错
+	 *
+	 * ★★ 2026-10-10：crc 不再恒 0 ✗ —— 改成对【前 15 列的文本】算 CRC16 ✓
+	 *   为什么对文本算、而不是对 40 字节结构体算 ✗：
+	 *     卡上存的就是【文本】✗ —— 校验必须覆盖【实际存储的东西】✓
+	 *     对结构体算的话，PC 侧无法从 CSV 复现 → 校验形同虚设 ✓
+	 *   ★ 契约（PC 侧照此实现 ✓，见 check_csv_crc.py）：
+	 *     · 取整行，去掉末尾 \r\n ✓
+	 *     · 取【最后一个逗号之前】的全部字符（= 前 15 列 ✓）
+	 *     · 算 CRC-16/KERMIT（poly 0x8408 / init 0 / 反射 / 无输出异或 ✓）
+	 *     · 与最后一个逗号之后的十进制值比较 ✓
+	 *   ★ 此处 row 里【还没有 \r\n】✓（\r\n 是后面拷进缓冲时才加的 ✓）
+	 *     —— 正合契约 ✓ 不需要额外处理 ✓ */
+	rowlen = sprintf(row, "%lu,%lu,%lu,%lu,%d,%d,%d,%d,%d,%d,%d,%d,%u,%u,%u",
 	                  (unsigned long)rec.seq,  (unsigned long)rec.tick,
 	                  (unsigned long)rec.press,(unsigned long)rec.rtc,
 	                  rec.ax, rec.ay, rec.az,
 	                  rec.gx, rec.gy, rec.gz,
 	                  rec.temp_ds, rec.temp_chip,
 	                  (unsigned)rec.humi, (unsigned)rec.light,
-	                  (unsigned)rec.vbat, (unsigned)rec.crc);
+	                  (unsigned)rec.vbat);
+
+	/* ★ 对【上面这段文本】算 CRC ✓（覆盖的正是"卡上那一行的前 15 列"✓）*/
+	rec.crc = Crc16_Kermit((const uint8_t *)row, (uint16_t)rowlen);
+
+	/* ★ 再把 crc 作为第 16 列追加 ✓（串口回显也跟着用它 ✓）*/
+	rowlen += sprintf(row + rowlen, ",%u", (unsigned)rec.crc);
 
 	/* ---- 第②步：保证手里有缓冲（数据落卡 > 一切，串口回显排后面）----
 	 * 拿不到 = 两块都在 task_SD 手里写卡：丢本条保节拍，绝不阻塞等待
