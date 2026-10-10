@@ -800,6 +800,26 @@
               <FileType>5</FileType>
               <FilePath>.\Hardware\BMP280.h</FilePath>
             </File>
+            <File>
+              <FileName>MyRTC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\MyRTC.c</FilePath>
+            </File>
+            <File>
+              <FileName>MyRTC.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\MyRTC.h</FilePath>
+            </File>
+            <File>
+              <FileName>Crc16.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\Crc16.c</FilePath>
+            </File>
+            <File>
+              <FileName>Crc16.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\Crc16.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

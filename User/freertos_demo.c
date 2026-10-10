@@ -22,6 +22,7 @@
 #include "DS18B20.h"
 #include "BMP280.h"                /* ★ BMP280 气压（与 MPU6050 共用 PA2/PA3 软件 I2C ✓）*/
 #include "task_sd.h"                    /* ★ R1 集成：SD 交接接口/乒乓缓冲/task_SD 本体 */
+#include "MyRTC.h"
 /*==============================================================================
  *  数据记录仪 —— 应用层（任务总装）
  *      数据流： task_ACQ --Record_t--> [xQueueRec] --> task_PROC
@@ -338,7 +339,7 @@ void task_ACQ(void *pvParameters)//100ms定时器
 	 rec.seq=++seq;
 	 rec.tick=xTaskGetTickCount();
 	 rec.press = (uint32_t)g_press_x10pa;      /* ★ 真实气压 ×10 Pa ✓（读失败=0 ✓）*/
-	 rec.rtc=0;
+	 rec.rtc=MyRTC_GetUnix();
 	 rec.ax=ax;
 	 rec.ay=ay;
 	 rec.az=az;
@@ -448,6 +449,7 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 	/* ---- 第①步：拼 CSV 行。列序必须与 task_sd.c 的 csv_hdr【一字不差】----
 	 * seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc
 	 * ★ 改列序/列名 = 必须同步改 task_sd.c 的 csv_hdr，两边漂移 → PC 端解析全错 */
+	
 	rowlen = sprintf(row, "%lu,%lu,%lu,%lu,%d,%d,%d,%d,%d,%d,%d,%d,%u,%u,%u,%u",
 	                  (unsigned long)rec.seq,  (unsigned long)rec.tick,
 	                  (unsigned long)rec.press,(unsigned long)rec.rtc,

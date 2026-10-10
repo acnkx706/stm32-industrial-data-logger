@@ -35,6 +35,7 @@
 #include "ff.h"                         /* FatFs（FatFs\ 目录，裁剪版 R0.12c） */
 #include "Serial.h"                     /* Serial_Printf：报挂载/失败信息 */
 #include "task_sd.h"
+#include "MyRTC.h"
 
 /*============================================================================
  *  配置常量（拍板后改这里，别散在流程里）

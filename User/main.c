@@ -26,6 +26,7 @@
 #include "DS18B20.h"
 #include "MyI2C.h"                 /* ★ BMP280 与 MPU6050 共用这条软件 I2C（PA2=SCL / PA3=SDA）*/
 #include "BMP280.h"
+#include "MyRTC.h"  
 
 /*==============================================================================
  *  ★ BMP280 探针（2026-10-09）—— 只做"扫地址 + 读 ID"，先认型号再写驱动
@@ -113,6 +114,29 @@ int main(void)
 	OLED_Init();
 	Key_Init();
 	LightSensor_Init();
+	
+		/* ★ RTC（阶段 3）—— 初始化 + 读回自检 ✓
+	 *   ★ 自检原理（不依赖任何外部设备 ✓）：
+	 *     MyRTC_Init 用【编译时刻】设初值 ✓ → 立刻读回来再换算成年月日 ✓
+	 *     → 两行应当基本一致（差几秒 = 编译到烧录的耗时 ✓）
+	 *       差几小时 / 几年 ✗ = 换算算法错 ✓ */
+	{
+		RTC_DateTime_t dt;
+
+		if (MyRTC_Init() != RTC_OK)
+		{
+			Serial_Printf("!!! MyRTC_Init FAILED: LSE not ready !!!\r\n");
+		}
+		else
+		{
+			MyRTC_GetDateTime(&dt);
+			Serial_Printf("RTC now = %04u-%02u-%02u %02u:%02u:%02u   (unix=%lu)\r\n",
+			              (unsigned)dt.year, (unsigned)dt.month, (unsigned)dt.day,
+			              (unsigned)dt.hour, (unsigned)dt.minute, (unsigned)dt.second,
+			              (unsigned long)MyRTC_GetUnix());
+			Serial_Printf("  ^^ must match 'set from compile time' above (within seconds)\r\n");
+		}
+	}
 
 	/* ---------- 第二批：传感器 ---------- */
 	MPU6050_Init();
@@ -174,6 +198,9 @@ int main(void)
 		              (int)(sgx / 20), (int)(sgy / 20), (int)(sgz / 20));
 	}
 	Serial_Printf("AD init: light=%u vbat=%u (raw 0-4095)\r\n", AD_Value[0], AD_Value[1]);
+	
+		
+
 	/* ============ 调试期测试开关（正式跑记录时两个都设 0）============
 	 * TEST_DS18B20 = 1：单次读一次 DS18B20（PB14）并打印
 	 * TEST_SD      = 1：SD 卡初始化 + 读扇区 0 验 MBR（换好板子/卡之后再打开）
@@ -405,6 +432,7 @@ int main(void)
 	}
 #endif
 
+	
 	Serial_Printf("=== Init Done ===\r\n");
 	freertos_demo();
     while (1)

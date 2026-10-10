@@ -22,7 +22,7 @@
   */
 #include "diskio.h"                     /* FatFs 底层接口声明（FatFs\diskio.h） */
 #include "SD_SPI.h"                     /* SD 卡驱动（Hardware\SD_SPI.h） */
-
+#include "MyRTC.h"
 /*-----------------------------------------------------------------------
 / 私有状态
 /  g_disk_stat：盘状态位图（STA_NOINIT / STA_NODISK / STA_PROTECT）
@@ -211,10 +211,15 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff)
 /-----------------------------------------------------------------------*/
 DWORD get_fattime (void)
 {
-	return  ((DWORD)(2026 - 1980) << 25)    /* 年：2026-01-01 */
-		  | ((DWORD)1 << 21)                /* 月：1  */
-		  | ((DWORD)1 << 16)                /* 日：1  */
-		  | (0UL << 11)                     /* 时：0  */
-		  | (0UL << 5)                      /* 分：0  */
-		  | 0UL;                            /* 秒：0（FAT 存的是 真秒/2，0 点即 0） */
+RTC_DateTime_t dt;
+
+	MyRTC_GetDateTime(&dt);
+	if (dt.year < 1980u) { return 0u; }              /* ★ FAT 起点是 1980 ✓ */
+
+	return ((DWORD)(dt.year - 1980u) << 25)
+	     | ((DWORD)dt.month  << 21)
+	     | ((DWORD)dt.day    << 16)
+	     | ((DWORD)dt.hour   << 11)
+	     | ((DWORD)dt.minute << 5)
+	     | ((DWORD)(dt.second / 2u));
 }
