@@ -625,9 +625,17 @@ SD_Result_t SD_Init(void)
 
 	/* ① 预热：CS 保持【高】（不选中）连发 ≥74 个时钟。
 	 *    这是规范要求的上电序列 —— 卡靠这 74+ 个时钟同步内部状态机，
-	 *    之后 CMD0 才有效。10 字节 = 80 clock，凑够还带余量 */
+	 *    之后 CMD0 才有效。10 字节 = 80 clock，凑够还带余量 
+	 	 *    ★★ 2026-10-10 加长：10 字节(80 clock) → 200 字节(1600 clock) ✗
+	 *    为什么：★★ 热拔卡后重插，卡可能【悬停在半途】✗
+	 *      （正在等上一条命令的剩余字节 ✓）
+	 *      → 80 clock 不够冲干净 ✗ → 后续命令偶尔回垃圾 ✗
+	 *        ★ 实测症状：CMD59 回"非法命令" → 误报 SD_ERR_UNSUPPORTED(03) ✗
+	 *        ★ 而手动给卡断电重上电就正常 ✓ ← 正是"状态机没复位"的铁证 ✓✓
+	 *    ★ 这是 SD 驱动的标准"软复位"做法 ✓（dummy clocks ✓）
+	 *    ★ 代价：281kHz 下 200 字节 ≈ 5.7ms ✓（只在初始化时一次 ✓ 可接受 ✓）*/
 	SD_CS(1);
-	for (i = 0; i < 10; i++)
+	for (i = 0; i < 200; i++)
 	{
 		(void)SD_SwapByte(SD_DUMMY);
 	}
@@ -642,6 +650,11 @@ SD_Result_t SD_Init(void)
 		if (r1 == R1_IDLE)
 		{
 			break;
+		}
+		{
+			uint16_t k;
+			SD_CS(1);
+			for (k = 0; k < 32u; k++) { (void)SD_SwapByte(SD_DUMMY); }
 		}
 		DWT_Delay_ms(1);
 	}
