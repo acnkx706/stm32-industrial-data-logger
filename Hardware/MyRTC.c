@@ -176,20 +176,40 @@ uint8_t MyRTC_Init(void)
 	return RTC_OK;
 }
 
-uint32_t MyRTC_GetUnix(void)
+/* ★ 安全读计数器：读两次直到一致 ✓
+ *   RTC 在 32.768kHz 域、APB1 在 36MHz 域 ✗ 跨时钟域 ✗
+ *   CNTL 与 CNTH 是两次独立读，若之间发生进位（如 0x0000FFFF → 0x00010000）
+ *   会拼出 0x0001FFFF ✗ → 时间瞬跳 65535 秒（约 18.2 小时）✗✗
+ *   读两次一致才采信；两次读间隔远大于进位窗口，几乎必然一次通过 ✓
+ *   RTC 停走时两次恒等 → 立即返回 ✓ 无死循环风险 ✓ */
+static uint32_t MyRTC_ReadCntSafe(void)
 {
 	uint32_t a, b;
-    do { a = RTC_GetCounter(); b = RTC_GetCounter(); } while (a != b);
-    return b;                     /* ★ RTC 已在跑，直接读 ✓ ，对跨时钟域问题进行保护，避免高八位跳变*/
+	do { a = RTC_GetCounter(); b = RTC_GetCounter(); } while (a != b);
+	return b;
+}
+
+uint32_t MyRTC_GetUnix(void)
+{
+	return MyRTC_ReadCntSafe();
 }
 
 void MyRTC_GetDateTime(RTC_DateTime_t *dt)
 {
-	if (dt != NULL) { MyRTC_UnixToYmd(RTC_GetCounter(), dt); }
+	if (dt != NULL) { MyRTC_UnixToYmd(MyRTC_ReadCntSafe(), dt); }
 }
 
+/* ★★ MyRTC_SetUnix —— 补回（2026-10-11 独立审查 F1 修）✗
+ *   审查发现：MyRTC.h 里一直有这个声明 ✗ 但定义在
+ *     "把 GetUnix 的 do-while 抽成 MyRTC_ReadCntSafe()" 那次重构里被一起替换掉了 ✓
+ *   ★ 因为【当前无人调用】✗ → 编译链接都通过 ✓ 属于【潜伏型】✗
+ *     → 将来做"串口/上位机对时"（50 号文档 2.2 写明的意图）时会直接
+ *       L6218E: Undefined symbol MyRTC_SetUnix ✓
+ *   ★ 教训：头文件与源文件接口必须一一对应 ✗
+ *     （同类问题还有 MPU6050.h 的 Calibrate/GetOffset/ReadRaw ✓ 一并清了 ✓）*/
 void MyRTC_SetUnix(uint32_t ts)
 {
 	RTC_SetCounter(ts);
-	RTC_WaitForLastTask();                       /* ★ 写完必须等 ✓ 否则静默丢失 ✗ */
+	RTC_WaitForLastTask();          /* ★ 写完必须等 ✓ 否则 RTC 跨时钟域写入会静默丢失 ✗ */
 }
+

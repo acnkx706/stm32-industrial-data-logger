@@ -45,7 +45,15 @@ void Serial_SenaArray(uint8_t *Array,uint16_t Length)
 
 void Serial_SendString(char *String)
 {
-	uint8_t i;
+	uint16_t i;                    /* ★ uint8_t → uint16_t（2026-10-11 独立审查 F19 修）
+	                               *   原写法 i 是 uint8_t ✗ —— 字符串 ≥256 字节时
+	                               *   i 走到 255 后 i++ 回绕成 0 ✗ → 而 String[0] 不是 '\0'
+	                               *   → ★【循环永不退出】✗ 整机硬死机 + 串口狂吐同一段 ✓
+	                               *   引爆点：freertos_demo.c 里
+	                               *     Serial_SendString(s_task_list_buf);
+	                               *   而 s_task_list_buf 是 static char[512] ✗
+	                               *   现状：任务表约 190 字节 ✓ 侥幸安全 ✗
+	                               *         加一个任务 / 栈水位变 5 位数 → 立刻爆 ✓ */
 	for(i=0;String[i]!='\0';i++)
 	{
 		Serial_SendByte(String[i]);
