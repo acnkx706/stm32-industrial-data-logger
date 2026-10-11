@@ -9,7 +9,7 @@
   *  任务状态机（两个状态）：
   *
   *    【未挂载态】 ←── 连续 3 批写失败 / 开机首次
-  *        │  每 3 秒重试：f_mount→(disk_initialize=完整 SD_Init)→开/建 LOGxxxx.CSV
+  *        │  每 3 秒重试：f_mount→(disk_initialize=完整 SD_Init)→开/建 YYMMDDNN.CSV
   *        ↓ 成功
   *    【挂载态】收乒乓缓冲 → f_write → f_sync → 归还缓冲
   *        │  写失败：连续 3 批 → 置 g_sd_error、强制卸载 → 回未挂载态
@@ -28,7 +28,7 @@
   ******************************************************************************
   */
 #include "stm32f10x.h"
-#include <stdio.h>                      /* sprintf：拼 "0:LOG0001.CSV" 文件名 */
+#include <stdio.h>                      /* sprintf：拼 "0:26101001.CSV" 文件名（YYMMDDNN）*/
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -43,7 +43,78 @@
 #define SD_SYNC_EVERY_BATCH     1   /* 每写完几批 f_sync 一次（T2.5：每批，掉电最多丢一批） */
 #define SD_REMOUNT_PERIOD_MS    3000/* 未挂载态的重试周期（无卡时别狂转） */
 #define SD_FAIL_STREAK_LIMIT    3   /* 连续写失败多少批 → 判卡离场（执行表：3 次） */
-#define SD_FILE_IDX_MAX         9999/* LOG%04u 的上限，到头回绕到 1（TODO 见下） */
+/* ★ SD_FILE_IDX_MAX 已删（2026-10-11 独立审查 F15）✗
+ *   它只服务于旧的 "LOG%04u 逐个探测空位" 机制 ✗ 那套已在 2026-10-10 废弃 ✓
+ *   现在文件数上限由 SD_FILE_NN_MAX（同一天 ≤99 个）管着 ✓ 它没有任何引用 ✓ */
+#define SD_FILE_SIZE_LIMIT      (200u * 1024u * 1024u)
+                                    /* ★ 单文件大小兜底 = 200 MB（2026-10-10 加）
+                                     *   正常一天约 78 MB ✓ → 兜底不会误触发 ✓
+                                     *   真触发了（异常情况 ✓）→ 序号 +1 继续记 ✓ 不丢数据 ✓✓ */
+#define SD_FILE_NN_MAX          99  /* ★ 同一天最多 99 个文件（YYMMDDNN，NN 两位 ✓）*/
+
+/*============================================================================
+ *  ★★ 滚动周期的"键"抽象（2026-10-11 加）
+ *
+ *  为什么要抽象成"键"✗：跨天检查只需要【判断"周期变没变"】✗
+ *    → 不必逐字段比较年月日 ✓ 一个 uint32 就够 ✓✓
+ *
+ *  ★★★ SD_DEBUG_ROLL_MINUTE —— 把"天"换成"分钟"✗（★ 专为验证而设 ✓）
+ *    为什么需要它：★★ 跨天滚动【没法在一天内验证】✗
+ *      打开 → 每分钟换一个文件 ✓ → 跑 5 分钟就能验证"滚动逻辑对不对" ✓✓
+ *      验证完改回 0 ✓（★ 正式版必须为 0 ✗）
+ *    ★ 这是"难验证功能"的标准做法：把时间尺度压小 ✓
+ *    ★★ 注意：调试模式下文件名仍是 YYMMDDNN ✗
+ *       → 每分钟换文件 = 同一天的 NN 递增（26101101 → 26101102 …）✓
+ *         因为挂载时会从 nn=1 起扫、找第一个未超兜底的文件 ✓
+ *         （同一天内换文件本来就靠 NN 递增 ✓ 机制天然复用 ✓✓）
+ * ============================================================================*/
+#define SD_DEBUG_ROLL_MINUTE    0   /* 0 = 按天滚动（正式 ✓）  1 = 按分钟滚动（仅验证用 ✓）*/
+
+#if SD_DEBUG_ROLL_MINUTE
+#define SD_ROLL_KEY(dt)         ((uint32_t)(dt).minute)
+#else
+/* 正式模式：把年月日打包成一个键 ✓ 高位在前便于阅读 ✓ */
+#define SD_ROLL_KEY(dt)         ( ((uint32_t)(dt).year  << 16) | \
+                                  ((uint32_t)(dt).month <<  8) | \
+                                   (uint32_t)(dt).day )
+#endif
+
+/*============================================================================
+ *  ★★★ SD_DEBUG_MOUNT_TRACE —— 挂载过程的阶段打印（2026-10-11 加 ✓）
+ *
+ *  为什么要它（★ 这是用几小时换来的 ✓）：
+ *    2026-10-11 那个"f_open 忘了开 FA_READ"的 bug ✗
+ *    排查时【整条路径上没有任何可观测点】✗ ——
+ *      `f_mount` 之后到 `f_open` 之前【零打印】✓
+ *      → "卡死"和"静默失败"完全分不出来 ✗
+ *      → 而我靠推理连错三次 ✗ 白折腾了几个小时 ✓
+ *    ★★ 加了这 8 个阶段打印之后：【第三次读串口就定案了】✓✓
+ *
+ *  ★ 所以默认【开着】✗ = 1 ✓（它的价值远大于那几行串口 ✓）
+ *    真要干净输出可以改 0 ✓ —— ★★ 但代价是"下次再出问题又变盲区"✗
+ *    （★ 挂载不频繁 ✓ 每次也就 8 行 ✓ 不构成刷屏 ✓）
+ *
+ *  ★ 打印点（按执行顺序 ✓）：
+ *    [1] f_mount 成功 / 失败      [2] 取到的日期
+ *    [3] 正在试哪个文件名          [4] f_open 成功 + 文件大小
+ *    [5] f_lseek 到末尾            [6] f_lseek 到 sz-1
+ *    [7] 读末尾 1 字节             [8] ★ 挂载函数出口
+ *       —— [8] 是关键 ✓：看到它【就证明"函数返回了"】✗ 而不是"卡在里面"✓✓
+ *
+ *  ★★ 【不受这个开关控制】的打印（错误 / 事件类 ✗ 永远保留 ✓）：
+ *    "SD: log = ..."              —— 挂载成功的唯一正向信号 ✓
+ *    "SD: skip ..."               —— 文件级错误换名（只打前 3 个 ✓）
+ *    "SD: all N names failed"     —— 99 个全试完 ✓
+ *    "SD: seal partial line"      —— 发现残行（很少发生 ✓ 发生了就该知道 ✓）
+ *    —— ★ 这些只在【有事情发生】时打 ✓ 不吵 ✓ 而且丢了就没法查 ✓
+ * ============================================================================*/
+#define SD_DEBUG_MOUNT_TRACE    1
+
+#if SD_DEBUG_MOUNT_TRACE
+#define SD_TRACE(...)           Serial_Printf(__VA_ARGS__)
+#else
+#define SD_TRACE(...)           ((void)0)
+#endif
 
 /*============================================================================
  *  FatFs 对象（★ 必须全局 static 放置，不能进任务栈：
@@ -51,7 +122,22 @@
  *==========================================================================*/
 static FATFS s_fs;                      /* 卷对象（f_mount 登记） */
 static FIL   s_log_file;                /* 日志文件（挂载态唯一打开的写文件） */
-static FIL   s_probe_file;              /* 探测序号用的临时文件对象 */
+
+/*============================================================================
+ *  ★ 当前日志文件"属于哪个周期"（2026-10-10 加 · 2026-10-11 改成"键"✓）
+ *
+ *  为什么要记住它：★ 按天滚动【不能只在挂载时判断】✗
+ *    板子连续跑过午夜时不会重新挂载 ✗ → 必须【在写入过程中也检查】✓
+ *    → task_SD 每批写入成功后比对"当前周期键"和这个值 ✓ 不同就换文件 ✓✓
+ *
+ *  ★ 日期从【文件名】就能读出来 ✗ —— 文件名就是 YYMMDDNN.CSV ✓
+ *    （所以续写判断不需要读文件内容 ✗ 不需要 f_stat ✗ 不需要 f_readdir ✓✓
+ *      —— 这是"文件名带日期"的设计红利 ✓）
+ *
+ *  ★★ 键由 SD_ROLL_KEY() 生成 ✗ —— 正式是"年月日"✓、调试是"分钟"✓
+ *    只有【一个变量】→ 不存在"某个字段设了没用"的警告 ✓✓
+ *==========================================================================*/
+static uint32_t s_cur_key = 0u;
 
 /*============================================================================
  *  乒乓交接（PROC ↔ task_SD）
@@ -193,86 +279,252 @@ BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len)
 static FRESULT sd_mount_and_open(uint32_t *pidx)
 {
 	FRESULT fr;
-	char name[16];                      /* "0:LOG0001.CSV" = 13 字符 + '\0' */
+	char name[24];                      /* "0:26101001.CSV" = 14 字符 + '\0' ✓ 留足余量 */
 
 	/* f_mount(opt=1)：强制挂载 —— 会触发 disk_initialize，即完整 SD_Init
 	 * （74 时钟/CMD0/ACMD41/切 9MHz 全在里头）。没插卡在这里就会失败 */
 	fr = f_mount(&s_fs, "0:", 1);
 	if (fr != FR_OK)
 	{
+		/* ★★ 阶段打印 [1]（2026-10-11 加 · 临时诊断 ✗）：
+		 *   为什么需要它：★ f_mount 之后到 f_open 之前【一句打印都没有】✗✓
+		 *     → 实测里"卡住"和"静默失败"【分不出来】✓（Task list 照打 ✓ 但 SD 没下文 ✓）
+		 *   ★ 定位完可以撤掉 ✓ 或者留着当"挂载失败原因"的现场记录 ✓✓ */
+		SD_TRACE("SD: [1] f_mount FAILED fr=%u\r\n", (unsigned)fr);
 		return fr;                      /* FR_NOT_READY/FR_DISK_ERR = 卡不在或坏 */
 	}
+	SD_TRACE("SD: [1] f_mount OK\r\n");
 
-	/* 找空位：从 LOG0001.CSV 起逐个探测，"打不开"才说明这个序号空闲。
-	 * 为什么不用 f_getfree/读目录：_FS_MINIMIZE=2 已裁，探测是裁剪后最省的招
-	 * ★ R2 修复（2026-10-05 审查）：扫描必须带上限！
-	 *   原来是无界 for(;;) 且"序号超过 9999 就回绕到 1" —— 而 LOG0001.CSV 必然存在，
-	 *   于是永远转下去：循环里没有 vTaskDelay、也没有队列操作，prio 1 的 task_SD
-	 *   空转占满 CPU，工作队列再没人取 -> PROC 两块缓冲只进不出 -> 全链路静默丢数据，
-	 *   而且 g_sd_error 恒 0（OLED 不报警）。触发条件很现实：FAT 根目录满 / 卡满。
-	 *   现在：整圈扫完仍无空位 -> 明确返回失败，由未挂载态重试 + 报警，不静默覆盖旧日志。 */
+	/*============================================================================
+	 *  ★★ 文件名 = YYMMDDNN.CSV（2026-10-10 定版）
+	 *    26 | 10 | 10 | 01  =  2026-10-10 当天第 01 个 ✓
+	 *    ★ 8 字符主名 + 3 字符扩展名 = 正好 8.3 ✓（_USE_LFN=0 的硬约束 ✓）
+	 *    ★★ 好处：① 字典序 = 时间序 ✓ ② 看名字就知道是哪天 ✓
+	 *              ③ ★ 续写判断【不用读文件内容】✗ —— 名字里就有日期 ✓✓
+	 *                 （不用 f_stat ✓ 不用 f_readdir ✓ 不用解析末行 ✓）
+	 *
+	 *  ★ 滚动规则：
+	 *    · 同一天 → 【续写】当天那个文件 ✓（它已存在 ✓）
+	 *    · 跨天   → 用新日期的新名字 ✓ 自然就是新文件 ✓
+	 *    · ★ 单文件超 SD_FILE_SIZE_LIMIT ✗ → NN+1 ✓（继续记，不丢数据 ✓）
+	 *    · ★ NN 到 99 还没完 ✗ → 明确失败 ✓（上层报警 ✓ 不静默覆盖 ✓✓）
+	 *
+	 *  ★ 旧机制（LOG%04u 逐个探测空位 ✗）已废弃：
+	 *    它每次挂载都新开一个文件 ✗ → 文件数无限增长 ✓
+	 *    （但保留它的安全教训：★ 任何扫描都必须【带上限】✗ —— 见 SD_FILE_NN_MAX ✓）
+	 *==========================================================================*/
 	{
-		uint32_t scanned = 0;
+		RTC_DateTime_t now;
+		uint16_t yy;
+		uint8_t  mm, dd, nn;
+		FRESULT  last_fr = FR_OK;           /* ★ 记住最近一次【文件级】错误 ✓ 兜底上报用 */
 
-		for (;;)
+		MyRTC_GetDateTime(&now);
+		yy = (uint16_t)(now.year % 100u);       /* ★ 两位年份 ✓（26 = 2026 ✓）*/
+		mm = now.month;
+		dd = now.day;
+		/* ★★ 阶段打印 [2]（临时诊断 ✗）：验证 RTC 读取没卡住 ✓
+		 *   （★ `MyRTC_GetDateTime` 里是 do-while 等两次读数一致 ✗
+		 *     —— 正常不会卡 ✓ 但要证明 ✓）*/
+		SD_TRACE("SD: [2] date = 20%02u-%02u-%02u\r\n",
+		              (unsigned)yy, (unsigned)mm, (unsigned)dd);
+
+		for (nn = 1u; nn <= (uint8_t)SD_FILE_NN_MAX; nn++)
 		{
-			sprintf(name, "0:LOG%04u.CSV", (unsigned int)(*pidx));
+			sprintf(name, "0:%02u%02u%02u%02u.CSV",
+			        (unsigned)yy, (unsigned)mm, (unsigned)dd, (unsigned)nn);
 
-			fr = f_open(&s_probe_file, name, FA_READ | FA_OPEN_EXISTING);
-			if (fr == FR_NO_FILE)
+			/* ★★ 阶段打印 [3]（临时诊断 ✗）：证明【走进了循环】✓
+			 *   ★ 只打前 3 个 ✗（和下面的 skip 打印同理 ✓ 免得刷屏 ✓）*/
+			if (nn <= 3u)
 			{
-				break;                      /* 这个序号空闲，用它 */
-			}
-			if (fr != FR_OK)
-			{
-				return fr;                  /* 其他错误（读着读着卡没了等）：上浮 */
-			}
-			(void)f_close(&s_probe_file);   /* 已存在 -> 试下一个序号 */
-
-			(*pidx)++;
-			if (*pidx > SD_FILE_IDX_MAX)
-			{
-				*pidx = 1;                  /* 回绕：只作为"继续找空位"的起点 */
+				SD_TRACE("SD: [3] nn=%u trying %s\r\n", (unsigned)nn, name);
 			}
 
-			if (++scanned >= (uint32_t)SD_FILE_IDX_MAX)
+			/* ★★★★ 2026-10-11 修复（dsh 自己引入的 bug ✗）：
+			 *   必须带 FA_READ ✗✓ —— 因为下面【封残行】要 f_read 1 字节 ✓
+			 *
+			 *   FatFs 源码 ff.c:3518：
+			 *     if (!(fp->flag & FA_READ)) LEAVE_FF(fs, FR_DENIED);
+			 *   ★★ 也就是说：文件对象没开读权限时，f_read 立刻返回 FR_DENIED(7) ✗
+			 *
+			 *   ★ 原来的代码只写 FA_WRITE 是对的 ✗ —— 那时【不读文件】✓
+			 *     （不续写、不封残行 ✓）
+			 *   ★★ 我后来加了"封残行"✗ 却没同步开读权限 ✗ →
+			 *     · 表头照写 ✓（写发生在 f_read 之前 ✓）→ 文件有正确的 76 字节表头 ✓
+			 *     · 然后封残行 f_read → 7 → return ✗ → 【数据批一条都没开始】✓
+			 *     · 现场表现：卡上文件只有表头、没有数据 ✓
+			 *       sd_last=7 恒定 ✓ drop 每秒 +10 ✓
+			 *     · ★★★ 而且【和卡无关】✗ → 所以【格式化怎么弄都没用】✓✓
+			 *   ★ 教训：加一个"读文件"的动作时，必须回头检查文件对象的打开模式 ✓*/
+			fr = f_open(&s_log_file, name, FA_WRITE | FA_READ | FA_OPEN_ALWAYS);
+			if (fr == FR_OK)
 			{
-				return FR_DENIED;           /* 整圈占满：明确失败（上层报警，不覆盖旧日志） */
+				if (f_size(&s_log_file) == 0u)
+				{
+					break;                  /* ★ 新文件：下面写表头，就用它 ✓ */
+				}
+				if (f_size(&s_log_file) < (FSIZE_t)SD_FILE_SIZE_LIMIT)
+				{
+					break;                  /* ★ 今天的这个还没到兜底 → 续写它 ✓ */
+				}
+				(void)f_close(&s_log_file); /* ★ 已超兜底 → 试下一个 NN ✓ */
+				continue;
 			}
+
+			/* ★★ f_open 失败的处理（2026-10-11 改 · 独立审查的建议 + 实测推动）✗
+			 *
+			 *   ★★★ 核心认知：★【"这一个文件打不开"✗ ≠ "所有文件都打不开"】✗✓
+			 *     原来是一失败就 `return fr` ✗ →
+			 *       task_SD 判"卡不行"✗ → 每 3 秒重试【同一个文件】✗ →
+			 *       ★ 永远失败 → 【全链路丢数据】✗✓
+			 *     （2026-10-11 实测就是这个现象：sd_last=7 恒定 ✓ drop 每秒 +10 ✓）
+			 *
+			 *   ★ 所以按错误类型分流：
+			 *     · 文件级（换一个 NN 就可能好 ✓）→ 【continue 试下一个】✓✓
+			 *       FR_DENIED(7)       —— 访问被拒 / ★ 目录满 / 目录项异常 ✓
+			 *       FR_NO_FILE(4)      —— 找不到 ✓
+			 *       FR_INVALID_NAME(6) —— 名字不合法 ✓
+			 *       FR_EXIST(8)        —— 已存在（FA_CREATE_NEW 才可能 ✓ 防御性保留）
+			 *     · 卡级（换名字也没用 ✗）→ 【立即上浮】✓ 保持快速失败 ✓
+			 *       FR_NOT_READY(3) / FR_DISK_ERR(1) / FR_INVALID_OBJECT(9) /
+			 *       FR_WRITE_PROTECTED(10) / FR_NO_FILESYSTEM(13) 等 ✓
+			 *
+			 *   ★ 代价：最坏情况要试 99 次 f_open ✓
+			 *     每次约 1~2ms ✓ → 最坏约 0.2 秒 ✓（挂载时一次 ✓ 可接受 ✓）*/
+			if ((fr == FR_DENIED) || (fr == FR_NO_FILE) ||
+			    (fr == FR_INVALID_NAME) || (fr == FR_EXIST))
+			{
+				if (nn <= 3u)               /* ★ 只打前 3 个 ✗ 否则最坏刷 99 行 ✓ */
+				{
+					Serial_Printf("SD: skip %s (fr=%u) -> try next NN\r\n",
+					              name, (unsigned)fr);
+				}
+				last_fr = fr;
+				continue;                   /* ★ 试下一个 NN ✓✓ */
+			}
+
+			return fr;                      /* ★ 卡级错误：上浮 ✓ 重试整个挂载没意义 ✗ */
 		}
+		if (nn > (uint8_t)SD_FILE_NN_MAX)
+		{
+			/* ★ 99 个都不行 ✗ → 上报【最后一个真原因】✗
+			 *   （不要硬编 FR_DENIED ✓ 否则 OLED 上的 E:xx 会丢信息 ✓）*/
+			Serial_Printf("SD: all %u names failed (last fr=%u)\r\n",
+			              (unsigned)SD_FILE_NN_MAX, (unsigned)last_fr);
+			return (last_fr != FR_OK) ? last_fr : FR_DENIED;
+		}
+
+		s_cur_key = SD_ROLL_KEY(now);       /* ★ 记住归属周期 → 运行中滚动检查要用 ✓
+		                                     *   正式模式 = 年月日打包 ✓
+		                                     *   调试模式 = 分钟 ✓（见 SD_ROLL_KEY）*/
+		/* ★★ 阶段打印 [4]（临时诊断 ✗）：证明【循环结束、选定了文件】✓
+		 *   ★ 走到这里说明 f_open 成功 ✓ 而且【没卡在 f_open 里面】✓ */
+		SD_TRACE("SD: [4] opened %s  size=%lu\r\n",
+		              name, (unsigned long)f_size(&s_log_file));
 	}
 
 	/* ★ R6 语义定版（2026-10-05 审查后拍板）：**滚动新文件**，不做续写。
-	 *   一次"挂载" = 一个 LOGxxxx.CSV（上电/拔插后自然新开一个）。
-	 *   为什么选它而不是"追加续写"：
-	 *     ① 不怕"文件尾部被写坏后还往上追加"；② 会话边界清晰（tick 复位点 = 断电点）；
-	 *     ③ PC 端按序号拼接即可；④ 少一个"续写状态"要维护。
-	 *   注意：上面的探测用的是"第一个不存在的序号"，所以这里 f_open 必然走新建分支、
-	 *        f_lseek 恒为 0 —— 保留它只是为了"文件若已存在也不截断"。
-	 *   （28 号验收③ 的表述随之改为"新开下一个 LOGxxxx.CSV 且不丢数据"） */
-	fr = f_open(&s_log_file, name, FA_WRITE | FA_OPEN_ALWAYS);
+	 *   ★★ 2026-10-10 改版：现在【按天续写】✗ —— 同一天写同一个文件 ✓
+	 *      因为文件名带了日期 ✗ → 一天一个文件 ✓ 归档直观 ✓
+	 *      而"会话边界"这个原本的好处由【文件名日期】接管了 ✓✓ */
+	fr = f_lseek(&s_log_file, f_size(&s_log_file));     /* ★ 定位到文件尾（续写 ✓）*/
+	SD_TRACE("SD: [5] lseek(end) fr=%u\r\n", (unsigned)fr);   /* ★ 临时诊断 ✓ */
 	if (fr == FR_OK)
 	{
-		fr = f_lseek(&s_log_file, f_size(&s_log_file));
-		if (fr == FR_OK)
+		if (f_size(&s_log_file) == 0)       /* 新文件：先写表头 */
 		{
-			if (f_size(&s_log_file) == 0)       /* 新文件：先写表头 */
-			{
-				/* ★ R6 落地：表头必须与 task_PROC 拼的 CSV 行列序【一字不差】。
-				 * 列名与 30 号 §15.2 的字段表一一对应（16 列 / 40 字节记录）。
-				 * ★ PROC 落地时若改列序或列名，必须同步改这一行，否则 PC 端解析全错。 */
-				static const char csv_hdr[] =
-				    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc\r\n";
-				UINT hbw = 0;
+			/* ★ R6 落地：表头必须与 task_PROC 拼的 CSV 行列序【一字不差】。
+			 * 列名与 30 号 §15.2 的字段表一一对应（16 列 / 40 字节记录）。
+			 * ★ PROC 落地时若改列序或列名，必须同步改这一行，否则 PC 端解析全错。 */
+			static const char csv_hdr[] =
+			    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc\r\n";
+			UINT hbw = 0;
 
-				fr = f_write(&s_log_file, csv_hdr, (UINT)(sizeof(csv_hdr) - 1u), &hbw);
-				if ((fr != FR_OK) || (hbw != (UINT)(sizeof(csv_hdr) - 1u)))
-				{
-					return (fr == FR_OK) ? FR_DISK_ERR : fr;   /* 首行就失败=卡有问题，早暴露 */
-				}
+			fr = f_write(&s_log_file, csv_hdr, (UINT)(sizeof(csv_hdr) - 1u), &hbw);
+			if ((fr != FR_OK) || (hbw != (UINT)(sizeof(csv_hdr) - 1u)))
+			{
+				return (fr == FR_OK) ? FR_DISK_ERR : fr;   /* 首行就失败=卡有问题，早暴露 */
+			}
+
+			/* ★★ 立刻 f_sync（2026-10-11 加）✗
+			 *   为什么必须有它：FatFs 把【文件大小写在目录项里】✗
+			 *     而目录项只在 f_sync / f_close 时才更新 ✓
+			 *     → 只写表头不 sync ✗ → 目录项大小【仍然是 0】✗✓
+			 *     → 拔卡/断电后缓存丢掉 → ★ 文件停在 0 字节 ✓
+			 *     → ★★ 让人误判成"什么都没写"✗（2026-10-11 真的发生了这个误判 ✓：
+			 *        卡上 26101101.CSV 是 0 字节 ✓ 而板子其实【一直在正常记录】✓）
+			 *   加上它之后：
+			 *     · ★ "文件已建立"变成【持久】的事实 ✓ 一眼看出跑到哪一步 ✓✓
+			 *     · 下次挂载 f_size != 0 ✗ → 不会重复写表头 ✓
+			 *   ★ 代价：挂载时多一次 sync（最坏几百 ms ✓ 且【只在建新文件时】发生 ✓）*/
+			fr = f_sync(&s_log_file);
+			if (fr != FR_OK)
+			{
+				return fr;                  /* ★ 表头都落不了盘 = 卡有问题 ✓ 早暴露 ✓ */
 			}
 		}
 	}
+
+	/*============================================================================
+	 *  ★★ 封闭"残行"（2026-10-10 加）—— 续写已有文件时【必须有】✗✓
+	 *  为什么：热拔卡/掉电会让文件尾部留下【半行】✗（写了一半的 CSV ✓）
+	 *    直接往上追加 → 新行会和残行粘成一行 ✗ → 那一行彻底坏掉 ✓
+	 *  做法：读末尾 1 字节 ✗ → 不是 '\n' → 补一个 "\r\n" ✓ 把残行封闭掉 ✓✓
+	 *  ★ 那个残行会变成【列数不足的坏行】✗
+	 *    → PC 端按"列数 ≠ 16"或"CRC 不过"就能识别并丢掉它 ✓✓
+	 *    （★ 不用 f_truncate ✗ —— _FS_MINIMIZE=2 已把它裁掉 ✓ 而且这样更简单 ✓）
+	 *==========================================================================*/
+	if (fr == FR_OK)
+	{
+		FSIZE_t sz = f_size(&s_log_file);
+
+		if (sz > 0u)
+		{
+			uint8_t last = 0u;
+			UINT    br   = 0u;
+
+			fr = f_lseek(&s_log_file, sz - 1u);
+			SD_TRACE("SD: [6] lseek(sz-1) fr=%u\r\n", (unsigned)fr);   /* ★ 临时诊断 ✓ */
+			if (fr == FR_OK) { fr = f_read(&s_log_file, &last, 1u, &br); }
+			SD_TRACE("SD: [7] read1 fr=%u br=%u last=0x%02X\r\n",
+			              (unsigned)fr, (unsigned)br, (unsigned)last);         /* ★ 临时诊断 ✓ */
+			if ((fr == FR_OK) && (br == 1u) && (last != (uint8_t)'\n'))
+			{
+				UINT bw = 0u;
+				Serial_Printf("SD: seal partial line -> append CRLF\r\n");
+				fr = f_write(&s_log_file, "\r\n", 2u, &bw);
+
+				/* ★★ 同样立刻 f_sync（2026-10-11 加）✗
+				 *   理由和上面"表头后 sync"一样 ✓：
+				 *     不 sync ✗ → 这个 "\r\n" 只进了缓存 ✓ → 拔卡就丢 ✗
+				 *     → 残行仍是"半行"✗ → 下次挂载又要再封一次 ✓（不致命 ✓ 但白做 ✓）
+				 *   ★ 封完立刻 sync ✗ → "文件尾部是干净的整行"这件事【持久】✓✓
+				 *     也是对"下次续写"的保证 ✓（否则新行又可能和半行粘连 ✗）*/
+				if (fr == FR_OK) { fr = f_sync(&s_log_file); }
+			}
+			if (fr == FR_OK) { fr = f_lseek(&s_log_file, f_size(&s_log_file)); }
+		}
+	}
+
+	if (fr == FR_OK)
+	{
+		Serial_Printf("SD: log = %s  size=%lu\r\n",
+		              name, (unsigned long)f_size(&s_log_file));
+#if SD_DEBUG_ROLL_MINUTE
+		/* ★★ 醒目警告（2026-10-11）：调试开关没关 ✗
+		 *   它的效果是"每分钟换一个文件"✗ —— 正式使用会导致文件数爆炸 ✓
+		 *   ★ 看到这行就说明【当前固件不是正式版】✗✓ */
+		Serial_Printf("!!! WARNING: SD_DEBUG_ROLL_MINUTE=1 -> rolling by MINUTE !!!\r\n");
+		Serial_Printf("!!!          This build is for VERIFICATION ONLY. Set it back to 0. !!!\r\n");
+#endif
+	}
+	*pidx = 1u;                             /* ★ 旧序号变量已无实际作用，保留签名不动 ✓ */
+	/* ★★ 阶段打印 [8]（临时诊断 ✗ 关键 ✓）：
+	 *   ★ 这是挂载函数的【唯一出口】✗ —— 只要看到它 ✓ 就证明
+	 *     【函数正常返回了】✓ 而不是"卡在里面"✗✓
+	 *   （★ 这一步把"挂死"和"失败返回"彻底分开 ✓✓）*/
+	SD_TRACE("SD: [8] mount exit fr=%u\r\n", (unsigned)fr);
 	return fr;
 }
 
@@ -325,7 +577,10 @@ void task_SD(void *pvParameters)
 	uint8_t  mounted      = 0;                  /* 0=未挂载态 1=挂载态 */
 	uint8_t  fail_streak  = 0;                  /* 连续写失败批数 */
 	uint32_t sync_counter = 0;                  /* 距上次 f_sync 的批数 */
-	uint32_t file_idx     = 1;                  /* LOG 序号，从 0001 起 */
+	uint32_t file_idx     = 1;                  /* ★ 已废弃（2026-10-10）✗：
+	                                             *   文件名改成 YYMMDDNN.CSV 后不再需要序号 ✓
+	                                             *   保留变量只为不改进 sd_mount_and_open 的签名 ✓
+	                                             *   （审查 F9 已确认全项目无其它读者 ✓）*/
 
 	/* ★ R4 修复（2026-10-05 审查）：内核对象没建好就绝不往下走 ——
 	 * 否则 xQueueReceive(NULL) 会直接 configASSERT（vAssertCalled 死循环）或 HardFault。
@@ -420,6 +675,36 @@ void task_SD(void *pvParameters)
 						{
 							mounted = 0;
 						}
+					}
+				}
+
+				/*========================================================================
+				 *  ★★ 跨天滚动检查（2026-10-10 加）—— 必须【在运行中也判断】✗ 不只在挂载时 ✓
+				 *  为什么：板子连续跑过午夜时【不会重新挂载】✗
+				 *    → 若只在挂载时判断，跨天后会【继续写昨天的文件】✗✓
+				 *  做法：取"今天"✗ → 与当前文件归属日期比 ✗ → 不同就回未挂载态 ✓
+				 *    → 下一轮循环顶部的 `if (!mounted)` 会用【新日期】重新挂载 ✓✓
+				 *    → 文件名 YYMMDDNN.CSV 自带日期 ✗ → 自然就是新文件 ✓ 无需额外逻辑 ✓
+				 *  ★ 放过期检查的代价：只多一次 RTC 读（寄存器读，微秒级 ✓ 可忽略 ✓）
+				 *========================================================================*/
+				if (mounted)
+				{
+					RTC_DateTime_t now;
+					MyRTC_GetDateTime(&now);
+					if (SD_ROLL_KEY(now) != s_cur_key)      /* ★ 周期变了 → 换文件 ✓ */
+					{
+#if SD_DEBUG_ROLL_MINUTE
+						SD_TRACE("SD: [DEBUG] minute changed -> roll file (old key=%lu)\r\n",
+						              (unsigned long)s_cur_key);
+#else
+						Serial_Printf("SD: day changed -> roll file (old %04u-%02u-%02u)\r\n",
+						              (unsigned)((s_cur_key >> 16) & 0xFFFFu),
+						              (unsigned)((s_cur_key >>  8) & 0xFFu),
+						              (unsigned)( s_cur_key        & 0xFFu));
+#endif
+						(void)f_sync(&s_log_file);      /* ★ 旧文件先落盘 ✓ 再关 ✓（别丢尾巴 ✓）*/
+						(void)f_close(&s_log_file);
+						mounted = 0;                    /* ★ 回未挂载态 → 下一轮按新周期重挂 ✓✓ */
 					}
 				}
 			}

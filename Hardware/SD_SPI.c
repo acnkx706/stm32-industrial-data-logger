@@ -43,11 +43,24 @@
 #include "SD_SPI.h"
 #include "DWT_Delay.h"
 #include "Serial.h"        /* 临时：只为回环自检打印，测完连这个 include 一起删 */
+#include "ProbeConfig.h"
+#include "Crc16.h"          /* ★ 2026-10-11（审查 F13）：数据块 CRC 改用公共实现 ✓
+                             *   原来本文件里有一份 static SD_Crc16 ✗
+                             *   而 Crc16.h 自己立着"一处实现、避免两份悄悄跑偏"的规矩 ✗
+                             *   → 现在统一走 Crc16_Kermit() ✓✓ */
+#include "AD.h"             /* ★ 2026-10-11（审查 F23）：AD_ReadVrefint 改用正式声明 ✓
+                             *   原来这里写的是【局部 extern】✗ ——
+                             *   那是独立于 AD.h 的第二份签名 ✓
+                             *   AD.c 哪天改了参数/返回类型 ✗ → 这行不会跟着变 ✗
+                             *   而编译器【也不会报错】✗（两个编译单元各信自己的声明 ✓）
+                             *   → 只有链接期/运行期才炸 ✓✓ 现在挪进头文件 = 单一事实来源 ✓
+                             *
+                             *   ★ 当时的注释写着"为什么写成 extern 而不去改 AD.h：
+                             *     少改一个文件、少一处和别人的冲突面"✗
+                             *     —— 那个取舍是错的 ✗：省一个 include 换来一个静默风险 ✓ */
 
-/* ★ 临时诊断（2026-10-05）：读内部基准 VREFINT 看 VDD 有没有塌
- *   实现在 Hardware\AD.c（用注入通道组，对 ADC 常规组零影响 ✓）
- *   为什么写成 extern 而不去改 AD.h：少改一个文件、少一处和别人的冲突面 ✓ */
-extern uint16_t AD_ReadVrefint(void);
+/* ★★ 原来的局部 extern 已删（同审查 F23）✗：
+ *   extern uint16_t AD_ReadVrefint(void);                                        */
 /*============================================================================
  *  内部参数（集中放一起，调参不用翻代码）
  *==========================================================================*/
@@ -181,30 +194,15 @@ static uint8_t SD_Crc7(const uint8_t *buf, uint8_t len)
 	return (uint8_t)(crc | 0x01);       /* 补上恒 1 的停止位 */
 }
 
-/* SD 数据块的 CRC16（2026-10-05 加）
- * 参数：多项式 x^16 + x^12 + x^5 + 1，【反射写法】= 0x8408；初值 0；无输出异或
- * ★ 为什么加它：原来数据块的两字节 CRC 发的是哑元 0xFF ✗ ——
- *   那只有在 CMD59 真的把卡的 CRC 检查关掉了才成立 ✓
- *   发真 CRC 是【严格更好】：卡开着检查就通过 ✓ 关着也会被忽略 ✓
- * ★ 实现已验证：输入 "123456789" 得 0x2189 ——
- *   与 CRC 目录里 CRC-16/KERMIT 的官方校验值一致 ✓✓（不是"跟记忆里的值对"✓）*/
-static uint16_t SD_Crc16(const uint8_t *d, uint16_t len)
-{
-	uint16_t crc = 0;
-	uint16_t i;
-	uint8_t  b;
-
-	for (i = 0; i < len; i++)
-	{
-		crc ^= d[i];
-		for (b = 0; b < 8; b++)
-		{
-			crc = (crc & 0x0001u) ? (uint16_t)((crc >> 1) ^ 0x8408u)
-			                      : (uint16_t)(crc >> 1);
-		}
-	}
-	return crc;
-}
+/* ★★ 本文件原来的 static SD_Crc16 已删（2026-10-11 独立审查 F13）✗
+ *   它与 Hardware\Crc16.c 的 Crc16_Kermit() 是【逐行相同的两份副本】✓
+ *   （poly 反射 0x8408 / init 0 / 输入输出均反射 / 无输出异或 ✓）
+ *   而 Crc16.h 顶部写着"一处实现、多处使用 ✓（避免两份实现悄悄跑偏 ✗）"✗
+ *   → 自己立的规矩自己没守住 ✓ 现在统一调用 Crc16_Kermit() ✓✓
+ *
+ *   ★ 对拍结论（删之前核过 ✓）：
+ *     Crc16_Kermit 的锚点 "123456789" → 0x2189 ✓（与 SD 那份逐行同源 ✓）
+ *     两份代码参数与实现完全一致 ✓ 替换无行为变化 ✓✓ */
 
 /*============================================================================
  *  命令层
@@ -239,11 +237,35 @@ static uint8_t SD_SendCmd(uint8_t cmd, uint32_t arg)
 		(void)SD_SwapByte(SD_DUMMY);
 	}
 
-	/* 等响应：规范允许卡延迟 Ncr = 0~8 字节才应答；一直 0xFF = 无响应 */
-	for (i = 0; i < 8; i++)
+	/* ★★★★ 等响应（2026-10-12 修正 ✗ 这是一个【真 bug】✓✓）
+	 *
+	 *  【错在哪】✗：判据原来是 `if (r1 != 0xFF) break;` ✗✓
+	 *    —— 那等于"任何非 0xFF 的字节都当成 R1"✓
+	 *
+	 *  【为什么错】✗：★ R1 响应的【bit7 必须为 0】✗（R1 ∈ {0x00..0x7F} ✓）
+	 *    所以【合法判据是 `(r1 & 0x80) == 0`】✗✓
+	 *    ★★ 卡在"还没准备好"时吐出的 0xC0 / 0xE0 / 0x85 这类中间值 ✗
+	 *      会被【原样返回】✗ → 调用者按位判断 → 【误判】✓
+	 *
+	 *  【实测症状】✗：CMD59 读到含 bit2 的字节 ✗
+	 *    → `r1 & R1_ILLEGAL_CMD(0x04)` 成立 ✗
+	 *    → ★★★ 误报 SD_ERR_UNSUPPORTED(03) ✓✓
+	 *    → 表现：热拔卡（拔久一点）后插回必犯 ✗ 必须给模块断电重上电才好 ✓
+	 *
+	 *  【为什么"拔久了才犯"】✗：
+	 *    · 短时间拔插 → 卡内还有残余电荷 ✗ → 上电后【立刻能用】✓
+	 *    · 长时间拔下 → 【完全放电】✗ → 上电后内部初始化慢 ✓
+	 *      → ★★ 响应延迟【超过 8 字节】✗ → 更容易读到中间值 ✓✓
+	 *
+	 *  ★ 本文件行 741 的注释早就记过"实测 0xE0 ✗，R1 非法"✗ ——
+	 *    那时只在 ACMD41 那里打了补丁 ✗ 【没修根】✓ 现在修根 ✓✓
+	 *
+	 *  ★★ 顺带把等待上限从 8 放宽到 16 ✗
+	 *    （规范 Ncr = 0~8 字节 ✓ 但【上电初期】可能更宽 ✓）*/
+	for (i = 0; i < 16; i++)
 	{
 		r1 = SD_SwapByte(SD_DUMMY);
-		if (r1 != 0xFF)
+		if ((r1 & 0x80u) == 0u)         /* ★ bit7 = 0 才是合法 R1 ✓ */
 		{
 			break;
 		}
@@ -489,7 +511,7 @@ static SD_Result_t SD_WriteRaw(const uint8_t *buf, uint32_t sector, uint32_t cou
 		/* ★ 2026-10-05：改发【真 CRC16】（原来发哑元 0xFF ✗，只在 CMD59 生效时才成立 ✓）
 		 *   大端序（高字节先）✓ */
 		{
-			uint16_t wcrc = SD_Crc16(buf, 512u);
+			uint16_t wcrc = Crc16_Kermit(buf, 512u);   /* ★ 改用公共实现（审查 F13）*/
 			(void)SD_SwapByte((uint8_t)(wcrc >> 8));
 			(void)SD_SwapByte((uint8_t)(wcrc & 0xFFu));
 		}
@@ -635,10 +657,17 @@ SD_Result_t SD_Init(void)
 	 *    ★ 这是 SD 驱动的标准"软复位"做法 ✓（dummy clocks ✓）
 	 *    ★ 代价：281kHz 下 200 字节 ≈ 5.7ms ✓（只在初始化时一次 ✓ 可接受 ✓）*/
 	SD_CS(1);
-	for (i = 0; i < 200; i++)
+	for (i = 0; i < 800; i++)
 	{
 		(void)SD_SwapByte(SD_DUMMY);
 	}
+	/* ★★★ 2026-10-12 加强（配合 SD_SendCmd 的 R1 判据修复 ✓）：
+	 *   原来只发 200 字节（≈5.7ms ✓）—— ★【只给了"时钟数"✗ 没给"真正的等待时间"】✓
+	 *   ★★ 长时间断电后：【卡完全放电】✗ → 上电后内部初始化慢 ✓
+	 *      → 只靠时钟串冲不干净 ✗ → 响应会晚 ✗ → 于是读到中间值 ✓
+	 *   ★ 改成：800 字节（≈23ms ✓）+ 额外 10ms 真实延时 ✓✓
+	 *   ★★ 代价：只在【初始化时一次】✗ 且【只在未挂载态重试时才走】✓ 可忽略 ✓ */
+	DWT_Delay_ms(10);                  /* ★ 给卡【真正的时间】去稳定 ✓ */
 
 	/* ② CMD0 复位进 IDLE：期望 R1=0x01。
 	 *    一次不成功很正常（卡刚上电还在走内部流程），最多重发 200 次；
@@ -773,6 +802,8 @@ SD_Result_t SD_Init(void)
 	r1 = SD_SendCmd(CMD58, 0);
 	if (r1 != R1_READY)
 	{
+		/* ★ 2026-10-12 加打印（诊断 ✓）：CMD58 以前【没有打印】✗ 是盲区 ✓ */
+		Serial_Printf("SD: CMD58 R1=0x%02X (expect 0x00)\r\n", r1);
 		SD_Release();
 		return SD_ERR_CMD_FAILED;
 	}
@@ -806,10 +837,25 @@ SD_Result_t SD_Init(void)
 	 *    全部用 0xFF 哑元（原理见文件头注释）。命令 CRC 照旧现算，最稳 */
 	r1 = SD_SendCmd(CMD59, 0);
 	SD_Release();
+	/* ★★ 2026-10-12 加打印（诊断 ✓）
+	 *   CMD59 是 SD_ERR_UNSUPPORTED(03) 的【唯一来源】✗
+	 *   而它以前【一句打印都没有】✓ → 出问题只能靠猜 ✓ */
+	Serial_Printf("SD: CMD59 R1=0x%02X\r\n", r1);
+
+	/* ★★★ 判据修正（和 SD_SendCmd 的修复配套 ✓）：
+	 *   · 0xFF = 【卡无响应】✗ 不是"不认这条命令" ✓ —— 必须分开判 ✓
+	 *     （★ 原来的 `r1 & 0x04` 对 0xFF 也成立 ✗ → 误报 03 ✓✓）
+	 *   · 只有【合法 R1 且 bit2=1】才是真的"卡不支持 CMD59" ✓ */
+	if (r1 == 0xFFu)
+	{
+		Serial_Printf("SD: CMD59 NO RESPONSE (card busy/slow) -> CMD_FAILED\r\n");
+		return SD_ERR_CMD_FAILED;
+	}
 	if (r1 & R1_ILLEGAL_CMD)
 	{
 		/* 极个别老卡不认 CMD59 → 数据 CRC 哑元会被它拒收，只能判失败。
 		 * 真遇到（几乎不可能）再补 CRC16 运算，现阶段不做 */
+		Serial_Printf("SD: CMD59 ILLEGAL (card really rejects it) -> UNSUPPORTED\r\n");
 		return SD_ERR_UNSUPPORTED;
 	}
 
@@ -924,6 +970,7 @@ const char *SD_ErrorStr(SD_Result_t err)
 
 /* ① 回环自检：拔掉模块 4 根信号线，用杜邦线短接 PA6<->PA7，再调用
  *    判读：5 行全 OK = MCU 侧 SPI 完全清白 ✓；全 FF = 短接没接好 ✗ */
+#if PROBE_SD_LOOPBACK
 void SD_LoopbackTest(void)
 {
 	uint8_t tx[5] = {0xA5, 0x55, 0x3C, 0x00, 0xFF};
@@ -945,6 +992,7 @@ void SD_LoopbackTest(void)
 	}
 	Serial_Printf("---- end ----\r\n");
 }
+#endif
 
 /* ② 引脚识别：PA5 每 1s 翻 / PA7 每 2s / PA4 每 4s（死循环，不返回）
  *    用法：万用表直流档，逐个量【模块端】的 CS/SCK/MOSI 三个针
@@ -952,6 +1000,7 @@ void SD_LoopbackTest(void)
  *      2s 跳 = 接的是 PA7（应是模块 MOSI）
  *      4s 跳 = 接的是 PA4（应是模块 CS）
  *    ★ 这个探针的意义：绕开丝印目视，直接用电器行为确认「哪根线接哪个脚」 */
+ #if PROBE_SD_PINFINDER
 void SD_PinFinder(void)
 {
 	GPIO_InitTypeDef g;
@@ -977,10 +1026,11 @@ void SD_PinFinder(void)
 		tick++;
 	}
 }
-
+#endif
 /* ③ MISO 通路：持续读 PA6 并打印。人工把【模块的 MISO 针】依次接 GND / 3.3V
  *    接 GND -> 0x00；接 3.3V -> 0xFF；一直不变 = MISO 线不通 ✗
  *    ⚠️ 模块若带缓冲器，必须【串 1k~10k 电阻】再接地（防输出对打）*/
+ #if PROBE_SD_MISO
 void SD_MisoProbe(void)
 {
 	uint8_t v;
@@ -996,11 +1046,12 @@ void SD_MisoProbe(void)
 		DWT_Delay_ms(300);
 	}
 }
-
+#endif
 /* ④ ★ 位翻转极低速 CMD0（~50kHz，绕开 SPI 外设）—— 判别力最强、且【不用动任何线】
  *    低速能答 R1=0x01  -> 硬件 SPI 那条路没错，是信号完整性（线长/干扰/接触）✗
  *    低速也全 0xFF     -> 排除速度因素，锁定电源/线/卡/模块 ✓
  *    跑完自动恢复硬件 SPI ✓ 然后正常流程继续跑（所以一次烧录能同时看到它和 SD_Init 的结果 ✓）*/
+ #if PROBE_SD_BITBANG
 static void BB_WriteByte(uint8_t b)
 {
 	uint8_t i;
@@ -1078,7 +1129,7 @@ void SD_BitBangProbe(void)
 	              got ? "card answered 0x01 -> CARD ALIVE; trouble = signal integrity (wire/contact/noise)"
 	                  : "no valid 0x01 -> power / wire / card / module  (mode mismatch not ruled out)");
 }
-
+#endif
 /*==============================================================================
  *  ★★ 逐字节"慢节奏"初始化诊断（2026-10-05 加）—— 定位到底哪一步失步
  *  与 SD_Init 的唯一区别（故意的）：
@@ -1090,8 +1141,9 @@ void SD_BitBangProbe(void)
  *    · 这个慢版本【能过】-> 问题在【节奏太紧】（背靠背命令 / 无间隙）
  *    · 这个慢版本【也过不了】-> 问题不在节奏，看它吐的具体字节
  *    · ACMD41 那 8 个字节：全 FF=没响应 / 01=忙 / 00=就绪 / 其他=垃圾(看什么形状)
- *  用法：main.c 里 TEST_SD_PROBE = 5（它自己跑，不调 SD_Init ✓）
+ *  用法：User\ProbeConfig.h 里把 PROBE_SD_VERBOSE 置 1 ✓（它自己跑，不调 SD_Init ✓）
  *============================================================================*/
+ #if PROBE_SD_VERBOSE
 void SD_VerboseInit(void)
 {
 	uint8_t r1, i, k;
@@ -1148,7 +1200,7 @@ void SD_VerboseInit(void)
 
 	Serial_Printf("V: done\r\n");
 }
-
+#endif
 /*==============================================================================
  *  ★★ 扩容假卡检测（只读 ✓ 绝对安全 ✓ 2026-10-05 加）
  *  原理：扩容假卡的高地址会【回绕】到开头 ✗
@@ -1163,6 +1215,7 @@ void SD_VerboseInit(void)
  *  前提：调用前卡必须已初始化 ✓（本函数不调 SD_Init ✓）
  *  用法：main.c 里在 SD 测试之后调一次 ✓
  *============================================================================*/
+ #if PROBE_SD_FAKECARD
 void SD_FakeCardProbe(void)
 {
 	static uint8_t buf[512];              /* ★ 512B 必须 static：栈上放不下 ✓ */
@@ -1215,3 +1268,4 @@ void SD_FakeCardProbe(void)
 	 *   （工程铁律：字符串字面量里不许有中文 ✓ 中文只能写进注释 ✓）*/
 	Serial_Printf("---- end (real card: only sec 0 has 55 AA at 510) ----\r\n");
 }
+#endif

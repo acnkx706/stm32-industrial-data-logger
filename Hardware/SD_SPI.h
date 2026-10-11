@@ -43,8 +43,27 @@ SD_Result_t SD_ReadBlocks (uint8_t       *buf, uint32_t sector, uint32_t count);
 SD_Result_t SD_WriteBlocks(const uint8_t *buf, uint32_t sector, uint32_t count);  /* 写 1~N 块（每块 512B） */
 uint8_t     SD_GetCardType(void);                                           /* 返回 SD_CT_xxx，调试/ioctl 用 */
 const char *SD_ErrorStr(SD_Result_t err);                                   /* 错误码 → 可读字符串（串口报错用） */
+/* ---- ★ 硬件排查探针（开关在 User\ProbeConfig.h ✓ 关掉时不编译、也不声明 ✓）----
+ * ★ 声明也必须跟着开关走 ✗ —— 否则关了之后头文件还声明着，
+ *   调用方若不慎引用就会链接报未定义 ✓（虽然只是声明不占 Flash，但语义上要一致 ✓）*/
+#include "ProbeConfig.h"
+
+#if PROBE_SD_LOOPBACK
 void SD_LoopbackTest(void);
+#endif
+#if PROBE_SD_PINFINDER
 void SD_PinFinder(void);
+#endif
+#if PROBE_SD_MISO
 void SD_MisoProbe(void);
+#endif
+#if PROBE_SD_BITBANG
 void SD_BitBangProbe(void);
+#endif
+#if PROBE_SD_VERBOSE
+void SD_VerboseInit(void);
+#endif
+#if PROBE_SD_FAKECARD
+void SD_FakeCardProbe(void);
+#endif
 #endif
