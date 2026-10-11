@@ -820,6 +820,16 @@
               <FileType>5</FileType>
               <FilePath>.\Hardware\Crc16.h</FilePath>
             </File>
+            <File>
+              <FileName>DHT22.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\DHT22.c</FilePath>
+            </File>
+            <File>
+              <FileName>DHT22.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\DHT22.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -884,6 +894,11 @@
               <FileName>task_sd.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\User\task_sd.h</FilePath>
+            </File>
+            <File>
+              <FileName>ProbeConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\ProbeConfig.h</FilePath>
             </File>
           </Files>
         </Group>

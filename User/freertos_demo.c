@@ -20,6 +20,7 @@
 #include "DWT_Delay.h"
 #include "AD.h"
 #include "DS18B20.h"
+#include "DHT22.h"                 /* ★ DHT22 温湿度（PB15 ✓ 模块自带 10k 上拉 ✓）*/
 #include "BMP280.h"                /* ★ BMP280 气压（与 MPU6050 共用 PA2/PA3 软件 I2C ✓）*/
 #include "task_sd.h"                    /* ★ R1 集成：SD 交接接口/乒乓缓冲/task_SD 本体 */
 #include "MyRTC.h" 
@@ -143,8 +144,30 @@ volatile int16_t g_temp_x100 = DS18B20_INVALID;
  *    ★ 为什么是 volatile：task_sensor(prio1) 写、task_PROC(prio2) 读 ✓
  *      —— 跨任务可见性必须靠它 ✓（不加会被编译器缓存进寄存器 ✗）*/
 volatile int32_t g_press_x10pa = 0;
-/* BMP280 自己的温度 ×100 °C（备用/对照用 ✓ 不进记录格式 —— 格式里 temp_chip 是 MPU 的 ✓）*/
+/* BMP280 自己的温度 ×100 °C —— ★★ 目前【只写不读】✗（2026-10-11 独立审查 F18 指出）
+ *   ★ 处置：保留并标注"预留"✗ —— 而不是删掉 ✓
+ *     理由：它是个【有用的交叉校验量】✗（BMP280 的温度 vs DS18B20 的温度 ✓
+ *           本次实测两者差 0.87°C ✓ 在 ±1°C 内 ✓✓）
+ *   ★ 记录格式里【没有它的位置】✗（temp_chip 那个字段已经被 MPU6050 的片内温度占了 ✓）
+ *     → 所以只能先读出来放着 ✓ 将来做"传感器互检/故障诊断"时直接用 ✓✓
+ *   ★ 当前唯一的实际用途：配合 g_press_x10pa 一起写 ✓ 便于以后排查"气压读数异常"时
+ *     判断是"传感器坏了"还是"温度补偿出错"（气压公式依赖温度 ✓）✓ */
 volatile int16_t g_bmp_temp_x100 = 0;
+
+/* ★★ DHT22 湿度 ×10 %RH（2026-10-11 加 ✓）—— 例 653 = 65.3% RH
+ *   · 读失败 / 未接 → 【0xFFFF】✗ ✓（★ 记录格式的"无效"约定 ✓）
+ *   · ★ 为什么是 volatile：task_sensor(prio1) 写、task_ACQ(prio6) 读 ✓
+ *   ★★ 记录里 humi 字段【早就留好了位置】✗（16 列里的第 13 列 ✓）
+ *      以前恒 0xFFFF ✗ → 现在开始填真值 ✓✓ */
+volatile uint16_t g_humi_x10 = 0xFFFF;
+
+/* ★★ DHT22 自己的温度 ×10 °C —— ★【只写不读】✗ 和 g_bmp_temp_x100 同性质
+ *   ★ 处置：保留并标注"预留"✗ 而不是删掉 ✓
+ *   · 理由：它是个【交叉校验量】✗ —— DHT22 温度 vs DS18B20(DHT22 自身会发热 ✓)
+ *     ★★ 用途：将来做"传感器互检"时，它能帮着分辨
+ *       "是 DS18B20 坏了"还是"环境真的变了" ✓✓
+ *   ★ 记录格式里【没有它的位置】✗（temp_ds 是 DS18B20 的、temp_chip 是 MPU 的 ✓）*/
+volatile int16_t g_dht_temp_x10 = 0;
 
 /* ---- 按键相关的两个任务间信息通道（状态类/事件类分流，执行表 T1.3 设计） ---- */
 
@@ -349,9 +372,20 @@ void task_ACQ(void *pvParameters)//100ms定时器
      rec.gz=gz;
 	 rec.temp_ds=g_temp_x100;
 	 rec.temp_chip =MPU6050_TempX100(tchip);
-	 rec.humi      = 0xFFFF;
+	 rec.humi      = g_humi_x10;               /* ★ 2026-10-11：DHT22 真值 ✓
+	                                            *   （未接 / 读失败 = 0xFFFF ✓ 契约见 30 号 §15.2 ✓）*/
 	 rec.light= AD_Value[0];
-	 rec.vbat= 0xFFFF;
+	 rec.vbat      = AD_Value[1];              /* ★★ 2026-10-11：分压已装 ✓（20k+10k → 比 3 ✓）
+	                                            *
+	                                            *  ★ 来源：PB0 = ADC1_IN8 ✓ 由 DMA 后台连续刷新 ✓
+	                                            *  ★★ 存的是【原始值 0~4095】✗ 不是电压 ✓（契约见 30 号 §15.2 行 429 ✓）
+	                                            *     理由：原始值不丢信息 ✓ 换供电/换分压后【旧数据仍可用】✓✓
+	                                            *  ★★★ 换算（PC 侧做 ✓）：
+	                                            *     V = 原始值 × VDDA / 4095 × 3
+	                                            *     （★ VDDA 想更准可以用 AD_ReadVrefint() 反推 ✓）
+	                                            *  ★ 当前接的是【板子 5V 排针】= USB 的 5V ✗
+	                                            *     预期原始值 ≈ 2068 ✓（= 5.0V ✓）
+	                                            *     ★ 注意：5V 和 VDDA(3.3V) 不同源 → 能测出变化 ✓✓ */
 	 rec.crc       = 0;
 		
 	
@@ -617,7 +651,8 @@ else
 		 *     sd_last=0         -> 无错误史
 		 *     sd_last=3(FR_NOT_READY) -> 没插卡 / 接触不良（最常见）
 		 *   ⚠️ sd_err=0 只说明【任务侧认为卡在】，最终仍以"拔卡插 PC 能读到完整
-		 *      LOG0001.CSV"为准（T2.6①）—— 这个字段是给现场快速判读用的，不是替代物
+		 *      YYMMDDNN.CSV"为准（T2.6①）—— 这个字段是给现场快速判读用的，不是替代物
+		 *      （★ 2026-10-11 更新：文件名已从 LOGxxxx.CSV 改成 YYMMDDNN.CSV ✓）
 		 * ★★ heap / heapmin（2026-10-09 加）：判据看【heapmin】不是 heap ✗ ——
 		 *    heapmin 下降后不再回升 = 内存泄漏 ✗✓；完整说明见上面 STAT(key) 那段 ✓ */
 		Serial_Printf("STAT acq=%lu proc=%lu full=%lu qmax=%lu drop=%lu i2c=%u i2c_max=%u sd_err=%u sd_last=%u heap=%u heapmin=%u\r\n",
@@ -703,6 +738,11 @@ void task_DISP(void *pvParameters)
 void task_sensor(void *pvParameters)
 {
 	int16_t raw;
+	/* ★★ DHT22 分频计数器（2026-10-11 加 ✓）
+	 *   · DHT22 要求采样间隔【≥2 秒】✗ 而本任务节奏是 1 秒一拍 ✓
+	 *   · 所以每 2 拍读一次 ✓（★ 初值给 1 → 第一拍就变 2 → 首次立即读 ✓）
+	 *   ★ 用 static：生命周期贯穿整个任务 ✓ */
+	static uint32_t s_sensor_tick = 1u;
 
 	(void)pvParameters;
 
@@ -741,6 +781,38 @@ void task_sensor(void *pvParameters)
 				g_press_x10pa   = 0;            /* ★ 无效 → 0（"未接"约定 ✓）*/
 			}
 			xSemaphoreGive(s_i2c_lock);
+		}
+
+		/*========================================================================
+		 *  ★★ DHT22 温湿度（2026-10-11 加 ✓）—— 每 2 拍读一次（= 2 秒 ✓）
+		 *
+		 *  ★ 为什么放在这里（BMP280 之后 ✓）：
+		 *    · DS18B20 的 750ms 等待已经过去 ✗ → 这一拍不急 ✓
+		 *    · ★★ 和 DS18B20 在本任务里【顺序执行】✗
+		 *      → 两个临界区【不会重叠】✓（最坏是连续约 12ms ✓）
+		 *
+		 *  ★★ 中断占用（改之前已核算 ✓ 见 30 号）：
+		 *    · DHT22 整帧 4.8ms 全在临界区 ✗（位间隙没有容错空间 ✓ 必须整帧包 ✓）
+		 *    · 每 2 秒一次 → 2.4ms/s ✗
+		 *    · 加 DS18B20 的 7.2ms/s → 合计 ≈ 0.96% ✓ 可接受 ✓
+		 *    ⚠️ 代价：最坏连续约 12ms 关中断 ✗ → 会丢几个 tick ✓
+		 *       → vTaskDelay 漂移 <1.2% ✓（★ 长稳时要重新量 tick 步进分布 ✓）
+		 *========================================================================*/
+		s_sensor_tick++;
+		if ((s_sensor_tick & 1u) == 0u)
+		{
+			uint16_t h_x10 = 0xFFFF;
+			int16_t  t_x10 = 0;
+
+			if (DHT22_Read(&h_x10, &t_x10))
+			{
+				g_humi_x10     = h_x10;
+				g_dht_temp_x10 = t_x10;
+			}
+			else
+			{
+				g_humi_x10 = 0xFFFF;            /* ★ 无效 → 0xFFFF（"未接"约定 ✓）*/
+			}
 		}
 
 		vTaskDelay(pdMS_TO_TICKS(250));         /* 750 + 250 = 1 秒一拍 */

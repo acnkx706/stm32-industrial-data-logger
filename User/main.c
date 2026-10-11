@@ -24,9 +24,11 @@
 #include "DWT_Delay.h"
 #include "SD_SPI.h"
 #include "DS18B20.h"
+#include "DHT22.h"                 /* ★ DHT22 温湿度（PB15 ✓ 模块自带 10k 上拉 ✓）*/
 #include "MyI2C.h"                 /* ★ BMP280 与 MPU6050 共用这条软件 I2C（PA2=SCL / PA3=SDA）*/
 #include "BMP280.h"
 #include "MyRTC.h"  
+#include "ProbeConfig.h"
 
 /*==============================================================================
  *  ★ BMP280 探针（2026-10-09）—— 只做"扫地址 + 读 ID"，先认型号再写驱动
@@ -46,6 +48,7 @@
  *  ★ 附带作用：全地址扫描会顺带扫出 MPU6050（0x68）✓
  *     → 若 0x68 应答而 0x76/0x77 不应答 = 【总线是好的，只是 BMP280 没接上】✓✓
  * ============================================================================*/
+ #if PROBE_BMP280_SCAN
 static uint8_t I2C_Probe(uint8_t addr)              /* 返回 1 = 有器件应答 ✓ */
 {
 	uint8_t ack;
@@ -101,7 +104,7 @@ static void BMP280_Probe(void)
 		              (unsigned)found);
 	}
 }
-
+#endif
 
 int main(void)
 {int16_t oax, oay, oaz, ogx, ogy, ogz;
@@ -141,9 +144,19 @@ int main(void)
 	/* ---------- 第二批：传感器 ---------- */
 	MPU6050_Init();
 	Serial_Printf("MPU ID = %02X (expect 68)\r\n", MPU6050_GetID());
+	/* ★ 硬件探针：I2C 全地址扫描 + 认型号 ✗ —— 只在排查期跑 ✓
+	 *   ★★ 关掉它【不影响】BMP280 的正式流程 ✗：下面那段 Init/SelfTest/Read
+	 *      是【无条件】跑的 ✓✓
+	 *   ⚠️ 这里踩过一次坑（2026-10-10 自查抓到）：一开始把 #endif 放到了整段末尾 ✗
+	 *      → 关掉开关会把【正式流程也一起关掉】✗✓
+	 *      → 后果是【静默故障】✗：BMP280_Init 没跑 → 校准系数没读 →
+	 *        气压全错，但一切"看起来正常" ✓（★ 正是工程里最怕的那类 ✗） */
+	#if PROBE_BMP280_SCAN
 	BMP280_Probe();                        /* ★ 顺手确认 I2C 总线 + 认 BMP280 型号 ✓
 	                                        *   （MyI2C_Init 已在 MPU6050_Init 里调过 ✓）*/
-		/* ================= ★ BMP280 正式驱动测试（2026-10-09）=================
+	#endif
+
+	/* ================= ★ BMP280 正式驱动测试（2026-10-09）=================
 	 * 顺序：Init（认型号+读校准）→ SelfTest（手册算例，验公式）→ Read（真读数）
 	 * ★ 两个锚点：
 	 *   ① SelfTest：期望 T=2508（25.08°C）/ P=100653 Pa
@@ -176,6 +189,7 @@ int main(void)
 			}
 		}
 	}
+
 	Serial_Printf("LIGHT DO = %u\r\n", LightSensor_Get());
 	Serial_Printf("gyro calibrating, keep still for 2s ...\r\n");
 	DWT_Delay_ms(2000);
@@ -201,26 +215,48 @@ int main(void)
 	
 		
 
-	/* ============ 调试期测试开关（正式跑记录时两个都设 0）============
-	 * TEST_DS18B20 = 1：单次读一次 DS18B20（PB14）并打印
-	 * TEST_SD      = 1：SD 卡初始化 + 读扇区 0 验 MBR（换好板子/卡之后再打开）
-	 * 硬件排查探针（回环 / PinFinder / MISO 探针）已存档到
-	 *   stm32\_临时脚本\SD_排查探针.md —— 需要时贴回 SD_SPI.c 末尾
-	 * ============================================================= */
-	#define TEST_DS18B20   0      /* DS18B20 已调通（探针待清理）-> 关掉，让 SD 输出干净 ✓ */
-	#define TEST_SD        1     /* ★ 2026-10-05 换 USB 线后电压恢复正常 -> 重测 SD 卡 ✓ */
+	/* ============ 调试期测试开关（★ 2026-10-11 更新：全部集中到 User\ProbeConfig.h ✓）============
+	 *   ★★ 这里只做【别名】✗ —— 真正的开关值请去 ProbeConfig.h 改 ✓
+	 *     TEST_DS18B20_ON / TEST_SD_ON 的定义都在那里 ✓
+	 *
+	 *   ★ 硬件排查探针（回环 / PinFinder / MISO / 位翻转 / 详细初始化 / 假卡）
+	 *     同样在 ProbeConfig.h 里用 PROBE_SD_xxx 控制 ✓
+	 *     ★★ 关掉时那些函数【根本不编译】✗ → Flash 占用为零 ✓✓
+	 *        （比原来"贴回 SD_SPI.c 末尾"的手工作业好 ✓ 现在改一个宏即可 ✓）
+	 *
+	 *   ★ 探针跑在 SD_Init() 之前 ✗ 它自己会反复折腾卡（发 CMD0 / 翻时钟 ✓）
+	 *     → 会把卡留在【失步状态】✗ → 紧接着的 SD_Init 连 CMD0 都答不上 ✗
+	 *       （实测踩过：开着探针那一轮 = NO_CARD ✓）
+	 *     ★ 所以：正式跑记录时【探针全关】✗；任何探针跑完后要再测 SD，
+	 *       都必须【先给 SD 模块断电重上电】✓
+	 * ======================================================================================= */
+	#define TEST_DS18B20   TEST_DS18B20_ON      /* ★ 开关值见 ProbeConfig.h ✓ */
+	#define TEST_SD        TEST_SD_ON           /* ★ 开关值见 ProbeConfig.h ✓ */
 
-	/* ★ SD 硬件探针选择（实现在 Hardware\SD_SPI.c 末尾 ✓ 跑完自动恢复硬件 SPI ✓）
-	 *   0 = 不跑（正式测试用）
-	 *   1 = 回环自检      —— 需【拔掉模块 4 根线】+ 短接 PA6<->PA7 ✓
-	 *   2 = 引脚识别      —— 需万用表（死循环，不返回 ✓）
-	 *   3 = MISO 通路     —— 需把模块 MISO 针接 GND（串 1k~10k 电阻 ✓ 死循环 ✓）
-	 *   4 = ★ 位翻转 50kHz CMD0 —— 【不用动任何线】✓ 结果直接打在串口上 ✓ 推荐先用它 ✓ */
-	/* ★★ 2026-10-05：测 SD 一律用 0 ✗ —— 探针跑在 SD_Init() 之前，它自己会反复折腾卡
-	 *    （发 CMD0 / 翻时钟 ✓），会把卡留在【失步状态】✗
-	 *    → 紧接着的 SD_Init 连 CMD0 都答不上 ✗（实测踩过：开着探针那一轮 = NO_CARD ✓）
-	 *    ★ 任何探针跑完后，要再测 SD，都必须【先给模块断电重上电】✓ */
-	#define TEST_SD_PROBE  0
+	/* ★★ DHT22 初始化 + 开机自检读取（2026-10-11 加 ✓）
+	 *   · DHT22_Init 只调一次 ✗（配 PB15 为开漏 + 释放总线 ✓）
+	 *   · ★ 这里读一次是为了【开机就知道它在不在】✗ ——
+	 *     存在性靠"能不能拿到合法校验和"判断 ✓
+	 *     （★ DHT22 没有 DS18B20 那种独立的存在脉冲 ✗ 只能靠整帧成功与否 ✓）
+	 *   · ★★ 任务侧仍在 task_sensor 里每 2 秒读一次 ✓（这里是额外的开机自检 ✓）
+	 *     两次读之间的间隔【远超 2 秒】✓ —— 后面还有 MPU 校准(2s) + SD 初始化 ✓✓ */
+	{
+		uint16_t h_x10 = 0xFFFF;
+		int16_t  t_x10 = 0;
+
+		DHT22_Init();
+		if (DHT22_Read(&h_x10, &t_x10))
+		{
+			Serial_Printf("DHT22: humi=%u.%u %%RH  temp=%d.%d C\r\n",
+			              (unsigned)(h_x10 / 10u), (unsigned)(h_x10 % 10u),
+			              (int)(t_x10 / 10), (int)((t_x10 % 10 + 10) % 10));
+			Serial_Printf("DHT22: (compare with DS18B20 below; DHT22 self-heats a bit)\r\n");
+		}
+		else
+		{
+			Serial_Printf("DHT22: READ FAILED (check PB15 wiring / module pull-up)\r\n");
+		}
+	}
 
 #if (TEST_DS18B20)
 	Serial_Printf("---- DS18B20 test (PB14) ----\r\n");
@@ -307,16 +343,21 @@ int main(void)
 		extern void SD_MisoProbe(void);
 		extern void SD_VerboseInit(void);      /* ★ 逐字节慢节奏初始化诊断 ✓ */
 
-#if   (TEST_SD_PROBE == 1)
+#if   PROBE_SD_LOOPBACK
+		extern void SD_LoopbackTest(void);
 		SD_LoopbackTest();                 /* 5 行全 OK = MCU 侧清白 ✓ */
-#elif (TEST_SD_PROBE == 2)
+#elif PROBE_SD_PINFINDER
+		extern void SD_PinFinder(void);
 		SD_PinFinder();                    /* 量模块端：1s=SCK 2s=MOSI 4s=CS ✓ */
-#elif (TEST_SD_PROBE == 3)
+#elif PROBE_SD_MISO
+		extern void SD_MisoProbe(void);
 		SD_MisoProbe();                    /* MISO 针接 GND -> 读数应变 0x00 ✓ */
-#elif (TEST_SD_PROBE == 4)
+#elif PROBE_SD_BITBANG
+		extern void SD_BitBangProbe(void);
 		Serial_Printf("---- BitBang probe: 50kHz CMD0 (no rewiring needed) ----\r\n");
 		SD_BitBangProbe();                 /* 能答 -> 信号完整性 ✗ / 不能答 -> 电源·线·卡·模块 ✓ */
-#elif (TEST_SD_PROBE == 5)
+#elif PROBE_SD_VERBOSE
+		extern void SD_VerboseInit(void);  /* ★ 逐字节慢节奏初始化诊断 ✓ */
 		/* ★★ 逐字节慢节奏初始化诊断：每步抬 CS + 插 2ms，ACMD41 多读 8 字节全打出来 ✓
 		 *   看点：CMD55 的 R1 是多少；ACMD41 那 8 个字节长什么样
 		 *   （如果这个慢版本能过 -> 问题是"节奏太紧" ✓；过不了 -> 看它吐的字节 ✓）*/
@@ -371,12 +412,47 @@ int main(void)
 					 *   -> 原来写的"分区后"目标 7,744,512 = 【第一个越界扇区】✗
 					 *      -> 报 CMD FAILED（R1 bit5 = address error ✓）【不是假卡】✓
 					 *   -> 改成写【分区之内且为空】的位置 ✓（卡上没有文件 ✓ 安全 ✓）*/
+					/* ★★★★ 2026-10-11 修复：删掉两个"分区内"的写目标 ✗✗
+					 *   这是本机历史上最隐蔽的一个 bug ✓（伪装成"测试通过" ✗）
+					 *
+					 *   ★ 原来的三个目标（用实测数据推 ✓）：
+					 *     part1 start = 8192 ✗（type=0x0C = FAT32 ✓）
+					 *     ① start-1       = 8191     分区【之前】✓ 安全 ✓
+					 *     ② start+100     = 8292   ✗ ★★ 分区内偏移 100
+					 *     ③ start+n-1000  = 7743512 ✗ 分区内靠尾
+					 *
+					 *   ★★ FAT32 的分区布局（关键 ✗）：
+					 *     扇区 0 = 引导扇区 BPB ✓ / 1 = FSInfo ✓ / 2~5 = 保留 ✓
+					 *     ★ 扇区 6 起 = 【FAT1】✗（FAT 表大小随容量，通常几百个扇区 ✓）
+					 *     → ★★★ 【偏移 100 正好落在 FAT1 里】✗✓!!
+					 *
+					 *   ★★★★ 后果（实测链条 ✓）：
+					 *     · 测试段往 FAT 表写了 0xA5^j / 0x5A+j 的垃圾 ✗
+					 *     · ★★ 但它【自己读回验证 PASS】✗ —— 它验的是自己刚写的图案 ✓
+					 *       → 【看起来完全正常】✗✓ 这是它最坑的地方 ✓
+					 *     · FatFs 之后挂载 → 读到垃圾 FAT ✗
+					 *       → ★【f_open 全部返回 FR_DENIED(7)】✗✓
+					 *         （实测：sd_last=7 恒定 ✓ drop 每秒 +10 ✓ 全链路丢数据 ✓）
+					 *     · ★★★ 而且每次上电都写一次 ✗ → 【格式化也救不了】✗✓
+					 *       （格式化后测试段立刻又写坏 ✓ —— 所以"格式化没用"✓）
+					 *
+					 *   ★ 原注释写着"空卡安全"✗ —— 它只考虑了"不破坏已有数据"✗
+					 *     没考虑"写完垃圾之后 FatFs 还挂不挂得上"✗✓（这就是盲点 ✓）
+					 *
+					 *   ★★ 修法：
+					 *     · ★ 只保留【分区之前】那个 ✗ —— 那里与文件系统无关 ✓
+					 *     · ★★ 而且它能回答"SD_WriteBlocks 本身能不能工作"✓
+					 *     · ★★★ "能不能稳定写"交给【正式功能】去验 ✓
+					 *       （task_sd 真写卡 ✗ 就是最好的写测试 ✓✓ 不需要往管理区写 ✓）*/
 					if (start_sec >= 2u)
 					{
-						targets[ntargets++] = start_sec - 1u;         /* ① 分区前空档（可能受保护 ✗）*/
+						targets[ntargets++] = start_sec - 1u;         /* ★ 只留这个：分区前空档 ✓ */
 					}
-					targets[ntargets++] = start_sec + 100u;           /* ② 分区内 FAT 区（空卡安全 ✓）*/
-					targets[ntargets++] = start_sec + n_sec - 1000u;  /* ③ 分区内靠尾（空卡安全 ✓）*/
+					else
+					{
+						Serial_Printf("  (no safe write target: start_sec=%lu too low)\r\n",
+						              (unsigned long)start_sec);
+					}
 
 					for (t = 0; t < ntargets; t++)
 					{
@@ -425,7 +501,7 @@ int main(void)
 	/* ★★ 扩容假卡检测（只读 ✓ 绝对安全 ✓）
 	 *   放在 SD 测试之后：此时若 SD_Init 成功，卡已初始化 ✓
 	 *   （若 SD_Init 失败，下面的读会直接报错，也无害 ✓）*/
-#if (TEST_SD)
+#if (TEST_SD) && PROBE_SD_FAKECARD
 	{
 		extern void SD_FakeCardProbe(void);
 		SD_FakeCardProbe();
