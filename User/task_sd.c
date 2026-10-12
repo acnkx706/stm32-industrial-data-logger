@@ -276,6 +276,207 @@ BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len)
  *  内部：挂载 + 打开（或续写）日志文件
  *  返回 FR_OK = 可以开始写了；其他 = 未挂载态继续等
  *==========================================================================*/
+/*============================================================================
+ *  ★★★★ F2：读文件【最后一条记录的 rtc】（2026-10-12 加 ✓）
+ *
+ *  ★ 为什么需要它 ✗：★ 没装 CR2032 ✗ → 每次上电用【编译时刻】初始化 RTC ✓
+ *     → 如果【烧回旧固件】✗ → 时间倒退 ✓
+ *     → ★★ 那次挂载会去【续写"过去那天"的文件】✗ → 时间线不单调 ✓✓
+ *
+ *  ★★ 做法：★ 从文件末尾【倒回一段】✗ → 找最后一个 '\n' ✓
+ *    → 解析那一行的第 4 个字段（rtc ✓）
+ *    ★ 一行约 90 字节 ✗ → 【读 256 字节一定够】✓✓
+ *    ★★ 而且【调用点已经在它之前封过残行】✗✓
+ *      → 所以最后一行是【完整的】✓ 不用担心半行 ✓✓
+ *
+ *  ★ 返回 0 = 读不到 / 文件太短 / 解析失败 ✓（调用者据此跳过检查 ✓）
+ *  ★★ 注意：本函数会【改变文件指针】✗ —— 调用者之后必须重新 lseek 到末尾 ✓✓
+ *
+ *  ★★★ 2026-10-12 改版 ✗：★ 增加 line/linesz 输出【那一行的原文】✗✓
+ *    · ★ 原因：★ 用户的设计要求【把"偏差那一行"拎出来留证据】✗✓
+ *    · ★★ 所以【不能只返回 rtc ✗ 还要把原文带出去】✓✓
+ *============================================================================*/
+static uint32_t SD_ReadLastLine(FIL *fp, char *line, uint16_t linesz)
+{
+	uint8_t  buf[256];
+	UINT     br   = 0u;
+	FSIZE_t  sz;
+	FSIZE_t  from;
+	FRESULT  fr;
+	uint32_t v = 0u;
+	int      i, j, field;
+
+	if (fp == NULL) { return 0u; }
+	if (line != NULL) { line[0] = '\0'; }
+
+	sz = f_size(fp);
+	if (sz < 8u) { return 0u; }                 /* ★ 太短 → 没有数据行 ✓ */
+
+	from = (sz > (FSIZE_t)sizeof(buf)) ? (sz - (FSIZE_t)sizeof(buf)) : 0u;
+
+	fr = f_lseek(fp, from);
+	if (fr != FR_OK) { return 0u; }
+	fr = f_read(fp, buf, (UINT)(sz - from), &br);
+	if ((fr != FR_OK) || (br == 0u)) { return 0u; }
+
+	/* ★★★ 从末尾往回找 '\n' ✗ —— ★★ 注意【末尾本来就有 '\n'】✗✓!!
+	 *
+	 *  ⚠️ 这里原来是【只找一次】✗ → 【2026-10-12 实测踩到的 bug】✓：
+	 *    · ★ 文件每行都以 "\r\n" 结尾 ✗ → buf 最后一个是 '\n' ✓
+	 *    · ★★ `i = br-1` 正好指向它 → while 条件不成立 → 一次都不进 ✓
+	 *    · ★★★ `i++` 之后 i == br ✗ → 后面的解析循环【一次都不执行】✓
+	 *    · ★★★★ v 保持 0 → return 0 ✗ → 调用者【跳过检查 ✗ 静默通过】✓✓
+	 *    → 现象：用户把最后一行 rtc 改成未来值 ✗ 试两次【完全没反应】✓
+	 *
+	 *  ★ 正确做法：★ 【先跳过末尾的 \r\n ✗ 再找上一行的结尾 '\n'】✓✓ */
+	i = (int)br - 1;
+	if ((i >= 0) && (buf[i] == (uint8_t)'\n')) { i--; }     /* ★ 跳过末尾 '\n' ✓ */
+	if ((i >= 0) && (buf[i] == (uint8_t)'\r')) { i--; }     /* ★ 跳过 '\r' ✓ */
+	while ((i >= 0) && (buf[i] != (uint8_t)'\n')) { i--; }  /* ★ 再找上一个 '\n' ✓ */
+	i++;                                                     /* ★ 指向最后一行开头 ✓ */
+
+	/* ★★★ 把这一行的【原文】拷出去 ✗✓（★ 供"留证据"用 ✓）
+	 *   · ★ 遇到 '\r' / '\n' 就停 ✓（★ 不带行尾 ✓）
+	 *   · ★★ 长度受 linesz 限制 ✗ → 【超长就截断 ✓ 但 '\0' 一定补上】✓✓ */
+	if (line != NULL)
+	{
+		int k = 0;
+		for (j = i; (j < (int)br) && (k < ((int)linesz - 1)); j++)
+		{
+			if ((buf[j] == (uint8_t)'\r') || (buf[j] == (uint8_t)'\n')) { break; }
+			line[k] = (char)buf[j];
+			k++;
+		}
+		line[k] = '\0';
+	}
+
+	/* ★★ 数逗号 ✗ → 第 4 个字段（field == 3 ✓）就是 rtc ✓ */
+	field = 0;
+	for (j = i; j < (int)br; j++)
+	{
+		if (buf[j] == (uint8_t)',')
+		{
+			if (field >= 3) { break; }      /* ★ rtc 字段已结束 ✓ */
+			field++;
+			continue;
+		}
+		if (field == 3)
+		{
+			if ((buf[j] >= (uint8_t)'0') && (buf[j] <= (uint8_t)'9'))
+			{
+				v = v * 10u + (uint32_t)(buf[j] - (uint8_t)'0');
+			}
+			else
+			{
+				break;                      /* ★ 非数字 → 结束 ✓ */
+			}
+		}
+	}
+	return v;
+}
+
+/*============================================================================
+ *  ★★★★ F2：把"偏差那一行"留证据（★ 用户设计 ✓ 2026-10-12）
+ *
+ *  ★ 做什么 ✗：★ 往 `2610MMDD90.CSV` 追加【两行】✓
+ *    · ★ 第 1 行：★ 说明（'#' 开头 ✗ 一眼看出是注释 ✓）
+ *      —— 含【来源文件名 / file_rtc / now / 偏差秒数】✓
+ *    · ★★ 第 2 行：★ 那一行的【原文】✗✓（★ 原始现场 ✓）
+ *  ★★ 文件不存在 ✗ → 【先写标准表头】✓（★ 用户明确要求 ✓）
+ *  ★★★ 用完就关 ✗ —— 【不占着句柄 ✗ 主文件完全不受影响】✓✓
+ *  ★★★★ 输出 evname ✗ → 【调用者要"切换"时，用它重新打开】✓✓
+ *============================================================================*/
+static FRESULT SD_AppendEvidence(const char *src,
+                                 uint32_t file_rtc, uint32_t now_ts,
+                                 const char *rawline,
+                                 char *evname, uint16_t evnamesz)
+{
+	FIL     ef;
+	FRESULT fr;
+	char    txt[224];
+	UINT    bw  = 0u;
+	uint16_t len;
+	RTC_DateTime_t d;
+	uint16_t yy;
+	uint8_t  mm, dd;
+
+	(void)evnamesz;                         /* ★ 名字固定 14 字符 ✗ 不会溢出 ✓ */
+
+	MyRTC_GetDateTime(&d);
+	yy = (uint16_t)(d.year % 100u);
+	mm = d.month;
+	dd = d.day;
+
+	sprintf(evname, "0:%02u%02u%02u%02u.CSV",
+	        (unsigned)yy, (unsigned)mm, (unsigned)dd, 90u);
+
+	fr = f_open(&ef, evname, FA_WRITE | FA_READ | FA_OPEN_ALWAYS);
+	if (fr != FR_OK) { return fr; }
+
+	if (f_size(&ef) == 0u)
+	{
+		/* ★ 新文件 → 先写标准表头 ✓（★ 用户要求 ✓）
+		 *   ★★ 必须和主文件那份【一字不差】✗（★ 契约 ✓ 30 号 §15.2 ✓）*/
+		static const char hdr[] =
+		    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc\r\n";
+		fr = f_write(&ef, hdr, (UINT)(sizeof(hdr) - 1u), &bw);
+		if (fr != FR_OK) { (void)f_close(&ef); return fr; }
+	}
+	else
+	{
+		fr = f_lseek(&ef, f_size(&ef));
+		if (fr != FR_OK) { (void)f_close(&ef); return fr; }
+	}
+
+	/* ★ 第 1 行：说明（'#' 开头 ✗ 不会被当成数据行 ✓）*/
+	len = (uint16_t)sprintf(txt,
+	        "# TIME BACKWARD from %s : file_rtc=%lu now=%lu diff=%lds\r\n",
+	        (src != NULL) ? src : "?",
+	        (unsigned long)file_rtc, (unsigned long)now_ts,
+	        (long)((int32_t)file_rtc - (int32_t)now_ts));
+	fr = f_write(&ef, txt, len, &bw);
+	if (fr != FR_OK) { (void)f_close(&ef); return fr; }
+
+	/* ★★ 第 2 行：那一行的原文（★ 原始现场 ✓）*/
+	len = (uint16_t)sprintf(txt, "# RAW: %s\r\n",
+	                        (rawline != NULL) ? rawline : "(none)");
+	fr = f_write(&ef, txt, len, &bw);
+	if (fr != FR_OK) { (void)f_close(&ef); return fr; }
+
+	fr = f_sync(&ef);
+	(void)f_close(&ef);
+	return fr;
+}
+
+/*============================================================================
+ *  ★★★★ 【已删除】F2 原来在这里有个 SD_OpenIsolated()（2026-10-12 删 ✓）
+ *
+ *  ★ 它原来做什么 ✗：
+ *    · 时间倒退时【改用 NN = 90~99 的隔离文件】重新打开 ✓
+ *    · 设计意图：★ 把"异常期的数据"和正常序列分开 ✓
+ *
+ *  ★★★★ 为什么删掉 ✗（★ 用户拍板 ✓）：
+ *    · ★ 一旦触发就【永远触发】✗✓ ——
+ *      · RTC 落后（没 VBAT + 断过电）→ 每次挂载都判定倒退 ✓
+ *      · → ★★ 【记录【全部】跑进 90 文件】✗
+ *      · → ★★★ 而正常的 26101201.CSV 【停在那里不再增长】✓✓
+ *    · ★★ 一次偶发问题 ✗ → 【导致永久跑偏】✗✓ —— 这是【设计缺陷】✓
+ *
+ *  ★ 现在的做法 ✗：★【只报警 ✗ 继续写同一个正常文件】✓✓
+ *    · ★ 数据【全在一个文件里 ✗ 一行不丢】✓
+ *    · ★★ 也不去改/删"出问题的那一行"✗（★ 它是有效数据 ✓）
+ *    · ★★★ 代价：★ 文件里 rtc 会【先大后小】✗
+ *      → ★★★★ PC 侧按【seq】排序即可 ✓（★ seq 永远单调 ✓✓）
+ *
+ *  ★★ 根本解决 ✗：★【装 VBAT 电池】✗✓ ——
+ *    有电池后【断电 RTC 继续走 ✗ 不再倒退】✓✓
+ *    （★ 详见 30 号 §二十四 ✓）
+ *============================================================================*/
+
+/*============================================================================
+ *  内部：挂载 + 打开（或续写）日志文件
+ *  返回 FR_OK = 可以开始写了；其他 = 未挂载态继续等
+ *==========================================================================*/
 static FRESULT sd_mount_and_open(uint32_t *pidx)
 {
 	FRESULT fr;
@@ -504,6 +705,115 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
 				if (fr == FR_OK) { fr = f_sync(&s_log_file); }
 			}
 			if (fr == FR_OK) { fr = f_lseek(&s_log_file, f_size(&s_log_file)); }
+		}
+	}
+
+	/*============================================================================
+	 *  ★★★★ F2：时间回拨检测（2026-10-12 加 ✓ · 同日改版 ✗）
+	 *
+	 *  ★ 背景 ✗：★ 没装 VBAT 电池 ✗ →
+	 *    · ★ 备份域【靠 VDD 撑着】✓（★ RTC + BKP_DR1 魔数都在备份域 ✓）
+	 *    · ★★ 一旦【断电】✗ → 【计数器清零 ✗ 魔数也清零】✓
+	 *    · ★★★ 下次上电 ✗ → MyRTC_Init 看到魔数不在 ✗
+	 *      → 【用编译时刻（__DATE__/__TIME__）重设 RTC】✓✓
+	 *    → ★★★★ 所以"倒退"的本相是：★【RTC 被【重设】成编译那一刻】✗
+	 *      而【不是它自己在走】✓（★ 按复位键【不会】倒退 ✓ 只有断电才会 ✓）
+	 *
+	 *  ★★ 判据 ✗：★ 文件里【最后一条记录的 rtc】> 当前时间 ✗
+	 *     → 说明那些数据来自"未来" ✗ → ★【现在的时间落后了】✓✓
+	 *
+	 *  ★★★★ 处理（★ 2026-10-12 用户拍板设计 ✓ 分四档 ✗）：
+	 *
+	 *    ★ ① 【< 1 分钟】✗ → 【静默 ✗ 什么都不做】
+	 *       · 理由：★ 断电重启【本来就有几十秒偏差】✗
+	 *         → ★★ 【为它报警会变成【每次都报的噪声】】✓✓
+	 *
+	 *    ★★ ② 【1 分钟 ~ 1 天】✗ → ★【报警 + 留证据 ✗ 但【继续写原文件】】✓✓
+	 *       · ★ 证据 = 【往 2610MMDD90.CSV 追加两行】✗
+	 *         （★ 说明行 + 【那一行的原文】✓ 保留原始现场 ✓）
+	 *       · ★★ 理由：★【这是最典型的场景】✗（断电几小时 ✓）
+	 *         → ★★★ 时钟错了 ✗ 但【数据是准的 ✗ 不该拆散】✓✓
+	 *
+	 *    ★★★ ③ 【> 1 天】✗ → ★【报警 + 留证据 + 【切换到 90 继续记录】】✓✓
+	 *       · ★ 理由：★ 这么大的偏差 ✗ 说明【问题严重】✓
+	 *         → ★★ 【隔离 ✗ 避免继续污染正常序列】✓✓
+	 *       · ★★★ 而【护栏就在这里】✗：★ 1 天以内【绝不切换】✗
+	 *         → ★★★★ 【所以不会重现"永远跑偏"那个缺陷】✓✓
+	 *
+	 *    ★★★★ ④ 【极端值（> 10 年）】✗ → 【只报警 ✗ 不动任何文件】✓
+	 *       · ★ 理由：★ 这不像"断电"✗ 更像【卡被换 / 时间被乱改】✓
+	 *         → ★★ 【保守处理 ✗ 不信任它】✓✓
+	 *
+	 *  ★ 调用时机【很关键】✗：★ 必须在【封残行之后】✓
+	 *    —— 因为要读最后一行 ✗ 而残行会让解析失败 ✓✓
+	 *  ⚠️ 本函数会改变文件指针 ✗ → 所以【之后要恢复到末尾】✓
+	 *
+	 *  ★★ 根本解决 ✗：★【装 VBAT 电池】✗✓ —— 详见 30 号 §二十四 ✓
+	 *==========================================================================*/
+	if (fr == FR_OK)
+	{
+		char     lastline[200];
+		char     evname[24];
+		uint32_t last_rtc = SD_ReadLastLine(&s_log_file, lastline, (uint16_t)sizeof(lastline));
+		uint32_t now_ts   = MyRTC_GetUnix();
+		int32_t  diff     = (int32_t)((int32_t)last_rtc - (int32_t)now_ts);   /* ★ >0 = 倒退 ✓ */
+
+		/* ★★ 诊断打印（★ 无论有没有倒退都打 ✓）
+		 *   —— "没有输出"曾经让我误判两次 ✗ 所以这里【必须有输出】✓✓ */
+		Serial_Printf("SD: last_rtc=%lu  now=%lu  diff=%lds\r\n",
+		              (unsigned long)last_rtc, (unsigned long)now_ts, (long)diff);
+
+		/* ★ 无论走哪条路 ✗ 都要把文件指针恢复到末尾 ✓ */
+		fr = f_lseek(&s_log_file, f_size(&s_log_file));
+
+		if ((fr == FR_OK) && (last_rtc != 0u) && (diff > 0))
+		{
+			if (diff < 60)
+			{
+				/* ★ ① < 1 分钟 ✗ → 【静默】✓
+				 *   （★ 断电重启的正常抖动 ✗ 不值得报警 ✓）*/
+			}
+			else if (diff < 86400)
+			{
+				/* ★★ ② 1 分钟 ~ 1 天 ✗ → 【报警 + 留证据 ✗ 继续原文件】✓✓ */
+				Serial_Printf("SD: TIME BACKWARD %lds (<1d) - keep SAME file\r\n", (long)diff);
+				(void)SD_AppendEvidence(name, last_rtc, now_ts, lastline,
+				                        evname, (uint16_t)sizeof(evname));
+			}
+			else if (diff < (86400L * 3650L))
+			{
+				/* ★★★ ③ > 1 天 ✗ → 【报警 + 留证据 + 【切换到 90】】✓✓ */
+				Serial_Printf("SD: TIME BACKWARD %lds (>1d) - SWITCH to evidence file\r\n",
+				              (long)diff);
+
+				fr = SD_AppendEvidence(name, last_rtc, now_ts, lastline,
+				                       evname, (uint16_t)sizeof(evname));
+				if (fr == FR_OK)
+				{
+					/* ★ 切换 ✗：关主文件 → 打开 90（★ 里面已有表头 ✓）→ 定位末尾 ✓ */
+					(void)f_close(&s_log_file);
+					fr = f_open(&s_log_file, evname, FA_WRITE | FA_READ | FA_OPEN_ALWAYS);
+					if (fr == FR_OK)
+					{
+						/* ★★ 把 name 换成 90 ✗ 让后面的 "SD: log" 显示对的名字 ✓
+						 *   （★ 手工拷贝 ✗ 不为这个引入 string.h 依赖 ✓）*/
+						uint8_t k = 0u;
+						while ((evname[k] != '\0') && (k < 23u))
+						{
+							name[k] = evname[k];
+							k++;
+						}
+						name[k] = '\0';
+						fr = f_lseek(&s_log_file, f_size(&s_log_file));
+					}
+				}
+			}
+			else
+			{
+				/* ★★★★ ④ 极端值 ✗ → 【只报警 ✗ 不动文件】✓ */
+				Serial_Printf("SD: TIME BACKWARD %lds (ABSURD) - ignored (no file change)\r\n",
+				              (long)diff);
+			}
 		}
 	}
 
