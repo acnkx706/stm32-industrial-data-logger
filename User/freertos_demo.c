@@ -695,6 +695,109 @@ void task_KEY(void *pvParameters)
 }
 
 
+/*==============================================================================
+ *  ★★★★ 串口对时（2026-10-12 加 ✓）
+ *        解决"没 VBAT 时，上电时间只能到【编译时刻】"✗
+ *
+ *  ★ 为什么需要它 ✗：
+ *    · ★ 没装 VBAT ✗ → 【断电后 RTC 丢失】✓
+ *    · ★★ 上电时用【编译时刻】重设 ✗ → 【不是"现在的真实时间"】✓
+ *    · ★★★ 而且【备份域只要有电 ✗ 魔数就在 ✗
+ *      连 Rebuild + 烧录都【不会】重设】**✗✓（用户实测确认 ✓）
+ *    → ★★★★ 所以必须有【外部时间源】✗ —— ★【PC 就是现成的】✓✓
+ *
+ *  ★★ 协议（★ 越简单越好 ✗）：
+ *    PC → MCU ：`T<10 位 Unix 秒>\r\n`     例：`T1791820005\r\n`
+ *    MCU → PC ：`TIME OK -> 2026-10-12 23:46:45 (unix=...)`
+ *               `TIME BAD (...)`      ← ★ 格式错 / 超范围 / RTC 没配 ✓
+ *
+ *  ★★★ 为什么【放进 task_DISP】✗：
+ *    · ★ task_KEY 的注释明确写着【本任务不许打印】✓（★ 它优先级 2 ✗ 偏高 ✓）
+ *    · ★★ 而 Serial_Printf 是【忙等发送】✗ 一行约 5ms ✓
+ *      → 【在高优先级任务里打印会压住低优先级任务】✓
+ *    · ★★★ task_DISP 优先级 1 ✗ 而且是【输出类任务】✓
+ *      → 【回显确认信息是它的本职】✓✓
+ *    · ★★★★ 代价：★ 延迟 ≤200ms ✗ —— 对"对时"【完全无所谓】✓✓
+ *
+ *  ★★★★ 线程安全 ✗：★ 环形缓冲是【单生产者（ISR）+ 单消费者（任务）】✓
+ *    → 【天然无锁 ✗ 不需要临界区】✓✓（★ 详见 Serial.c 的说明 ✓）
+ *============================================================================*/
+#define TIMESYNC_LINE_MAX  24u
+
+static void TimeSync_Handle(const char *s, uint8_t n)
+{
+	uint32_t ts = 0u;
+	uint8_t  i;
+	RTC_DateTime_t dt;
+
+	/* ★ 只认 `T` + 10 位数字 ✗（★ 其它一律【安静丢弃 ✗ 不刷屏】✓）*/
+	if ((n != 11u) || (s[0] != 'T')) { return; }
+
+	for (i = 1u; i < 11u; i++)
+	{
+		if ((s[i] < '0') || (s[i] > '9')) { return; }
+		ts = ts * 10u + (uint32_t)(s[i] - '0');
+	}
+
+	/* ★★ 合理性护栏 ✗：★ 只接受 2020-01-01 ~ 2100-01-01 ✓
+	 *   · ★ 防呆 ✓（★ 也防【串口噪声拼出天文数字】✓）
+	 *   · ★★ 这是【最后一道闸 ✗ 不合理就【绝不写进 RTC】】✓✓ */
+	if ((ts < 1577836800u) || (ts > 4102444800u))
+	{
+		Serial_Printf("TIME BAD (out of range: %lu)\r\n", (unsigned long)ts);
+		return;
+	}
+
+	if (MyRTC_IsConfigured() == 0u)
+	{
+		Serial_Printf("TIME BAD (RTC not configured - check LSE)\r\n");
+		return;
+	}
+
+	MyRTC_SetUnix(ts);
+
+	/* ★ 回读确认 ✗ —— ★【不信任"我设了"✗ 要看"它变成什么了"】✓✓ */
+	MyRTC_GetDateTime(&dt);
+	Serial_Printf("TIME OK -> 20%02u-%02u-%02u %02u:%02u:%02u (unix=%lu)\r\n",
+	              (unsigned)dt.year % 100u, (unsigned)dt.month, (unsigned)dt.day,
+	              (unsigned)dt.hour, (unsigned)dt.minute, (unsigned)dt.second,
+	              (unsigned long)MyRTC_GetUnix());
+}
+
+/* ★ 每帧排空串口缓冲 ✗ → 拆行 → 交给 Handle ✓
+ *   ★ 用 static ✗：【跨帧保留半截命令】✓（★ 串口是按字节来的 ✗ 可能一帧只到一半 ✓）*/
+static void TimeSync_Poll(void)
+{
+	static char    s_line[TIMESYNC_LINE_MAX];
+	static uint8_t s_n = 0u;
+	int16_t ch;
+
+	while ((ch = Serial_RxPop()) >= 0)
+	{
+		char c = (char)ch;
+
+		if ((c == '\n') || (c == '\r'))
+		{
+			if (s_n > 0u)
+			{
+				s_line[s_n] = '\0';
+				TimeSync_Handle(s_line, s_n);
+				s_n = 0u;
+			}
+		}
+		else if (s_n < (uint8_t)(TIMESYNC_LINE_MAX - 1u))
+		{
+			s_line[s_n] = c;
+			s_n++;
+		}
+		else
+		{
+			s_n = 0u;       /* ★ 太长 → 丢整行 ✓（★ 免得拼出半截命令 ✓）*/
+		}
+	}
+}
+
+
 /* task_DISP：① 先拷快照 ② 状态字定长防残影
  * ③ 第4行的心跳数字用来区分【暂停】和【卡死】——没有它这个验收项无法判定
  * ④ 第4行 13~16 列是 SD 错误码 E:xx（Y2）——OLED 从"坏了"升级到"为什么" */
@@ -730,6 +833,12 @@ void task_DISP(void *pvParameters)
 		OLED_ShowString(4, 13, "E:");
 		OLED_ShowNum(4, 15, g_sd_last_err, 2);
 
+		/* ★★★★ 串口对时 ✗（2026-10-12 加 ✓）
+		 *   ★ 放在这里而不是 task_KEY ✗ ——
+		 *     因为本任务【优先级最低 ✗ 而且是输出类任务】✓
+		 *     → 【打印确认信息不会压住别人】✓✓
+		 *   ★★ 每帧都排空缓冲 ✗ → 【延迟 ≤200ms】✓ */
+		TimeSync_Poll();
 
 		vTaskDelay(pdMS_TO_TICKS(200));
 	}
@@ -843,4 +952,64 @@ void vAssertCalled(const char *pcFile, unsigned long ulLine)
 	
 	taskDISABLE_INTERRUPTS();
 	while(1){}
+}
+
+/*==============================================================================
+ *  ★★★ IWDG 独立看门狗（2026-10-12 加 ✓ 阶段 3 最后一块）
+ *
+ *  ★ 为什么现在需要它 ✗：
+ *    · 今天加了 DHT22 ✗ → 有 4.8ms 的【整帧临界区】✓
+ *    · 最坏连续约 12ms 关中断 ✗（DHT22 和 DS18B20 在同一任务里连着跑 ✓）
+ *    · ★★ 一旦哪里死循环 / 卡死 ✗ → 【目前没有任何兜底】✓✓
+ *    · ★★★ 而长稳要跑一整天 ✗ → 半夜死机【第二天才发现，丢十几个小时】✓
+ *
+ *  ★★ 喂狗点 = vApplicationIdleHook() ✗（在下面 ✓）
+ *    · 空闲任务【优先级 0 ✗ 最低】✓
+ *    · ★ 正常时：所有任务都会 vTaskDelay ✗ → 每 100ms 内必然有空闲窗口 ✓
+ *    · ★★ 任何任务【死循环】✗ → 空闲任务【拿不到 CPU】✗ → 不喂 → 复位 ✓✓
+ *
+ *  ★★ 超时 = 6.55 秒 ✗：
+ *    · LSI 40kHz ÷ 预分频 64 = 625Hz ✓
+ *    · 重装值 4095 → 4096 / 625 ≈ 【6.55 秒】✓
+ *    · ★ LSI 有 ±50% 公差 ✗ → 实际 【4.4 ~ 8.7 秒】✓
+ *    · ★★ 对 100ms 的任务周期【非常宽松】✓✓
+ *
+ *  ★★★ 启动时机【很关键 ✗】：
+ *    · IWDG 一旦 Enable() 就【不能停】✗✓
+ *    · 而启动阶段【SD 初始化可能耗好几秒】✗
+ *      （★ 实测 ACMD41 重试过 142 次 ✓ 那是好几秒 ✓）
+ *    · → ★★ 所以【必须在所有耗时初始化之后】才调 WD_Init() ✓✓
+ *      （★ 在 main.c 里，紧挨着 freertos_demo() 之前 ✓）
+ *============================================================================*/
+void WD_Init(void)
+{
+	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);   /* 允许写 PR / RLR ✓ */
+	IWDG_SetPrescaler(IWDG_Prescaler_64);           /* 40kHz / 64 = 625Hz ✓ */
+	IWDG_SetReload(4095);                           /* 4096 / 625 ≈ 6.55 秒 ✓ */
+	IWDG_ReloadCounter();                           /* ★ 先喂一次再启动 ✓ */
+	IWDG_Enable();                                  /* ★★ 启动后【不可停】✗ */
+}
+
+/*==============================================================================
+ *  ★★★ 空闲钩子：IWDG 的喂狗点（2026-10-12 加 ✓）
+ *       配合 FreeRTOSConfig.h 里 configUSE_IDLE_HOOK = 1 ✓
+ *
+ *  ★ 为什么【放这里就能检测死机】✗：
+ *    · 空闲任务【优先级 0 ✗ 最低】✓
+ *    · ★★ 只要【有一个任务不让出 CPU】✗ → 空闲任务【永远轮不到】✓
+ *      → ★★★ 钩子不跑 → 不喂 → 【6.55 秒后 IWDG 复位】✓✓
+ *
+ *  ★★ 为什么【不用担心漏喂】✗：
+ *    · 空闲任务在【每轮空闲循环】都会调这个钩子 ✓
+ *    · 系统正常时【空闲时间远多于 6.55 秒】✓ → 喂得非常勤 ✓✓
+ *
+ *  ★ 注意 ✗：
+ *    · 本钩子在【任务上下文】里跑 ✓（不是中断 ✓）可以用普通 API ✓
+ *    · ★★ 但它【霸占空闲任务】✗ → 必须极短 ✓（这里只有一条寄存器写 ✓）
+ *    · ★★ 复位后【不打印任何东西】✗ ——
+ *      想确认它触发过 ✗ → 看串口会【重新打一遍 "=== boot ==="】✗✓
+ *============================================================================*/
+void vApplicationIdleHook(void)
+{
+	IWDG_ReloadCounter();           /* ★ 空闲任务能跑到 = 系统还活着 ✓ */
 }

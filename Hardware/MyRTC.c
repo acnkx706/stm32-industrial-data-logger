@@ -213,3 +213,16 @@ void MyRTC_SetUnix(uint32_t ts)
 	RTC_WaitForLastTask();          /* ★ 写完必须等 ✓ 否则 RTC 跨时钟域写入会静默丢失 ✗ */
 }
 
+/* ★★★ MyRTC_IsConfigured —— RTC 是否【曾被正确初始化过】
+ *   ★ 为什么需要它 ✗：★ 串口对时前要确认【RTC 真的在跑】✗✓
+ *     · ★ 判据 = 【备份寄存器里的魔数在不在】✓
+ *     · ★★ 不在 ✗ → 说明【MyRTC_Init 因为 LSE 问题提前返回了】✓
+ *       → 【这时写计数器毫无意义 ✗ 该报警】✓✓
+ *   ★★★ 这也解释了【为什么烧录不会重设时间】**✗：
+ *     魔数【属于备份域 ✗ 只要有电就一直在】✓
+ *     → 所以【Rebuild + 下载 ✗ 都不会触发重设】✓✓ */
+uint8_t MyRTC_IsConfigured(void)
+{
+	return (BKP_ReadBackupRegister(RTC_BKP_DR) == RTC_BKP_MAGIC) ? 1u : 0u;
+}
+

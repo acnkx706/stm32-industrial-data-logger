@@ -54,6 +54,11 @@ void MyRTC_GetDateTime(RTC_DateTime_t *dt);
 /* 设置时间（★ 留给以后上位机/串口对时 ✓）*/
 void MyRTC_SetUnix(uint32_t ts);
 
+/* ★★★ RTC 是否曾【被正确初始化过】✗（★ 备份寄存器魔数判据 ✓）
+ *   ★ 0 = 没配过 ✗ → 【十有八九是 LSE 没起振】✓
+ *     → ★★ 这时【写计数器毫无意义 ✗ 串口对时前必须先查它】✓✓ */
+uint8_t MyRTC_IsConfigured(void);
+
 /* ★ 纯函数（不碰硬件 ✓ 单独拿出来方便自检 ✓）
  *   YmdToUnix / UnixToYmd 互为反函数 ✓ */
 uint32_t MyRTC_YmdToUnix(uint16_t y, uint8_t mo, uint8_t d,
