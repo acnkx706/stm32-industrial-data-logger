@@ -805,15 +805,61 @@ SD_Result_t SD_Init(void)
 	} while (r1 != R1_READY);
 	Serial_Printf("SD: ACMD41 ready after %u tries\r\n", (unsigned)tries);
 
-	/* ⑤ CMD58 读 OCR 定寻址方式：CCS=bit30 → 1=SDHC 块寻址 / 0=字节寻址 */
-	r1 = SD_SendCmd(CMD58, 0);
+	/* ⑤ CMD58 读 OCR 定寻址方式：CCS=bit30 → 1=SDHC 块寻址 / 0=字节寻址
+	 *
+	 *  ★★★★ 2026-10-13 修（dsh）：CMD58 加重试 ✗✓
+	 *
+	 *  ★ 现象（实测日志 ✓）：
+	 *    ```
+	 *    SD: ACMD41 ready after 3 tries
+	 *    SD: CMD58 R1=0x04 (expect 0x00)      ← ★ 撞在这里
+	 *    SD: [1] f_mount FAILED fr=3           ← FR_NOT_READY
+	 *    ```
+	 *    → ★★ 【整个挂载失败 ✗ 上层【报一串错 ✗ 然后【重试【又好了】】✓
+	 *    → ★★★ 用户观察到的 `00→03→01→00` / `00→09→00` ✗
+	 *      【就是这一个根因【演化出来的一串**】✓✓
+	 *      （★ 03/01/09 是 **FatFs 的 `fr`** ✗ 不是 SD 驱动的错误码 ✓）
+	 *
+	 *  ★★ 根因 ✗：
+	 *    · ★ ACMD41 刚回 `0x00` 的那一瞬间 ✗✓
+	 *      【卡【其实【还没【完全进 SPI 模式 / 内部还没收拾好】】✓
+	 *    · ★★ 【于是【它对【紧跟其后的命令【回 `0x04`（ILLEGAL_CMD）】】✓
+	 *    → ★★★ 【★ 这【不是"卡不认 CMD58"✗ 而是"【等会儿再问】"】】✓✓
+	 *
+	 *  ★★★ 这和 CMD59 是【同一个病】✗ 所以修法也一样 ✓
+	 *
+	 *  ★★★★ 做法：失败就【歇 10ms 再试 ✗ 最多 5 次】✓
+	 *    （★ 5 × 10ms = 50ms ✗ 远小于 ACMD41 那 2 秒的预算 ✓✓）*/
+	for (i = 0u; i < 5u; i++)
+	{
+		r1 = SD_SendCmd(CMD58, 0);
+
+		if (r1 == R1_READY)
+		{
+			break;                          /* ★ 成功 ✗ 跳出 ✗ 往下读 OCR ✓ */
+		}
+
+		/* ★ 失败 ✗ 先把总线收回命令态 ✗ 歇一下再来 ✓
+		 *   ★★ 为什么【必须 `SD_Release()`**✗：
+		 *     它【补那 8 个时钟 ✗ 把卡【拽回命令态】✓
+		 *     （★ 缺了这一步✗ 会出现"下一条命令偶发无响应"✗
+		 *      见文件里行 141-144 的注释 ✓）*/
+		SD_Release();
+		Serial_Printf("SD: CMD58 try%u R1=0x%02X, retry...\r\n",
+		              (unsigned)(i + 1u), r1);
+		DWT_Delay_ms(10);
+	}
+
 	if (r1 != R1_READY)
 	{
-		/* ★ 2026-10-12 加打印（诊断 ✓）：CMD58 以前【没有打印】✗ 是盲区 ✓ */
-		Serial_Printf("SD: CMD58 R1=0x%02X (expect 0x00)\r\n", r1);
+		/* ★ 5 次都没成 ✗ 才认输 ✓（★ 这时【才是【真的有问题】✓）*/
+		Serial_Printf("SD: CMD58 FAILED after 5 retries, R1=0x%02X\r\n", r1);
 		SD_Release();
 		return SD_ERR_CMD_FAILED;
 	}
+
+	/* ★★ 注意 ✗ 只有【成功】才【读 OCR 那 4 个字节】✓
+	 *   （★ 重试的失败分支【绝对不能【读字节 ✗ 那里【没有数据】✓）*/
 	ocr[0] = SD_SwapByte(SD_DUMMY);         /* OCR 大端 4 字节，CCS 在 [0] 的 bit6 */
 	ocr[1] = SD_SwapByte(SD_DUMMY);
 	ocr[2] = SD_SwapByte(SD_DUMMY);
@@ -829,25 +875,56 @@ SD_Result_t SD_Init(void)
 		s_card_type = SD_CT_V1;
 	}
 
-	/* ⑥ 块长 512：V1/V2 卡需要显式设置；SDHC 固定 512 会忽略此命令 */
+	/* ⑥ 块长 512：V1/V2 卡需要显式设置；SDHC 固定 512 会忽略此命令
+	 *
+	 *  ★★★ 2026-10-13 加（dsh）：重试 ✗ 和 CMD58 同一个病 ✓
+	 *    · ★ 卡【刚进 SPI 模式【还没收拾好】时 ✗ 会对命令回 0x04 ✓
+	 *    · ★★ 重试 5 次（★ 50ms ✓）就够 ✗ 而【原本【一次失败就【整个挂载失败】】✓✓ */
 	if (s_card_type != SD_CT_SDHC)
 	{
-		r1 = SD_SendCmd(CMD16, 512);
-		SD_Release();
+		for (i = 0u; i < 5u; i++)
+		{
+			r1 = SD_SendCmd(CMD16, 512);
+
+			if (r1 == R1_READY)
+			{
+				SD_Release();               /* ★ 成功 ✗ 正常收尾 ✓ */
+				break;
+			}
+
+			SD_Release();                   /* ★ 失败 ✗ 拽回命令态再试 ✓ */
+			Serial_Printf("SD: CMD16 try%u R1=0x%02X, retry...\r\n",
+			              (unsigned)(i + 1u), r1);
+			DWT_Delay_ms(10);
+		}
+
 		if (r1 != R1_READY)
 		{
+			Serial_Printf("SD: CMD16 FAILED after 5 retries, R1=0x%02X\r\n", r1);
 			return SD_ERR_CMD_FAILED;
 		}
 	}
 
 	/* ⑦ 关卡内数据 CRC 校验（CMD59 参数 bit0=0）：之后数据块的 CRC 字节
-	 *    全部用 0xFF 哑元（原理见文件头注释）。命令 CRC 照旧现算，最稳 */
-	r1 = SD_SendCmd(CMD59, 0);
-	SD_Release();
-	/* ★★ 2026-10-12 加打印（诊断 ✓）
-	 *   CMD59 是 SD_ERR_UNSUPPORTED(03) 的【唯一来源】✗
-	 *   而它以前【一句打印都没有】✓ → 出问题只能靠猜 ✓ */
-	Serial_Printf("SD: CMD59 R1=0x%02X\r\n", r1);
+	 *    全部用 0xFF 哑元（原理见文件头注释）。命令 CRC 照旧现算，最稳
+	 *
+	 *  ★★★ 2026-10-13 加（dsh）：重试 ✗ 和 CMD58 / CMD16 同一个病 ✓
+	 *    · ★ 原来【一次失败就返回】✗ 于是【偶发一次卡顿【整个挂载就废了】】✓✓ */
+	for (i = 0u; i < 5u; i++)
+	{
+		r1 = SD_SendCmd(CMD59, 0);
+
+		if (r1 == R1_READY)
+		{
+			SD_Release();                   /* ★ 成功 ✗ 正常收尾 ✓ */
+			break;
+		}
+
+		SD_Release();                       /* ★ 失败 ✗ 拽回命令态再试 ✓ */
+		Serial_Printf("SD: CMD59 try%u R1=0x%02X, retry...\r\n",
+		              (unsigned)(i + 1u), r1);
+		DWT_Delay_ms(10);
+	}
 
 	/* ★★★ 判据修正（和 SD_SendCmd 的修复配套 ✓）：
 	 *   · 0xFF = 【卡无响应】✗ 不是"不认这条命令" ✓ —— 必须分开判 ✓
@@ -855,14 +932,14 @@ SD_Result_t SD_Init(void)
 	 *   · 只有【合法 R1 且 bit2=1】才是真的"卡不支持 CMD59" ✓ */
 	if (r1 == 0xFFu)
 	{
-		Serial_Printf("SD: CMD59 NO RESPONSE (card busy/slow) -> CMD_FAILED\r\n");
+		Serial_Printf("SD: CMD59 NO RESPONSE after 5 tries (card busy/slow) -> CMD_FAILED\r\n");
 		return SD_ERR_CMD_FAILED;
 	}
 	if (r1 & R1_ILLEGAL_CMD)
 	{
 		/* 极个别老卡不认 CMD59 → 数据 CRC 哑元会被它拒收，只能判失败。
 		 * 真遇到（几乎不可能）再补 CRC16 运算，现阶段不做 */
-		Serial_Printf("SD: CMD59 ILLEGAL (card really rejects it) -> UNSUPPORTED\r\n");
+		Serial_Printf("SD: CMD59 ILLEGAL after 5 tries (card really rejects it) -> UNSUPPORTED\r\n");
 		return SD_ERR_UNSUPPORTED;
 	}
 
