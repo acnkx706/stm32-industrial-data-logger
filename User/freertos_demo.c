@@ -21,9 +21,11 @@
 #include "AD.h"
 #include "DS18B20.h"
 #include "DHT22.h"                 /* ★ DHT22 温湿度（PB15 ✓ 模块自带 10k 上拉 ✓）*/
+#include "buzz.h"                  /* ★ 蜂鸣器服务（PB12 ✓ 低电平触发 ✓）*/
 #include "BMP280.h"                /* ★ BMP280 气压（与 MPU6050 共用 PA2/PA3 软件 I2C ✓）*/
 #include "task_sd.h"                    /* ★ R1 集成：SD 交接接口/乒乓缓冲/task_SD 本体 */
 #include "MyRTC.h" 
+#include "boot_flag.h"             /* ★ 升级请求标志（★ 和 Boot\boot_flag.h 逐字节一致 ✓）*/
 #include "Crc16.h"
 /*==============================================================================
  *  数据记录仪 —— 应用层（任务总装）
@@ -683,11 +685,18 @@ void task_KEY(void *pvParameters)
 		if (ev & KEY1_EVENT)                    /* 状态类：翻转暂停标志 */
 		{
 			g_pause = !g_pause;
+			/* ★★★ 按键反馈（2026-10-13 加 ✓）
+			 *   ★ 为什么可以在这里调 ✗：★ `Buzz_Request` 【只置一个标志位】✓
+			 *     · ★★ 不打印 ✗ 不阻塞 ✗ 不碰 GPIO ✓
+			 *     → ★★★ 【完全符合本任务"不许打印"的约束】✓✓
+			 *   ★★★★ 实际发声由 task_DISP 的 Buzz_Poll() 负责 ✓ */
+			Buzz_Request(BUZZ_EV_KEY);
 		}
 
 		if (ev & KEY11_EVENT)                   /* 事件类：通知 PROC 立刻打统计 */
 		{
 			xTaskNotify(task_proc_handler, EVENTBIT_KEY2, eSetBits);
+			Buzz_Request(BUZZ_EV_KEY);          /* ★ 按键反馈 ✓（同上 ✓）*/
 		}
 
 		vTaskDelay(pdMS_TO_TICKS(20));
@@ -724,11 +733,77 @@ void task_KEY(void *pvParameters)
  *============================================================================*/
 #define TIMESYNC_LINE_MAX  24u
 
+/*==============================================================================
+ *  ★★★★ App 侧：请求升级（2026-10-13 加 ✓ 第二步）
+ *
+ *  ★ 做什么 ✗：
+ *    · ★ ① 往 **`BKP_DR2`** 写【升级请求魔数】✓
+ *    · ★★ ② **软复位** ✗ → 【CPU 从 `0x08000000` 重新起 ✗
+ *      也就是【从 Bootloader 起】】✓✓
+ *
+ *  ★★ 为什么【标志能在复位后活下来】✗：
+ *    · ★ `BKP` 【属于【备份域】✗ **软复位【不会】动它**】✗✓
+ *    · ★★ 而【Bootloader 一上电就读它】✓✓
+ *
+ *  ★★★ 为什么【复位前【不用】关外设 / 停 SD / f_sync**✗：
+ *    · ★ 软复位是【硬件级重启 ✗ 所有外设【自动回到初始】】✓
+ *    · ★★ 数据每批已经 `f_sync` ✗ 最多丢【最后半秒】✓
+ *    → ★★★ 【所以【直接复位就好 ✗ 不需要"优雅收尾"】】✓✓
+ *
+ *  ★★★★ 注意 ✗：★ 这里的寄存器和魔数 ✗
+ *    必须与 `Boot\boot_flag.h` **完全一致** ✓✓
+ *    （★ 我们用【两份【逐字节相同】的 `boot_flag.h`】✗
+ *      ★★ 改的时候【两边一起改】✓）
+ *============================================================================*/
+static void App_RequestUpgrade(void)
+{
+	Serial_Printf("\r\nAPP: upgrade requested\r\n");
+
+	/* ★ 等串口把话【发完】✗ 再往下走 ✓ */
+	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) { }
+
+	/* ★★ 解锁备份域 ✗✓
+	 *   ★ 为什么【这里还要自己做一遍**✗：
+	 *     · ★ `MyRTC_Init()` 里【确实解锁过】✓
+	 *     · ★★ 但【那是【启动时】的事 ✗
+	 *       而且【备份域访问【可能被锁回去】】✓
+	 *     → ★★★ 【这里重来一遍 ✗ 最稳妥 ✗ 而且【几乎不花时间】】✓✓
+	 *   ★★★★ 做法【照抄 `MyRTC.c:28-29`】✓ */
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
+	PWR_BackupAccessCmd(ENABLE);
+
+	/* ★★★ 写标志 ✓ */
+	BKP_WriteBackupRegister(BOOT_FLAG_DR, BOOT_FLAG_MAGIC);
+
+	/* ★ 回读确认 ✗ —— ★【不信任"我写了"✗ 要看"它真的进去了"】✓✓
+	 *   ★★ 这一步【很有用 ✗：★ 如果【备份域没解锁**✗
+	 *     写会【静默失败】✗ 而【回读立刻暴露】✓✓ */
+	Serial_Printf("APP: flag readback = 0x%04X (expect 0x%04X) -> resetting\r\n",
+	              (unsigned)BKP_ReadBackupRegister(BOOT_FLAG_DR),
+	              (unsigned)BOOT_FLAG_MAGIC);
+	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) { }
+
+	/* ★★★★ 软复位 ✗✓ */
+	NVIC_SystemReset();
+
+	/* ★ 正常情况下【不会到这里】✗ 写上更安全 ✓ */
+	for (;;) { }
+}
+
+
 static void TimeSync_Handle(const char *s, uint8_t n)
 {
 	uint32_t ts = 0u;
 	uint8_t  i;
 	RTC_DateTime_t dt;
+
+	/* ★★★★ 新增命令 ✗：**`U`** = 请求升级（2026-10-13 加 ✓）
+	 *   ★ 为什么用【单个字母**✗：★ 好敲 ✗ 而且【不会和 `T<数字>` 混】✓✓ */
+	if ((n == 1u) && (s[0] == 'U'))
+	{
+		App_RequestUpgrade();
+		return;                     /* ★ 理论上不会返回 ✗ 但写上更安全 ✓ */
+	}
 
 	/* ★ 只认 `T` + 10 位数字 ✗（★ 其它一律【安静丢弃 ✗ 不刷屏】✓）*/
 	if ((n != 11u) || (s[0] != 'T')) { return; }
@@ -839,6 +914,22 @@ void task_DISP(void *pvParameters)
 		 *     → 【打印确认信息不会压住别人】✓✓
 		 *   ★★ 每帧都排空缓冲 ✗ → 【延迟 ≤200ms】✓ */
 		TimeSync_Poll();
+
+		/* ★★★★ 蜂鸣器服务（2026-10-13 加 ✓）
+		 *   ★ 为什么放这里 ✗：★ 需要一个【周期性的"节奏发生器"】✓
+		 *     · ★★ 本任务是【200ms 一帧 ✗ 正好够翻转出清晰的声音】✓
+		 *     · ★★★ 而且它是【最低优先级 ✗ 输出类任务】✗
+		 *       → 【不会干扰数据链路】✓✓
+		 *
+		 *   ★ ① SD 故障 → 持续间歇响 ✓
+		 *     · ★ 判据：★ `g_sd_error != 0` ✗（★ 任何 SD 层错误 ✓）
+		 *     · ★★ 为什么最重要 ✗：★ 记录仪【无人值守】✗
+		 *       → ★★★ 【"数据存不进去"必须【有物理反馈】】✓✓
+		 *     · ★★★★ SD 一恢复就【自动停】✗（★ Clear ✓）✓
+		 *   ★ ② 按键反馈在 task_KEY 里请求 ✗ 这里只负责发声 ✓ */
+		if (g_sd_error != 0u) { Buzz_Request(BUZZ_EV_SD_ERR); }
+		else                  { Buzz_Clear(BUZZ_EV_SD_ERR);   }
+		Buzz_Poll();
 
 		vTaskDelay(pdMS_TO_TICKS(200));
 	}
