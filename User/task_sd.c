@@ -153,6 +153,13 @@ volatile uint8_t g_sd_error = 0;        /* 1=SD 故障（DISP/PROC 只读展示�
  *   E:07=FR_DENIED（根目录满/卷满，R2 修复路径的报警）…… */
 volatile uint8_t g_sd_last_err = 0;
 
+/* ★★★★ 安全关机握手（★ 2026-10-13 深夜加 ✓ 完整说明见 task_sd.h）✗
+ *   · ★ `g_shutdown_req`  ✗ 【task_KEY 写】✗ task_SD 读 ✓
+ *   · ★★ `g_shutdown_done` ✗ 【task_SD 写】✗ task_DISP 读 ✓
+ *   · ★★★ 都是 volatile ✗ 【跨任务可见性靠它】✓ */
+volatile uint8_t g_shutdown_req  = 0;
+volatile uint8_t g_shutdown_done = 0;
+
 /* 交接消息：指针 + 有效长度（len 单独传，CSV 尾批不满 512B 也能写对） */
 typedef struct {
     uint8_t  *buf;
@@ -569,7 +576,17 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
 				{
 					break;                  /* ★ 今天的这个还没到兜底 → 续写它 ✓ */
 				}
-				(void)f_close(&s_log_file); /* ★ 已超兜底 → 试下一个 NN ✓ */
+				/* ★★★★ 2026-10-14 改：不能再 `(void)` 丢掉返回值 ✗
+				 *   ★ 为什么 ✗：`fr` 里还留着【上一次的 FR_OK】✓
+				 *     → 丢掉 f_close 的失败 ⇒ 【这一处"关不上"永远查不出来】✓✓
+				 *   ★★ f_close 会做最后的目录/目录项落盘 ✗
+				 *     它失败 = 这个文件的元数据可能不完整 ✓
+				 *   ★★★ 所以要【如实上报】✗ 让屏上的 E:xx 亮起来 ✓✓ */
+				fr = f_close(&s_log_file);
+				if (fr != FR_OK)
+				{
+					return fr;              /* ★ 上报 ✗ 由 task_SD 走错误流程 ✓ */
+				}
 				continue;
 			}
 
@@ -903,6 +920,63 @@ void task_SD(void *pvParameters)
 
 	for (;;)
 	{
+		/*------------------------------------------------------------
+		 *  ★★★★ 安全关机（★ 2026-10-13 深夜加 ✓）
+		 *
+		 *  ★ 顺序【一步都不能换】✗✓：
+		 *    ① 【先把队列里剩下的数据写完】✗ 再关 ✓
+		 *       （★ 否则【最后那一批【明明还在内存里 ✗ 却被丢掉】】✓）
+		 *    ② `f_sync`  ✗ 把 FS 缓冲真正写进卡 ✓
+		 *    ③ `f_close` ✗ 【写回目录项 + 释放文件对象】✓
+		 *       （★★ 这一条才是"安全关机"和"直接拔电"的【本质区别】✓）
+		 *    ④ `f_mount(NULL)` ✗ 注销卷 ✗ 回到"干净未挂载"状态 ✓
+		 *    ⑤ 【最后】才置 done ✗ 告诉 DISP "可以显示了"✓✓
+		 *
+		 *  ★★ 为什么【必须 continue ✗ 不许再往下走到收队列】✗✓：
+		 *    · ★ 关了文件【还去 f_write ✗ 那个文件对象已经无效了】✓
+		 *    · ★★ 写它会返回 **`FR_INVALID_OBJECT(9)`**✗
+		 *      → 【OLED 上冒出一个 E:09 ✗ 让人以为卡坏了】✓✓
+		 *    → ★★★ 【所以【这一轮直接结束】✓✓
+		 *
+		 *  ★★★ 关机态里【一直在 delay】✗：
+		 *    · ★ 不清 done ✗ 让屏幕【保持"可以断电"】✓
+		 *    · ★★ 200ms 一跳 ✗ 【不空转烧 CPU】✓✓
+		 *----------------------------------------------------------*/
+		if (g_shutdown_req != 0u)
+		{
+			if (mounted)
+			{
+				/* ★ ① 把还在队列里的最后一批写完 ✓
+				 *   （★ 缓冲【必须还池**✗ 否则 PROC 以后拿不到空缓冲 ✓）*/
+				while (xQueueReceive(s_xQueueSdPtr, &msg, 0) == pdPASS)
+				{
+					(void)f_write(&s_log_file, msg.buf, (UINT)msg.len, &bw);
+					(void)xQueueSend(s_xQueueFree, &msg.buf, 0);
+				}
+
+				/* ★ ②③④ 落盘 → 关文件 → 卸卷 ✓ */
+				fr = f_sync(&s_log_file);
+				if (fr == FR_OK)
+				{
+					fr = f_close(&s_log_file);
+				}
+				(void)f_mount(NULL, "0:", 0);   /* ★ 无论成败【都要作废卷登记】✓ */
+				mounted = 0;
+
+				/* ★ 关键路径【不许静默**✗ 关得成不成功都要说出来 ✓ */
+				Serial_Printf("SD: SAFE SHUTDOWN fr=%u (file closed)\r\n", (unsigned)fr);
+			}
+
+			g_shutdown_done = 1u;               /* ★ ⑤ 【最后】才说"可以断电"✓ */
+			vTaskDelay(pdMS_TO_TICKS(200));
+			continue;                           /* ★★ 绝不往下走 ✓ */
+		}
+
+		/* ★★ 请求被撤销了（★ 用户又长按了一次 ✓）✗
+		 *   → 【清掉 done ✗ 下面"未挂载态"那段【会自己把卡重新挂上】】✓✓
+		 *     （★ 这就是【不写新代码就能"恢复记录"**的原因 ✓）*/
+		g_shutdown_done = 0u;
+
 		/*------------------------------------------------------------
 		 * 未挂载态：周期性重试挂载（开机无卡 / 中途拔卡都会到这里）
 		 *----------------------------------------------------------*/

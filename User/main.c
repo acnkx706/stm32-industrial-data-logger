@@ -29,6 +29,7 @@
 #include "BMP280.h"
 #include "MyRTC.h"  
 #include "buzz.h"                  /* ★ 蜂鸣器服务（PB12 ✓ 低电平触发 ✓）*/
+#include "W25Q64.h"                /* ★★ W25Q64 8MB SPI Flash（PB5/6/7/10 ✓ 2026-10-14 加 ✓）*/
 #include "ProbeConfig.h"
 
 /*==============================================================================
@@ -106,16 +107,34 @@ static void BMP280_Probe(void)
 	}
 }
 #endif
-
+#define APP_VER_STR   "APP: ver 2  (2026-10-14 CBT6 + new partition)"
 int main(void)
 {int16_t oax, oay, oaz, ogx, ogy, ogz;
 /* ---------- 第一批：先把"能显示/能通信"的立起来（诊断能力优先） ---------- */
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 	Serial_Init();
 	Serial_Printf("=== boot ===\r\n");
+			/* ★★★★ 2026-10-14 加：版本字符串（★ 一眼看出跑的是哪一版 ✓）
+	 *   ★ 为什么现在才加 ✗：以前 App 只剩 536 字节 ✗ 加不起 ✓
+	 *   ★★ 现在有 112KB 了 ✗ 而"分不清版本"是今天最大的折腾来源 ✓✓
+	 *   ★★★ 附带好处：改这一行 = 【镜像 CRC 变了】✗
+	 *       → 正好用来测 `R` 回退（★ 备份里那份是旧 CRC ✓）✓✓
+	 *   ★ 换版本时只改这里的数字和日期 ✓ */
+	
+	Serial_Printf(APP_VER_STR "\r\n");
+		/* ★★★ 2026-10-14 加：两个 CRC 的契约自检（★ 上电打一行 ✓）
+	 *   ★ 为什么值得 ✗：CRC 变体看代码看不出来 ✗ 打出来才算数 ✓✓ */
+	{
+		static const uint8_t anchor[] = "123456789";
+		Serial_Printf("CRC: KERMIT=0x%04X(want 2189)  XMODEM=0x%04X(want 31C3)\r\n",
+		              (unsigned)Crc16_Kermit (anchor, 9u),
+		              (unsigned)Crc16_Xmodem(anchor, 9u));
+	}
 	AD_TestVdd();
 	AD_Init();
+	OLED_SelfCheck(); 
 	OLED_Init();
+	
 	Key_Init();
 	LightSensor_Init();
 	/* ★★★★ 蜂鸣器（2026-10-13 加 ✓）
@@ -127,6 +146,45 @@ int main(void)
 	 *     · 按键反馈 → 短促一声 ✓✓ */
 	Buzz_Init();
 	
+	/*==========================================================================
+	 *  ★★★★ W25Q64（8MB SPI Flash）接线验证（★ 2026-10-14 加 ✓）
+	 *
+	 *  ★★ 为什么【开机就要探一次**✗✓：
+	 *    · ★ 它马上要承担【金副本 / 自动回滚】✗ 【是"救命"的那块存储】✓
+	 *    · ★★ 【"接线到底通不通"必须【开机一眼可见】】✗✓
+	 *      → 【不能等到【真要救砖的那一刻】才发现它没接上】✓✓
+	 *
+	 *  ★★★ 判据（★ 三条 ✗ 缺一不可 ✓）✗：
+	 *    · ★ `JEDEC = 0xEF4017` ✗ 【这只是第一条】✓
+	 *    · ★★ `selftest = 0` ✗ 【擦 + 写 + 读回比对】✓
+	 *      → 【这条才证明【写的方向（MOSI）】也通】✓✓
+	 *    ⚠️ ★★★★ 【只读 ID 就宣布"接线没问题"✗ 【是自欺欺人】】✓✓
+	 *      （★ 现象 ✗：ID 读得出来 ✗ 但一写就坏 ✗ 【能查一天】✓）
+	 *
+	 *  ★★★ 引脚 ✗：★ **SCK=PA8 ✗ MISO=PA11 ✗ MOSI=PA12 ✗ CS=PB13** ✓
+	 *    （★ 为什么不用 SPI1 / 为什么避开 PA15 ✗ 见 `W25Q64.h` 顶部 ✓）
+	 *    ⚠️ ★★ 【CS 占了 PB13**✗ 那是原来光敏 DO 的脚 ✓
+	 *      → 【本文件下面那行 `LIGHT DO` 打印【已经停掉】✓
+	 *        （★ 记录里的 `light` 字段【来自 PA1 ✗ 不受影响】✓）✓
+	 *========================================================================*/
+	{
+		uint8_t  w25_ok  = W25Q64_Init();
+		uint32_t w25_jid = W25Q64_ReadJEDEC();
+
+		Serial_Printf("W25Q64: JEDEC = 0x%06X (expect 0xEF4017) -> %s\r\n",
+		              (unsigned)w25_jid, (w25_ok != 0u) ? "PRESENT" : "NOT FOUND");
+		Serial_Printf("W25Q64: pins SCK=PA8  MISO=PA11  MOSI=PA12  CS=PB13\r\n");
+
+#if W25Q64_SELFTEST
+		if (w25_ok != 0u)
+		{
+			uint8_t st = W25Q64_SelfTest();
+			Serial_Printf("W25Q64: selftest = %u (0=PASS 1=erase 2=write 3=read 4=mismatch)\r\n",
+			              (unsigned)st);
+		}
+#endif
+	}
+
 		/* ★ RTC（阶段 3）—— 初始化 + 读回自检 ✓
 	 *   ★ 自检原理（不依赖任何外部设备 ✓）：
 	 *     MyRTC_Init 用【编译时刻】设初值 ✓ → 立刻读回来再换算成年月日 ✓
@@ -199,7 +257,15 @@ int main(void)
 		}
 	}
 
-	Serial_Printf("LIGHT DO = %u\r\n", LightSensor_Get());
+	/* ⚠️ ★★★★ 【2026-10-14 起【这一行【失效】了】✗ 不是 bug】✗✓
+	 *   · ★ 光敏的【数字量 DO】接在 **PB13** ✗
+	 *   · ★★ 而 PB13 【被 W25Q64 的 CS 占用了】（★ 用户确认"用不上"✓）
+	 *     → 【所以 `LightSensor_Get()` 现在读到的是【CS 线的电平**
+	 *       【不是光照】】✓✓
+	 *   · ★★★ 【记录里的 `light` 字段【来自 PA1 的 ADC ✗ 完全不受影响】】✓
+	 *   · ★★★★ 【之所以【不删 `LightSensor.c**✗
+	 *     【万一以后换引脚还能用 ✗ 先只把这一行停掉】✓ */
+	/* Serial_Printf("LIGHT DO = %u\r\n", LightSensor_Get()); */
 	Serial_Printf("gyro calibrating, keep still for 2s ...\r\n");
 	DWT_Delay_ms(2000);
 	MPU6050_CalibrateGyro();

@@ -24,6 +24,7 @@
 #include "buzz.h"                  /* ★ 蜂鸣器服务（PB12 ✓ 低电平触发 ✓）*/
 #include "BMP280.h"                /* ★ BMP280 气压（与 MPU6050 共用 PA2/PA3 软件 I2C ✓）*/
 #include "task_sd.h"                    /* ★ R1 集成：SD 交接接口/乒乓缓冲/task_SD 本体 */
+#include "golden.h"                /* ★★★★ 金副本（版本备份/回退 ✓ 2026-10-14 加 ✓）*/
 #include "MyRTC.h" 
 #include "boot_flag.h"             /* ★ 升级请求标志（★ 和 Boot\boot_flag.h 逐字节一致 ✓）*/
 #include "Crc16.h"
@@ -89,6 +90,17 @@ void task_SD(void *pvParameters);
 #define TASK_SENSOR_STACK_SIZE      128
 TaskHandle_t    task_sensor_handler;
 void task_sensor(void *pvParameters);
+
+/* ★★★★ task_GOLDEN：金副本后台备份（★ 2026-10-14 加 ✓ 设计见 `golden.h`）
+ *   ★ 优先级 1 ✗ 最低业务级 ✓
+ *     （★ 纯后台活 ✗ 而且软件 SPI 是【忙等】✗ 采集链必须能随时抢占它 ✓）
+ *   ★★ 栈 256 字 ✗ 够用
+ *     （★ 只见一个 64B 头结构 + `Serial_Printf` 调用链 ✓
+ *       ★★ 页数据【直接从内部 Flash 指过去 ✗ 不要 RAM 缓冲】✓）✓ */
+#define TASK_GOLDEN_PRIO            1
+#define TASK_GOLDEN_STACK_SIZE      256
+TaskHandle_t    task_golden_handler;
+void task_GOLDEN(void *pvParameters);
 
 
 /* Record_t：一条记录，定长 40 字节（队列是值拷贝，定长最省事）
@@ -243,7 +255,22 @@ void freertos_demo(void)
 	 *   （task_SD 本体另有兜底：队列没就绪它原地等，见 task_sd.c 任务开头） */
 	task_sd_Init();
 
+	/*==========================================================================
+	 *  ★★★★ 金副本初始化（★ 2026-10-14 加 ✓ 完整设计见 `golden.h`）
+	 *
+	 *  ★★ 为什么【放在【调度器启动之前】**✗✓：
+	 *    · ★ 它要做三件事 ✗【读元数据（黑名单）/ 算自己镜像的 CRC /
+	 *      【决定"要不要后台填备份"】】✓
+	 *    · ★★ 【在【任何任务跑起来之前【把状态定下来 ✗ 后面不再有分歧】】✓✓
+	 *
+	 *  ★★★ 它【不会卡**✗：
+	 *    · ★ W25Q64 不在位 → 【直接关掉整个功能 ✗ 一切照旧】✓
+	 *    · ★★ 算一次 CRC 约 40~60ms ✗ 【只此一次】✓✓
+	 *========================================================================*/
+	(void)Golden_Init();
+
 	vTaskStartScheduler();
+	
 	}
 
 /* 启动任务：创建其它任务，然后删掉自己 */
@@ -318,6 +345,23 @@ void start_task(void *pvParameters)
                    (TaskHandle_t * )   &task_sd_handler) != pdPASS)
 	{
 		fail_mask |= (1u << 5);		/* bit5 = SD 没建起来 */
+	}
+
+	/* ★★★★ 金副本后台备份任务（★ 2026-10-14 加 ✓）
+	 *   ★ 为什么【优先级 1**✗✓：
+	 *     · ★ 它干的是【"把内部 Flash 慢慢拷到 W25Q64"】✗ 【纯后台活】✓
+	 *     · ★★ 【软件 SPI 是【忙等】✗ 一页 256B ≈ 1.4ms 一直占着 CPU】✓
+	 *     → ★★★ 【放最低业务优先级 ✗ 采集链【随时能抢占它】】✓✓
+	 *   ★★ 【闲着的时候睡 5 秒**✗
+	 *     【备份做完之后【就永久安静了】】✓✓ */
+	if (xTaskCreate(  (TaskFunction_t )   task_GOLDEN,
+                   (char *         )   "GOLD",
+                   (uint32_t       )   TASK_GOLDEN_STACK_SIZE,
+                   (void *         )   NULL,
+                   (UBaseType_t    )   TASK_GOLDEN_PRIO,
+                   (TaskHandle_t * )   &task_golden_handler) != pdPASS)
+	{
+		fail_mask |= (1u << 6);		/* bit6 = GOLD 没建起来 */
 	}
 	taskEXIT_CRITICAL();
 
@@ -699,6 +743,40 @@ void task_KEY(void *pvParameters)
 			Buzz_Request(BUZZ_EV_KEY);          /* ★ 按键反馈 ✓（同上 ✓）*/
 		}
 
+		/* ★★★★ 电源键（★ 长按 1 秒 ✗ 2026-10-13 深夜加 ✓）
+		 *   ★ 它是一个【软开关】**✗✓：
+		 *     · ★ 第一次长按 → 【安全关机】（★ 落盘 + 关文件 + 屏显 ✓）
+		 *     · ★★ 再长按一次 → 【恢复记录】（★ 【不用断电】✓）✓✓
+		 *
+		 *   ★★ 为什么【本任务里只置标志 ✗ 什么都不干**✗✓：
+		 *     · ★ 本任务【栈只有 128 字 ✗ 而且约定【禁止打印】】✓
+		 *     · ★★ 【真正的落盘在 task_SD ✗ 真正的显示在 task_DISP】✓✓
+		 *
+		 *   ★★★ 为什么【req 和 done 两个都要判**✗✓：
+		 *     · ★ `done` 是【最终状态】✗ 但它【要等 SD 落完盘才置位】（★ 最多 1 秒 ✓）
+		 *     · ★★ 只看 done ✗：【关机过程中的那 1 秒里再长按 ✗
+		 *       会被当成"再关一次"✗ 【什么都不会发生 ✗ 用户以为按键坏了】】✓✓
+		 *     → ★★★ 【req 或 done 只要有一个在 ✗ 就算"已关机"✗ 再按就是恢复】✓✓ */
+		if (ev & KEY_PWR_EVENT)
+		{
+			if ((g_shutdown_req != 0u) || (g_shutdown_done != 0u))
+			{
+				/* ★ 恢复 ✗：清请求 ✗ 【SD 任务会自己重挂 ✗ 不用写新代码】✓ */
+				g_shutdown_req  = 0u;
+				g_shutdown_done = 0u;
+				g_pause         = 0u;           /* ★ 回到采集运行 ✓ */
+				Buzz_Request(BUZZ_EV_KEY);
+			}
+			else
+			{
+				/* ★ 关机 ✗：★【先停采集 ✗ 再请求落盘】✗ 顺序不能反 ✓
+				 *   （★ 先 `g_pause` 才能【保证不再产生新数据】✓）*/
+				g_pause        = 1u;
+				g_shutdown_req = 1u;
+				Buzz_Request(BUZZ_EV_KEY);
+			}
+		}
+
 		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 }
@@ -755,12 +833,45 @@ void task_KEY(void *pvParameters)
  *    （★ 我们用【两份【逐字节相同】的 `boot_flag.h`】✗
  *      ★★ 改的时候【两边一起改】✓）
  *============================================================================*/
-static void App_RequestUpgrade(void)
+/* ★★★★ 请求升级（★ 2026-10-14 加 `force` 参数 ✗ 审计 G6 ✓）
+ *   ★ `force = 0` ✗【备份失败就【中止升级】】✓（★ 默认 ✗ 安全 ✓）
+ *   ★★ `force = 1` ✗【明知没有备份也继续】（★ 只有 PC 发 `U!` 才会走到这儿 ✓）*/
+static void App_RequestUpgrade(uint8_t force)
 {
 	Serial_Printf("\r\nAPP: upgrade requested\r\n");
 
 	/* ★ 等串口把话【发完】✗ 再往下走 ✓ */
 	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) { }
+
+	/*==========================================================================
+	 *  ★★★★ 【升级之前 ✗ 先把【当前这一版】存成备份】✗✓（2026-10-14 加 ✓）
+	 *
+	 *  ★★★ 为什么【必须在这里做**✗✓：
+	 *    · ★ 【此刻正在跑的版本 ✗ 才是我们【确定它好】的版本】✓
+	 *    · ★★ 一旦【Boot 开始收新固件 ✗ 【旧版本就被擦了 ✗ 来不及了】】✓✓
+	 *
+	 *  ★★ 为什么【同步做 ✗ 不丢给后台任务**✗：
+	 *    · ★ 后台是【500ms 一页 ✗ 传完要 110 秒】✓
+	 *    · ★★ 而【升级请求【马上】就要软复位 ✗ 【等不起】】✓✓
+	 *
+	 *  ★★★ 代价 ✗：★ 【本任务（DISP）会卡约 2~3 秒】**✓
+	 *    · ★ 但【这是【用户主动要求升级】✗ 慢一点【完全可以接受】】✓
+	 *    · ★★ 【而且【采集链优先级更高 ✗ 它抢占得到 CPU ✗ 不受影响】】✓✓
+	 *
+	 *  ⚠️ ★★★★ 【备份失败【也必须如实说出来】✗✓
+	 *    【绝不能"静默地不带备份就升级"✗ 那是拿唯一的命去赌】✓✓
+	 *========================================================================*/
+	if (Golden_SaveCurrent() == 0u)
+	{
+		/* ★★★★ 审计 G6 ✗ 【默认中止】✗✓ */
+		if (force == 0u)
+		{
+			Serial_Printf("APP: UPGRADE ABORTED (no backup).\r\n");
+			Serial_Printf("APP: if you accept the risk, send `U!` to force.\r\n");
+			return;                 /* ★★ 不复位 ✗ 【原地停在 App】✓ */
+		}
+		Serial_Printf("APP: forced upgrade WITHOUT backup (you asked for it)\r\n");
+	}
 
 	/* ★★ 解锁备份域 ✗✓
 	 *   ★ 为什么【这里还要自己做一遍**✗：
@@ -801,8 +912,74 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *   ★ 为什么用【单个字母**✗：★ 好敲 ✗ 而且【不会和 `T<数字>` 混】✓✓ */
 	if ((n == 1u) && (s[0] == 'U'))
 	{
-		App_RequestUpgrade();
+		App_RequestUpgrade(0u);     /* ★ 默认：备份失败就中止 ✓ */
 		return;                     /* ★ 理论上不会返回 ✗ 但写上更安全 ✓ */
+	}
+
+	/* ★★★★ 强制升级（★ 审计 G6 的"逃生通道"✓ 2026-10-14 加 ✓）
+	 *   ★ 为什么【必须留这个口子**✗✓：
+	 *     · ★ 万一【W25Q64 坏了 / 还没焊**✗
+	 *       【"备份失败就中止"会【把升级路【彻底堵死】】】✓✓
+	 *     · ★★ 所以【要能绕过 ✗ 但【必须是用户【显式、知情】地绕过】】✓✓
+	 *   ★★★ 为什么【用 `U!`**✗：★ 多打一个感叹号 ✗
+	 *     【手不会"顺手"打出来 ✗ 心里会过一下】✓✓ */
+	if ((n == 2u) && (s[0] == 'U') && (s[1] == '!'))
+	{
+		App_RequestUpgrade(1u);     /* ★ 我知情 ✗ 接受"没有备份"的风险 ✓ */
+		return;
+	}
+
+	/* ★★★★ 金副本的两条新命令（★ 2026-10-14 加 ✓ 完整设计见 `golden.h`）
+	 *   · ★ **`R`** = 【回退到备份】（★ 置标志 + 软复位 ✗ 真正的恢复由 Boot 做 ✓）
+	 *   · ★★ **`B`** = 【清掉备份 + 把当前版本记成黑名单】✓
+	 *     （★ 用来【防止一个"有 bug 但能跑"的版本被当成备份存下去】✓）
+	 *   ★★★ 为什么【也用单字母**✗：★ 和 `U` 同一个理由 ✗
+	 *     【好敲 ✗ 而且【不会和 `T<10位数字>` 混】】✓✓
+	 *   ⚠️ ★★ 【别担心和 Boot 的协议字母撞**✗：
+	 *     · Boot 用 `C`/`D`/`X` ✓
+	 *     · ★★ 但【那是【另一个阶段】✗ 【App 在跑的时候 Boot 根本不在】】✓✓ */
+	if ((n == 1u) && (s[0] == 'R'))
+	{
+		Golden_RequestRollback();
+		return;                     /* ★ 不会返回 ✗ 但写上更安全 ✓ */
+	}
+	if ((n == 1u) && (s[0] == 'B'))
+	{
+		Golden_ClearBackup();
+		return;
+	}
+
+	/*==========================================================================
+	 *  ★★★★★ `S` —— 手动宣告"这一版是好的 ✗ 存成备份"（★ 2026-10-14 加 ✓）
+	 *
+	 *  ★★★ 为什么需要它 ✗✓（★ 用户当场提出的需求 ✓）✗：
+	 *    · ★ 原来【备份只会被【升级流程（`U`）】更新】✓
+	 *      → ★ 语义 ✗【"升级前那一版 = 我们确定能跑的"】✓✓
+	 *    · ★★ 但【用 Keil / ST-Link 烧进去的版本 ✗ 走不到那条路】✗
+	 *      → ★★★ 【于是【备份【永远停在最早那一版】】】
+	 *        → 【用户："我想让现在这版当金副本 ✗ 怎么办？"】✓
+	 *
+	 *  ★★ 语义 ✗：★ 这一版是【人【亲自确认过】的】✓
+	 *    —— 【不是"跑了几分钟没死"✗ 而是【判断权在人手里】】✓✓
+	 *
+	 *  ★★★ 它做的事【和升级前那一遍【完全相同】】✗✓：
+	 *    · 直接调 `Golden_SaveCurrent()` ✓
+	 *    · 擦 64KB 块 → 逐页写 → 【最后写头】✓
+	 *    → ★★ 【所以【中途掉电 ✗ 头没写 ✗ 旧备份【自动保留】】✓✓
+	 *      （★ 绝不会出现"存到一半把好备份毁了" ✓）
+	 *
+	 *  ★★★★ 副作用 ✗：★【DISP 任务会卡约 2~3 秒】✓
+	 *    · ★ 和 `U` 那条路一样 ✓【采集链优先级更高 ✗ 不受影响】✓✓
+	 *    · ★★ 【期间 OLED 不刷新 ✗ 正常】✓
+	 *
+	 *  ⚠️ ★★ 注意 ✗：★ 它【不会】清黑名单 ✓
+	 *    · ★ 刚发过 `B` 之后再发 `S` ✗ = 【把刚作废的那版又存回去】✓
+	 *    · ★★ 【正确顺序 ✗ `B` → 【烧好版本】→ 它会【自己填进去】】✓✓
+	 *========================================================================*/
+	if ((n == 1u) && (s[0] == 'S'))
+	{
+		(void)Golden_SaveCurrent();
+		return;
 	}
 
 	/* ★ 只认 `T` + 10 位数字 ✗（★ 其它一律【安静丢弃 ✗ 不刷屏】✓）*/
@@ -880,33 +1057,88 @@ void task_DISP(void *pvParameters)
 {
 	Stat_t snap;
 	uint32_t frame = 0;		/* 心跳计数：每帧 +1（用来证明屏是活的） */
+	static uint8_t s_shutdown_seen = 0u;	/* ★ 关机长响【只响一次】的边沿标志 ✓ */
 
 	       
+	/* ★★★ 2026-10-14 加：刷屏耗时统计 ✓
+	 *   ★ t0 用 DWT 周期数（★ 和你 task_ACQ 里那个写法一样 ✓）
+	 *   ★★ s_us_max 只看【历史最大】✗ 平均会掩盖偶发卡顿 ✓✓ */
+	uint32_t t0;
+	uint32_t dt_us;
+	uint8_t  did_refresh;  
+	static uint32_t s_us_max = 0u;
+	static uint32_t s_us_sum = 0u;
+	static uint16_t s_cnt    = 0u;
+
+	DWT_Delay_Init();       /* ★★ 保险：确保周期计数器在跑（重复调用无害 ✓）*/
 
 	for (;;)
 	{
+		/* ★★★ 帧计时【从这里开始】✓ */
+		t0 = DWT->CYCCNT;
+		did_refresh = 0u;   
 		/* ① 快照 */
 		taskENTER_CRITICAL();
 		snap = g_stat;
 		taskEXIT_CRITICAL();
 
-		/* 刷新（OLED 16 列 x 4 行）：FUL=队列满次数  QMX=历史最大积压 */
-		OLED_ShowString(1, 1,  "ACQ:");  OLED_ShowNum(1, 5,  snap.acq_count,    6);
-		OLED_ShowString(2, 1,  "PRC:");  OLED_ShowNum(2, 5,  snap.proc_count,   6);
-		OLED_ShowString(3, 1,  "FUL:");  OLED_ShowNum(3, 5,  snap.queue_full,   3);
-		OLED_ShowString(3, 9,  "QMX:");  OLED_ShowNum(3, 13, snap.q_max_depth,  2);
-		OLED_ShowString(4, 1,  g_pause ? "PAUSE" : "RUN  ");
-		/* ★ 心跳：用来区分【暂停】和【卡死】 */
-		OLED_ShowNum(4, 7, ++frame, 5);
+		/* ★★ 心跳计数【两种状态都要走】**✗ 所以先加 ✓ */
+		frame++;
 
-		/* ★ Y2：SD 错误码上浮展示（第 4 行 13~16 列，"E:xx"格式）
-		 *   码表（= FRESULT 值）：E:00 无错误史；E:01 FR_DISK_ERR（写中拔卡）；
-		 *   E:03 FR_NOT_READY（没插卡/接触不良）；E:07 FR_DENIED（卷/根目录满）；
-		 *   E:13 FR_NO_FILESYSTEM（卡没格式化）。
-		 *   挂载成功时码随 g_sd_error 一起清 0 —— E:00 即"健康"。
-		 *   心跳占 7~11 列，这里从 13 列起正好不重叠（16 列屏用满） */
-		OLED_ShowString(4, 13, "E:");
-		OLED_ShowNum(4, 15, g_sd_last_err, 2);
+		/* ★★★★ 安全关机态 → 【整屏重画】**✗✓（★ 2026-10-13 深夜加 ✓）
+		 *
+		 *  ★ 为什么【必须整屏重画**✗✓：
+		 *    · ★ 第 4 行【16 列已经占满】（★ `PAUSE` + 心跳 + `E:xx` ✓）
+		 *    · ★★ 【"SAFE TO OFF" 【硬塞塞不进去】】✓✓
+		 *  ★★ 所以【每一行都写【正好 16 个字符】】**✗✓
+		 *    · ★ 写不足 16 ✗ → 【右边【残留上一屏的数字】✗ 看起来像乱码】✓✓
+		 *
+		 *  ★★★ 心跳【保留在**✗（★ 第 4 行 ✓）✗：
+		 *    · ★ 区分【"安全停机"和"死机"】✓
+		 *    · ★★ 屏上数字还在跳 ✗ 【说明板子活着 ✗ 只是故意不记了】✓✓
+		 *
+		 *  ★★★★ 长响【只在"刚进入这一态"的那一帧响一次】✗✓
+		 *    · ★ 不加边沿判断 ✗ → 【每 200ms 请求一次 ✗ 一直响】✓✓ */
+		if (g_shutdown_done != 0u)
+		{
+			OLED_ShowString(1, 1, "SHUTDOWN        ");   /* ★ 8 + 8 空格 = 16 ✓ */
+			OLED_ShowString(2, 1, "DATA SAVED      ");   /* ★ 10 + 6 = 16 ✓ */
+			OLED_ShowString(3, 1, "SAFE TO OFF     ");   /* ★ 11 + 5 = 16 ✓ */
+			OLED_ShowNum   (4, 1, frame, 5);
+			OLED_ShowString(4, 7, " OFF      ");         /* ★ 10 字符 = 第 7~16 列 ✓ */
+			did_refresh = 1u;                            /* ★★★ 关机画面【每帧都刷】✓ */
+			if (s_shutdown_seen == 0u)
+			{
+				s_shutdown_seen = 1u;
+				Buzz_Request(BUZZ_EV_LONG);              /* ★ 1.6 秒长响 ✓ */
+				Serial_Printf("SYS: shutdown done -> SAFE TO POWER OFF\r\n");
+			}
+		}
+		else
+		{
+			s_shutdown_seen = 0u;                        /* ★ 恢复时重新武装 ✓ */
+			if ((frame % 2u) == 0u)
+			{
+			/* 刷新（OLED 16 列 x 4 行）：FUL=队列满次数  QMX=历史最大积压 */
+			OLED_ShowString(1, 1,  "ACQ:");  OLED_ShowNum(1, 5,  snap.acq_count,    6);
+			OLED_ShowString(2, 1,  "PRC:");  OLED_ShowNum(2, 5,  snap.proc_count,   6);
+			OLED_ShowString(3, 1,  "FUL:");  OLED_ShowNum(3, 5,  snap.queue_full,   3);
+			OLED_ShowString(3, 9,  "QMX:");  OLED_ShowNum(3, 13, snap.q_max_depth,  2);
+			OLED_ShowString(4, 1,  g_pause ? "PAUSE" : "RUN  ");
+			/* ★ 心跳：用来区分【暂停】和【卡死】 */
+			OLED_ShowNum(4, 7, frame, 5);
+
+			/* ★ Y2：SD 错误码上浮展示（第 4 行 13~16 列，"E:xx"格式）
+			 *   码表（= FRESULT 值）：E:00 无错误史；E:01 FR_DISK_ERR（写中拔卡）；
+			 *   E:03 FR_NOT_READY（没插卡/接触不良）；E:07 FR_DENIED（卷/根目录满）；
+			 *   E:13 FR_NO_FILESYSTEM（卡没格式化）。
+			 *   挂载成功时码随 g_sd_error 一起清 0 —— E:00 即"健康"。
+			 *   心跳占 7~11 列，这里从 13 列起正好不重叠（16 列屏用满） */
+			OLED_ShowString(4, 13, "E:");
+			OLED_ShowNum(4, 15, g_sd_last_err, 2);
+			did_refresh = 1u;                            /* ★★★ 正常画面【每 3 帧】刷一次 ✓ */
+			}
+		}
 
 		/* ★★★★ 串口对时 ✗（2026-10-12 加 ✓）
 		 *   ★ 放在这里而不是 task_KEY ✗ ——
@@ -930,10 +1162,68 @@ void task_DISP(void *pvParameters)
 		if (g_sd_error != 0u) { Buzz_Request(BUZZ_EV_SD_ERR); }
 		else                  { Buzz_Clear(BUZZ_EV_SD_ERR);   }
 		Buzz_Poll();
+			/* ★★★★ 2026-10-14 改：只统计【真的刷了屏】的那些帧 ✓
+		 *   ★ 为什么 ✗：现在每 3 帧才刷一次 ✗
+		 *     另外两帧只花几十µs ✓ 全算进去会把 avg 拉得很低 ✗ 看不出真实开销 ✓
+		 *   ★★ 用 did_refresh 标记 ✗【不用 frame % 3 去猜】✓
+		 *       因为【关机画面那一支是每帧都刷的】✗ 猜不出来 ✓✓
+		 *   ★★★ 想让汇总还是"每 5 秒一次"✗ 25 改成 8 ✓
+		 *        （★ 8 次刷新 × 3 帧 × 200ms ≈ 4.8 秒 ✓）*/
+		if (did_refresh != 0u)
+		{
+		/* ★★★ 2026-10-14 加：帧结束计时 + 统计 ✓
+		 *   ★ 注意：下面的打印【不算进帧时间】✗ 所以要放在 dt_us 之后 ✓ */
+		dt_us = (DWT->CYCCNT - t0) / 72u;      /* 72MHz：1µs = 72 周期 ✓ */
+		if (dt_us > s_us_max) { s_us_max = dt_us; }
+		s_us_sum += dt_us;
+		s_cnt++;
 
+		/* ★★★ 平时【安静】✗ 只在"这一帧明显偏慢"时才报 ✓
+		 *   （★ 115200 下发一行约 30 字符 ≈ 2.6ms ✗ 每帧都报会污染测量 ✓）
+		 *   ★★ 60ms 是个经验阈值 ✗ 你的目标应该是远低于它 ✓ */
+		if (dt_us > 60000u)
+		{
+			Serial_Printf("DISP: SLOW frame %u us !\r\n", (unsigned)dt_us);
+		}
+
+		/* ★★ 每 8 次刷新（= 5 秒）报一次汇总 ✗ 看趋势用 ✓ */
+		if (s_cnt >= 8u)
+		{
+			Serial_Printf("DISP: avg=%u us  max=%u us  (per refresh)\r\n",
+			              (unsigned)(s_us_sum / s_cnt), (unsigned)s_us_max);
+			s_cnt    = 0u;
+			s_us_sum = 0u;
+			/* ★ s_us_max【不清】✗ 保留历史最大 ✓（看最坏情况 ✓）*/
+		}
+		}
 		vTaskDelay(pdMS_TO_TICKS(200));
 	}
 }
+	
+
+
+/*==============================================================================
+ *  ★★★★ task_GOLDEN：金副本后台备份（★ 2026-10-14 加 ✓）
+ *
+ *  ★ 为什么【任务体这么薄**✗✓：
+ *    · ★ 真正的逻辑（★ 判断要不要填 / 擦块 / 逐页写 / 最后写头 ✓）
+ *      【全在 `golden.c` 里 ✗ 【这个任务体【只是个壳】】】✓✓
+ *    ★★ 为什么【要【单独开一个任务】**✗ 不塞进现有的 ✗：
+ *      · ★ 它要【主动让出 CPU ✗ 每页停 500ms】✓
+ *      · ★★ 【塞进 DISP → OLED 刷新会被拖慢 ✗
+ *        塞进 SD → 落盘会被拖慢】✓✓
+ *      → ★★★ 【独立一个最低优先级任务 ✗ 【谁都不影响】】✓✓
+ *============================================================================*/
+void task_GOLDEN(void *pvParameters)
+{
+	(void)pvParameters;
+
+	for (;;)
+	{
+		Golden_Task();          /* ★ 内部自己 `vTaskDelay` ✗ 闲着睡 5 秒 ✓ */
+	}
+}
+
 
 void task_sensor(void *pvParameters)
 {

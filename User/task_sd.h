@@ -92,6 +92,32 @@ extern volatile uint8_t g_sd_error;
  *   volatile：task_SD 写、DISP 只读，跨任务可见性由它保证 */
 extern volatile uint8_t g_sd_last_err;
 
+/*============================================================================
+ *  ★★★★ 安全关机握手（★ 2026-10-13 深夜加 ✓）
+ *
+ *  ★★★ 为什么要这么一套 ✗✓（★ 关掉一个"正在写的文件"不能乱来 ✓）：
+ *    · ★ 拔电就走 ✗：★ 数据其实【每批都 f_sync 了 ✗ 最多丢一批】✓
+ *      ★★ 但【文件【从来没被 f_close**✗ 目录项/簇链是"半开"状态】✓✓
+ *    · ★★★ 所以"安全关机"要做的【不是"抢救数据"✗
+ *      而是【"把卷干净地卸下来 ✗ 并且【明确告诉人现在可以拔"】】✓✓
+ *
+ *  ★★ 三段握手（★ 谁负责什么一目了然 ✓）✗：
+ *    · ★ **task_KEY**   ✗ 长按电源键 → 置 `g_shutdown_req = 1`
+ *      ✗ 同时置 `g_pause = 1`（★ 【先停采集 ✗ 不再产生新数据】✓）
+ *    · ★★ **task_SD**   ✗ 收到请求 → 【把队列里剩的写完】→ `f_sync`
+ *      → `f_close` → `f_mount(NULL)` → 置 `g_shutdown_done = 1` ✓
+ *    · ★★★ **task_DISP** ✗ 看到 done → 整屏 `SAFE TO OFF` + 长响一声 ✓
+ *
+ *  ★★★★ 撤销（恢复记录）✗：★ 再长按一次 → 清 `g_shutdown_req` ✓
+ *    → 【SD 任务【会按它原有的逻辑自己重挂】**✗ 不用写新代码 ✓✓
+ *      （★ 因为 `mounted` 已经被清 0 ✗ 循环顶部的 `if (!mounted)` 会接管 ✓）
+ *
+ *  ★ 为什么放在【本头文件】✗：★ `freertos_demo.c` 【已经 include 它】✓
+ *    （★ 和 `g_sd_error` 同一个位置 ✗ 不为此新开文件 ✓✓）
+ *==========================================================================*/
+extern volatile uint8_t g_shutdown_req;    /* ★ 1 = 请求安全关机 ✓ */
+extern volatile uint8_t g_shutdown_done;   /* ★ 1 = 已经落盘关文件 ✗ 可以断电 ✓ */
+
 void task_sd_Init(void);                /* 建交接队列+信号量（调度器启动【前】调一次） */
 void task_SD(void *pvParameters);       /* 任务本体（start_task 里创建） */
 
