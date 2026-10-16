@@ -42,3 +42,18 @@ void BootFlag_RequestUpgrade(void)
 {
 	BKP_WriteBackupRegister(BOOT_FLAG_DR, BOOT_FLAG_MAGIC);
 }
+
+
+/* ---- 回退请求（★ 2026-10-14 加 ✓）---------------------------------------- */
+
+uint8_t BootFlag_IsRollbackRequested(void)
+{
+	return (BKP_ReadBackupRegister(BOOT_ROLLBACK_DR) == BOOT_ROLLBACK_MAGIC) ? 1u : 0u;
+}
+
+
+void BootFlag_ClearRollback(void)
+{
+	/* ★ 同 `BootFlag_ClearUpgrade` ✗ 写 0 ✗ 【不可能等于魔数】✓ */
+	BKP_WriteBackupRegister(BOOT_ROLLBACK_DR, 0x0000u);
+}

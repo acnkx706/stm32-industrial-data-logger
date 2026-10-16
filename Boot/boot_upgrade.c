@@ -89,8 +89,14 @@ static int8_t Up_HexVal(char c)
  *    · ★ 反射算法 ✗ 每次右移一位 ✓
  *    · ★★ 最低位为 1 就异或【反射多项式 `0x8408`】✓
  *    · ★★★ 初值 0 ✗ 无输出异或 ✓
- *    · ★★★★ 判据：`CRC("123456789") == 0x2189` ✓（★ 由 SelfTest 守着 ✓）*/
-static uint16_t Up_CrcUpdate(uint16_t crc, uint8_t b)
+ *    · ★★★★ 判据：`CRC("123456789") == 0x2189` ✓（★ 由 SelfTest 守着 ✓）
+ *
+ *  ★★★★ 【2026-10-14 起：本函数【不是 static 了】】✗✓
+ *    · ★ 原因 ✗ 金副本回退（`boot_golden.c`）【也要用同一个 CRC】✓
+ *    · ★★ 【绝不能再写第二份**✗✓ —— ★ 这条是【今天踩出来的教训】✓
+ *      （★ 两个变体 `0x31C3` / `0x29B1` 混起来的混乱 ✗ 见 30 号 ✓）
+ *    → ★★★ 【全 Bootloader【只有这一份**✗ 声明在 `boot_upgrade.h` ✓✓ */
+uint16_t Up_CrcUpdate(uint16_t crc, uint8_t b)
 {
 	uint8_t i;
 
