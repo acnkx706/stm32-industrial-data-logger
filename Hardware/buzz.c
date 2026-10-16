@@ -52,6 +52,11 @@ void Buzz_Turn(void)
                                   *   ★ 调用者 task_DISP 是【每 200ms 一帧】✓
                                   *   → 3 帧 ≈ 【600ms】✓ 足够听清 ✓✓ */
 
+#define BUZZ_LONG_FRAMES 8u      /* ★★ 长响的帧数（★ 2026-10-13 加 ✓）
+                                  *   → 8 帧 ≈ 【1.6 秒】✓
+                                  *   ★ 为什么【不复用 3 帧**✗：
+                                  *     【"可以拔电了"和"按键收到了"【必须听得出区别】】✓✓ */
+
 static uint8_t s_sd_err = 0u;    /* ★ SD 故障标志（★ 持续型 ✓）*/
 static uint8_t s_key_fr = 0u;    /* ★ 按键剩余帧数（★ 一次型 ✓）*/
 static uint8_t s_silent = 0u;    /* ★ 静音 ✓ */
@@ -66,6 +71,15 @@ void Buzz_Request(uint8_t ev)
 	if ((ev & BUZZ_EV_KEY) != 0u)
 	{
 		s_key_fr = BUZZ_ON_FRAMES;
+	}
+	if ((ev & BUZZ_EV_LONG) != 0u)
+	{
+		/* ★★ 长响也是【一次性】✗ 只是帧数更长 ✓
+		 *   · ★ 为什么【取 max ✗ 而不是直接赋值】✗：
+		 *     【短响正在响时又来了长响 ✗ 不该【把长响缩短成 600ms】】✓✓
+		 *   · ★★ 反过来：长响进行中来了短响 ✗ 【保持长响】✓
+		 *     （★ 因为长响承载的信息更多 ✗ "可以拔电了"✓）✓✓ */
+		if (s_key_fr < BUZZ_LONG_FRAMES) { s_key_fr = BUZZ_LONG_FRAMES; }
 	}
 	if ((ev & BUZZ_EV_SD_ERR) != 0u)
 	{

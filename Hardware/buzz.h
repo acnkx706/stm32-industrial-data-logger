@@ -30,6 +30,10 @@ void Buzz_OFF(void);
 /* ★ 事件定义（★ 位标志 ✗ 可以叠加 ✓）*/
 #define BUZZ_EV_SD_ERR   0x01u   /* ★ SD 故障：持续间歇响（★ 直到 Clear ✓）*/
 #define BUZZ_EV_KEY      0x02u   /* ★ 按键反馈：短促一声（★ 自动结束 ✓）*/
+#define BUZZ_EV_LONG     0x04u   /* ★★ 长响一声（★ 2026-10-13 加 ✗
+                                  *   用途：【安全关机完成】的确认音 ✓
+                                  *   ★ 为什么【比按键音长**✗：
+                                  *     【要让人在"可以拔电了"这件事上【不犹豫】】✓✓）*/
 
 void    Buzz_Request(uint8_t ev);    /* ★ 请求响 ✗ 任意任务可调 ✓ */
 void    Buzz_Clear(uint8_t ev);      /* ★ 解除【持续性】事件 ✓（如 SD 恢复 ✓）*/
