@@ -32,6 +32,9 @@
  *      → 算【前 38 字节】正好【不包含 crc 自己】✓✓（不用先置 0，少一个坑 ✓）
  * ============================================================================*/
 
-uint16_t Crc16_Kermit(const uint8_t *d, uint16_t len);
-
+uint16_t Crc16_Kermit(const uint8_t *d, uint32_t len);
+/* ★★★★ 2026-10-14 新增：CRC-16/XMODEM（★ SD 规范要求的那一个 ✓）
+ *   ★ 多项式 0x1021 ✗ 初值 0 ✗ 【不反射 ✗ 高位先算】✓
+ *   ★★ 判据（★ 契约 ✓）✗ "123456789" → 【0x31C3】✓ */
+uint16_t Crc16_Xmodem(const uint8_t *d, uint32_t len);
 #endif

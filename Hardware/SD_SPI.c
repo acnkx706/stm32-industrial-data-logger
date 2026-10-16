@@ -511,9 +511,18 @@ static SD_Result_t SD_WriteRaw(const uint8_t *buf, uint32_t sector, uint32_t cou
 		/* ★ 2026-10-05：改发【真 CRC16】（原来发哑元 0xFF ✗，只在 CMD59 生效时才成立 ✓）
 		 *   大端序（高字节先）✓ */
 		{
-			uint16_t wcrc = Crc16_Kermit(buf, 512u);   /* ★ 改用公共实现（审查 F13）*/
+		{
+			/* ★★★★ 2026-10-14 改：SD 数据块必须用 CRC-16/XMODEM ✗
+			 *   · 原来用 `Crc16_Kermit` ✗ 那是【反射】变体（多项式 0x8408 ✓）
+			 *   · SD 规范要求【不反射】的 0x1021 ✗ 高位先算 ✓
+			 *   ★★ 两者算出来的数【完全不同】✗
+			 *   ★★★ 契约："123456789" → 0x31C3 ✓（已实测 ✓）
+			 *   ★★★★ 大端序：高字节先 ✓ */
+						
+			uint16_t wcrc = Crc16_Xmodem(buf, 512u);
 			(void)SD_SwapByte((uint8_t)(wcrc >> 8));
 			(void)SD_SwapByte((uint8_t)(wcrc & 0xFFu));
+		}
 		}
 
 		/* 数据响应 token：规范形状 = xxx0 sss 1（bit0 恒 1、bit4 恒 0）
@@ -574,17 +583,38 @@ static SD_Result_t SD_WriteRaw(const uint8_t *buf, uint32_t sector, uint32_t cou
 			{
 				(void)SD_SwapByte(buf[n * 512u + i]);
 			}
-			(void)SD_SwapByte(SD_DUMMY);            /* CRC 哑元 ×2 */
-			(void)SD_SwapByte(SD_DUMMY);
+
+			/* ★★★★ 2026-10-14 改：每一块都要发【真 CRC】✗
+			 *   ★ 多块写的 CRC 是【逐块】的 ✗ 不是整段 ✓
+			 *     → 所以取【这一块的】512 字节：&buf[n * 512u] ✓
+			 *   ★★ 用 XMODEM 变体 ✗ 和 CMD24 保持一致 ✓
+			 *   ★★★ 契约："123456789" → 0x31C3 ✓ */
+			{
+				uint16_t wcrc = Crc16_Xmodem(&buf[n * 512u], 512u);
+				(void)SD_SwapByte((uint8_t)(wcrc >> 8));
+				(void)SD_SwapByte((uint8_t)(wcrc & 0xFFu));
+			}
 
 			/* 数据响应（同单块写） */
+			/* ★★★★ 2026-10-14 改：和单块写用【同一套判据】✗
+			 *   ★ 老判据（MSB=0 就停）会把【卡 busy 拉低的 0x00】当 token ✗
+			 *   ★★ 两种情形都要兼容 ✓
+			 *     A. 合法 token（0x05/0x0B/0x0D）→ 严格按它判 ✓
+			 *     B. 读到 0x00（赶上的是 busy）→ 不判错 ✗
+			 *        交给后面的 SD_WaitBusy + 调用者的读回验证定案 ✓
+			 *   ★★★ 这和单块写【完全同源】✗ 两处必须一致 ✓✓ */
+			res = 0xFF;
 			for (i = 0; i < 8; i++)
 			{
 				res = SD_SwapByte(SD_DUMMY);
-				if ((res & 0x80) == 0)
-				{
-					break;
-				}
+				if ((res & 0x11u) == 0x01u) { break; }   /* A. 合法 token ✓ */
+				if (res == 0x00u)           { break; }   /* B. busy-low ✓ */
+			}
+			if (((res & 0x11u) == 0x01u) && ((res & 0x1Fu) != DAT_ACCEPTED))
+			{
+				(void)SD_SendCmd(CMD12, 0);
+				SD_Release();
+				return SD_ERR_WRITE_RESPONSE;
 			}
 			if ((res & 0x1F) != DAT_ACCEPTED)
 			{
@@ -912,7 +942,14 @@ SD_Result_t SD_Init(void)
 	 *    · ★ 原来【一次失败就返回】✗ 于是【偶发一次卡顿【整个挂载就废了】】✓✓ */
 	for (i = 0u; i < 5u; i++)
 	{
-		r1 = SD_SendCmd(CMD59, 0);
+		/* ★★★★ 2026-10-14 改：参数 0 → 1 ✗ 【打开数据块 CRC 校验】✓
+		 *   ★ 前提：CMD24 / CMD25 两条路【都已经发真 CRC】✓
+		 *     （★ 没改就打开 ✗ 每次写卡都会失败 ✓✓）
+		 *   ★★ 打开之后 ✗ 卡会校验每个数据块的 CRC ✓
+		 *     → 一旦算错 ✗ 写操作会被【明确拒收】✓ 而不是默默写坏 ✓✓
+		 *   ★★★ 这也是"数据完整性"的最后一环 ✓
+		 *   ⚠️ 建议：打开后【跑一次长稳】✗ 确认没有新的写失败 ✓✓ */
+		r1 = SD_SendCmd(CMD59, 1);
 
 		if (r1 == R1_READY)
 		{
