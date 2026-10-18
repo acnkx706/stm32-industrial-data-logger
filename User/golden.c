@@ -246,6 +246,30 @@ static uint8_t Golden_WriteAll(uint8_t slow)
 		/* ★★★★ 审计 G7 的修复 ✗ 每 16 页（= 4KB ✗ 正好一个扇区）做两件事 ✓：
 		 *   · ★ `IWDG_ReloadCounter()` ✗
 		 *     【因为【平时喂狗的是【空闲钩子】✗ 而它优先级 0】】✓
+		 *
+		 *  ★★★★★ 2026-10-18 补记（⑤ 用户拍板 A）：**喂狗的语义要说清** ✗✓
+		 *
+		 *  ★ 事实 ✗：全工程喂狗点【有 3 个】✓
+		 *    ① 启动 IWDG 前（`freertos_demo.c`）
+		 *    ② 空闲钩子（常规）
+		 *    ③ **就是这里**（备份时每 16 页）
+		 *
+		 *  ★★★ 后果（必须承认）✗：
+		 *    · 只要【备份任务还在转圈】✗
+		 *      【哪怕系统其它部分全死了，狗照样被喂】✓✓
+		 *    · ⇒ 「喂狗 = 系统还活着」这个判据【在这里被削弱】✓
+		 *    · ★★ 而 Boot 的自动回退判据⑤（IWDG 复位）**正是靠它**发现 App 卡死 ✓
+		 *
+		 *  ★★★★ 为什么不干脆去掉这一口 ✗（★ 不要"看起来更纯"就删 ✓）：
+		 *    · 备份是【0.6~4 秒忙等】✗ 期间空闲钩子【根本跑不到】✓
+		 *    · ★★ 去掉 ⇒ 【备份时必然被狗咬】⇒ 复位循环 ⇒ 比污染判据糟糕得多 ✓✓
+		 *
+		 *  ⇒ ★ 所以正确的说法是（★ 请按这个理解，别按字面）✗：
+		 *    **喂狗 = "关键路径还活着"，不是"整机每处都正常"。**
+		 *    · 判据⑤真正能抓到的：**连关键路径都停摆了**（死循环/硬件挂死）✓
+		 *    · 判据⑤抓不到的：**备份期间某一处逻辑卡住** ✓
+		 *      → 那种情况由【任务自身的超时/失败计数】负责 ✓（本项目已有 ✓）
+		 *  ★★ 这也解释了为什么"3 个喂狗点"是【权衡后保留】✗ 而不是疏忽 ✓
 		 *     → 【本任务忙等的这段时间 ✗ 【钩子【根本跑不到】】】✓✓
 		 *     （★ 账 ✗ 整趟约 2 秒 ≪ 6.55 秒 ✗ 其实够 ✓
 		 *       ★★ 但【不该把安全余量【寄托在"应该够"上】】✓）
@@ -269,6 +293,288 @@ static uint8_t Golden_WriteAll(uint8_t slow)
 
 
 /*==============================================================================
+ *  ★★★★★ 2026-10-18 加：**掉卡缓存**（★ 对外说明见 golden.h ✓）
+ *
+ *  ★ 一句话 ✗：SD 写不进去的时候，把【数据批】和【事件行】先存进 W25，
+ *    等卡好了再按顺序搬回卡里 ✓✓
+ *
+ *  ★★ 为什么能成立 ✗：W25 走【软件 SPI（PA8/PA11/PA12/PB13）】✓
+ *    SD 走【硬件 SPI1（PA5/PA6/PA7/PA4）】⇒ 【两条独立的线】✓✓
+ *
+ *  ★★★ v1 的取舍（★ 简单优先 ✓）：
+ *    · **满了就停**（不覆盖旧项）⇒ 绝不丢掉已缓存的数据 ✓
+ *    · 全部回写完成后【指针归零】⇒ 下次断卡从第一个扇区重新擦写 ✓
+ *    · 指针页【每次写前先擦】✗ 代价 45 ms 一次 ✗ 换来"掉电也认得出"✓✓
+ *      （★ 不这么做的话：断电 ⇒ 指针失效 ⇒ 缓存数据变成"没人认领"✓）
+ *
+ *  ★ 调用者约定 ✗：**先 Peek → 写卡成功 → 再 Pop** ✓
+ *    （★ 反过来会出现"指针前进了但数据没写进去"⇒ 丢 ✓）
+ *============================================================================*/
+#define DC_DATA_HDR    0x030000u        /* 指针页（独占一个 4KB 扇区）*/
+#define DC_DATA_BASE   0x031000u        /* ★ 扇区对齐 ✗ 免得和指针页互相擦 ✓ */
+/* ★★ 槽必须 ≥ 512+4 ✗ 而且要【扇区整除】✓
+ *   · 一批最多 512 B ⇒ 加 4 B 长度前缀 = 516 ✗ 512 槽装不下 ✓
+ *   · ★ 选 1024（= 4 页 = 1/4 扇区）⇒ 【4 项一个扇区】✓ 擦除判断简单 ✓
+ *   · 代价：2 MB 只能放 2048 项（约 36,000 条 ≈ 1 小时）✓ 够用 ✓ */
+#define DC_DATA_SLOTS  2048u            /* 2048 × 1024B = 2 MB */
+#define DC_DATA_ITEM   1024u
+#define DC_EVT_HDR     0x240000u
+#define DC_EVT_BASE    0x241000u
+#define DC_EVT_SLOTS   960u             /* 960 × 256B = 240 KB */
+#define DC_EVT_ITEM    256u
+
+#define DC_MAGIC_D     0x44434431u      /* 'DCD1' */
+#define DC_MAGIC_E     0x45434531u      /* 'ECE1' */
+
+typedef struct {
+	uint32_t magic;
+	uint16_t wr;
+	uint16_t rd;
+	uint16_t rsv;
+	uint16_t crc;
+} DcHdr_t;
+
+static DcHdr_t s_dc_d;                  /* 数据批区 */
+static DcHdr_t s_dc_e;                  /* 事件行区 */
+static uint8_t s_dc_on = 0u;
+
+static uint16_t Dc_HdrCrc(const DcHdr_t *h)
+{
+	DcHdr_t t = *h;
+	t.crc = 0u;
+	return Crc16_Kermit((const uint8_t *)&t, (uint32_t)sizeof(t));
+}
+
+static void Dc_HdrDefault(DcHdr_t *h, uint32_t magic)
+{
+	h->magic = magic; h->wr = 0u; h->rd = 0u; h->rsv = 0u;
+	h->crc   = Dc_HdrCrc(h);
+}
+
+/* 读头：magic / CRC / 合理性（待回写数 ≤ 槽数）任一不对 ⇒ 【重置指针】✓
+ *   ★ 重置 = 当作"缓存为空"✗ 不会去读垃圾 ✓（宁可少救，不要读出乱码 ✓）*/
+static void Dc_LoadHdr(DcHdr_t *h, uint32_t addr, uint32_t magic, uint16_t slots)
+{
+	if (W25Q64_ReadData(addr, (uint8_t *)h, (uint32_t)sizeof(DcHdr_t)) == 0u)
+	{
+		Dc_HdrDefault(h, magic);
+		return;
+	}
+	if ((h->magic != magic) || (h->crc != Dc_HdrCrc(h)) ||
+	    ((uint16_t)(h->wr - h->rd) > slots))
+	{
+		Dc_HdrDefault(h, magic);
+	}
+}
+
+static uint8_t Dc_SaveHdr(DcHdr_t *h, uint32_t hdr_addr)
+{
+	h->crc = Dc_HdrCrc(h);
+	/* ★ 先擦再写 ✗ NOR 不能"原地改"✓ 一块 4KB 扇区只放这 16 字节 ✓ */
+	if (W25Q64_EraseSector(hdr_addr) == 0u) { return 0u; }
+	return W25Q64_WriteData(hdr_addr, (const uint8_t *)h, (uint32_t)sizeof(DcHdr_t));
+}
+
+/* 写一项 ✗ 返回 1=成功 / 2=缓存满 / 0=写失败 ✓
+ *  ★ `len_prefix` = 1 ⇒ 先写 4 字节【实际长度】再写数据 ✓
+ *    ★★ 为什么必须带长度 ✗：槽是固定 1024 B ✗ 而一批可能只有 400 B ✓
+ *      不留长度的话，回写时【把槽里残留的旧字节一起写进 CSV】✓✓ */
+static uint8_t Dc_Put(uint32_t hdr_addr, uint32_t base, uint16_t slots, uint16_t item,
+                      DcHdr_t *h, const uint8_t *src, uint16_t len, uint8_t len_prefix)
+{
+	uint16_t idx;
+	uint16_t i;
+	uint32_t addr;
+
+	if ((len == 0u) || (len > item)) { return 0u; }
+	if ((uint16_t)(h->wr - h->rd) >= slots) { return 2u; }   /* ★ 满了不覆盖 ✓ */
+
+	idx  = (uint16_t)(h->wr % slots);
+	addr = base + ((uint32_t)idx * (uint32_t)item);
+
+	/* ★ 进入新扇区 ⇒ 先擦（每 4096 B 一个扇区）✓ */
+	if ((((uint32_t)idx * (uint32_t)item) % 4096u) == 0u)
+	{
+		if (W25Q64_EraseSector(addr) == 0u) { return 0u; }
+	}
+
+	/* ★ 长度前缀 ✓ */
+	if (len_prefix != 0u)
+	{
+		uint8_t lp[4];
+		lp[0] = (uint8_t)(len & 0xFFu);
+		lp[1] = (uint8_t)((len >> 8) & 0xFFu);
+		lp[2] = 0u;
+		lp[3] = 0u;
+		if (W25Q64_WriteData(addr, lp, 4u) == 0u) { return 0u; }
+		addr += 4u;
+	}
+
+	/* ★ 按 256 B 页写 ✗ 不跨页 ✓（W25 页写不能跨页）*/
+	for (i = 0u; i < len; i = (uint16_t)(i + 256u))
+	{
+		uint16_t n = (uint16_t)(((uint16_t)(len - i) > 256u) ? 256u : (uint16_t)(len - i));
+		if (W25Q64_WriteData(addr + (uint32_t)i, src + i, (uint32_t)n) == 0u) { return 0u; }
+	}
+
+	h->wr++;
+	if (Dc_SaveHdr(h, hdr_addr) == 0u) { h->wr--; return 0u; }   /* ★ 指针没存住 ⇒ 回退 ✓ */
+	return 1u;
+}
+
+static uint8_t Dc_Peek(uint32_t base, uint16_t slots, uint16_t item,
+                       const DcHdr_t *h, uint8_t *dst)
+{
+	uint16_t idx;
+	if (h->wr == h->rd) { return 0u; }
+	idx = (uint16_t)(h->rd % slots);
+	return W25Q64_ReadData(base + ((uint32_t)idx * (uint32_t)item), dst, (uint32_t)item);
+}
+
+static void Dc_Pop(uint32_t hdr_addr, DcHdr_t *h)
+{
+	if (h->wr == h->rd) { return; }
+	h->rd++;
+	if (h->rd == h->wr)                 /* ★ 全搬完了 ⇒ 归零 ✓ 下轮从扇区首重新擦 ✓ */
+	{
+		h->wr = 0u;
+		h->rd = 0u;
+	}
+	(void)Dc_SaveHdr(h, hdr_addr);      /* ★ 指针没存住 ⇒ 最多重搬一次 ✓ 不会丢 ✓ */
+}
+
+/* ★ 运行时入口都要拿锁 ✗ 但【调度器没起来之前不能拿】✓ */
+static uint8_t Dc_Lock(void)
+{
+	if ((s_dc_on == 0u) || (s_w25_lock == NULL)) { return 0u; }
+	return (xSemaphoreTake(s_w25_lock, pdMS_TO_TICKS(2000)) == pdTRUE) ? 1u : 0u;
+}
+
+uint8_t DropCache_Init(void)
+{
+	/* ★ 本函数在 `Golden_Init()` 里调 ✗ 那时【调度器还没起来】✓
+	 *   ⇒ 和 `Golden_Init` 同样的前提：单线程，不拿锁 ✓ */
+	if (W25Q64_IsPresent() == 0u)
+	{
+		s_dc_on = 0u;
+		return 0u;
+	}
+	Dc_LoadHdr(&s_dc_d, DC_DATA_HDR, DC_MAGIC_D, (uint16_t)DC_DATA_SLOTS);
+	Dc_LoadHdr(&s_dc_e, DC_EVT_HDR,  DC_MAGIC_E, (uint16_t)DC_EVT_SLOTS);
+	s_dc_on = 1u;
+	return 1u;
+}
+
+uint8_t DropCache_PutBatch(const uint8_t *p, uint16_t len)
+{
+	uint8_t r;
+	if (Dc_Lock() == 0u) { return 0u; }
+	r = Dc_Put(DC_DATA_HDR, DC_DATA_BASE, (uint16_t)DC_DATA_SLOTS,
+	           (uint16_t)DC_DATA_ITEM, &s_dc_d, p, len, 1u);
+	xSemaphoreGive(s_w25_lock);
+	return r;
+}
+
+uint8_t DropCache_PeekBatch(uint8_t *dst, uint16_t *len)
+{
+	uint8_t  lp[4];
+	uint16_t n;
+	uint32_t addr;
+	uint8_t  r;
+
+	if (Dc_Lock() == 0u) { return 0u; }
+	if (s_dc_d.wr == s_dc_d.rd) { xSemaphoreGive(s_w25_lock); return 0u; }
+
+	addr = DC_DATA_BASE + ((uint32_t)((uint16_t)(s_dc_d.rd % (uint16_t)DC_DATA_SLOTS))
+	                       * (uint32_t)DC_DATA_ITEM);
+
+	/* ★ 先读 4 字节长度 ✓ 再按长度读数据 ✓ 绝不整槽搬运 ✓ */
+	r = W25Q64_ReadData(addr, lp, 4u);
+	if (r != 0u)
+	{
+		n = (uint16_t)((uint16_t)lp[0] | ((uint16_t)lp[1] << 8));
+		if ((n == 0u) || (n > 512u))
+		{
+			r = 0u;                      /* ★ 长度不合理 ⇒ 当坏项 ✓ 由调用者决定跳过 */
+		}
+		else
+		{
+			r = W25Q64_ReadData(addr + 4u, dst, (uint32_t)n);
+			if ((r != 0u) && (len != NULL)) { *len = n; }
+		}
+	}
+	xSemaphoreGive(s_w25_lock);
+	return r;
+}
+
+void DropCache_PopBatch(void)
+{
+	if (Dc_Lock() == 0u) { return; }
+	Dc_Pop(DC_DATA_HDR, &s_dc_d);
+	xSemaphoreGive(s_w25_lock);
+}
+
+uint16_t DropCache_PendingBatches(void)
+{
+	return (s_dc_on != 0u) ? (uint16_t)(s_dc_d.wr - s_dc_d.rd) : 0u;
+}
+
+uint8_t DropCache_PutEvent(const char *line)
+{
+	uint8_t  r;
+	uint16_t i;
+	uint8_t  buf[DC_EVT_ITEM];
+
+	if (line == NULL) { return 0u; }
+	for (i = 0u; i < (uint16_t)(DC_EVT_ITEM - 1u); i++)
+	{
+		buf[i] = (uint8_t)line[i];
+		if (line[i] == '\0') { break; }
+	}
+	buf[DC_EVT_ITEM - 1u] = 0u;
+	for (i = (uint16_t)(i + 1u); i < (uint16_t)DC_EVT_ITEM; i++) { buf[i] = 0u; }
+
+	if (Dc_Lock() == 0u) { return 0u; }
+	r = Dc_Put(DC_EVT_HDR, DC_EVT_BASE, (uint16_t)DC_EVT_SLOTS,
+	           (uint16_t)DC_EVT_ITEM, &s_dc_e, buf, (uint16_t)DC_EVT_ITEM, 0u);
+	xSemaphoreGive(s_w25_lock);
+	return r;
+}
+
+uint8_t DropCache_PeekEvent(char *dst, uint16_t sz)
+{
+	uint8_t  raw[DC_EVT_ITEM];
+	uint16_t i;
+	uint8_t  r;
+
+	if (Dc_Lock() == 0u) { return 0u; }
+	r = Dc_Peek(DC_EVT_BASE, (uint16_t)DC_EVT_SLOTS, (uint16_t)DC_EVT_ITEM, &s_dc_e, raw);
+	xSemaphoreGive(s_w25_lock);
+
+	if (r == 0u) { return 0u; }
+	for (i = 0u; (i < (uint16_t)(sz - 1u)) && (i < (uint16_t)DC_EVT_ITEM); i++)
+	{
+		dst[i] = (char)raw[i];
+		if (raw[i] == 0u) { break; }
+	}
+	dst[sz - 1u] = '\0';
+	return 1u;
+}
+
+void DropCache_PopEvent(void)
+{
+	if (Dc_Lock() == 0u) { return; }
+	Dc_Pop(DC_EVT_HDR, &s_dc_e);
+	xSemaphoreGive(s_w25_lock);
+}
+
+uint16_t DropCache_PendingEvents(void)
+{
+	return (s_dc_on != 0u) ? (uint16_t)(s_dc_e.wr - s_dc_e.rd) : 0u;
+}
+
+
+/*==============================================================================
  *  ★★★ 初始化（★ 建任务之前调一次 ✓）
  *    ★ 现在【调度器还没启动】✗ 【单线程】✗ 所以这里【不用加锁】✓
  *============================================================================*/
@@ -286,6 +592,11 @@ uint8_t Golden_Init(void)
 	}
 
 	s_on = W25Q64_IsPresent();
+
+	/* ★★ 2026-10-18：顺手把【掉卡缓存的两个指针】也读出来 ✓
+	 *   ★ 同一个前提（调度器没起来、单线程）⇒ 不拿锁 ✓
+	 *   ★★ 不在这里读的话：断电重启后【缓存里的数据就没人认领了】✓ */
+	(void)DropCache_Init();
 	if (s_on == 0u)
 	{
 		Serial_Printf("GOLD: W25Q64 NOT PRESENT -> backup disabled\r\n");
@@ -406,6 +717,25 @@ void Golden_Task(void)
 
 	s_page++;
 	s_fail = 0u;
+
+	/* ★★★★ 2026-10-18 加（④ 用户拍板 B）：每写一页【让出 50ms】✗✓
+	 *
+	 *  ★ 加之前是什么行为 ✗：
+	 *    · `Golden_Task()` 【自己没有任何延时】✓
+	 *    · `task_GOLDEN` 的 `for(;;)` 紧接调用 ⇒ 【一页接一页连写】✓
+	 *    · 448 页 ≈ 0.6 秒（含两次 64KB 块擦最坏 4 秒）✓✓
+	 *
+	 *  ★★ 为什么必须让 ✗：
+	 *    · 本任务优先级 1 ✗ `task_SD` 也是 1 ⇒ 【同级轮转】✓
+	 *    · 连写期间 SD 拿不到 CPU ⇒ 落盘被推迟 0.6~4 秒 ✓
+	 *    · ★★★ 而乒乓缓冲只有 2 块（≈1.8 秒数据）
+	 *      ⇒ 【超过就开始 no_buf 丢数据】✓✓
+	 *
+	 *  ★ 让 50ms 之后 ✗：448 × 50 ≈ 22 秒填完
+	 *    · 每页之间都放 SD 一马 ✓
+	 *    · CPU 占用 = 1.4ms / 50ms ≈ **2.8%** ✓ 仍是静默后台 ✓
+	 *  ★★ 注意 ✗：这个延时【也会在最后一页之后执行一次】✗ 无所谓 ✓ */
+	vTaskDelay(pdMS_TO_TICKS(GOLDEN_PAGE_INTERVAL_MS));
 
 	if (s_page >= (uint16_t)GOLDEN_PAGES)
 	{

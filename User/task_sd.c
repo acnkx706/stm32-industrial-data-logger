@@ -36,6 +36,12 @@
 #include "Serial.h"                     /* Serial_Printf：报挂载/失败信息 */
 #include "task_sd.h"
 #include "MyRTC.h"
+/* ★★ 2026-10-18 加：掉卡缓存 API（★ 实现在 golden.c ✓ W25 归它所有 ✓）
+ *   ★ 不加这一行 ⇒ 编译器【隐式声明】✗ 返回类型全按 int 处理
+ *     → 参数/返回值都不校验 ⇒ 出错时【查不出来】✓✓ */
+#include "golden.h"
+/* ★★ 2026-10-19 加：验"文件尾行 CRC"要用它（★ 与 PC 侧同一套参数 ✓）*/
+#include "Crc16.h"
 
 /*============================================================================
  *  配置常量（拍板后改这里，别散在流程里）
@@ -160,10 +166,27 @@ volatile uint8_t g_sd_last_err = 0;
 volatile uint8_t g_shutdown_req  = 0;
 volatile uint8_t g_shutdown_done = 0;
 
+/* ★★★★ 2026-10-18 加：这次关机【到底存住了没有】✗✓
+ *
+ *  ★ 为什么需要它 ✗：
+ *    · 原来只有 `g_shutdown_done` 一个标志 ✗ 它只说"我处理完了"✓
+ *    · ★★ 而屏上【一律】显示 `DATA SAVED` ✗
+ *      → 写失败也显示 ✓
+ *      → ★★★ 【根本没插卡也显示】✓✓（`mounted==0` 时整个落盘被跳过）
+ *
+ *  ★ 含义 ✗：1 = 文件【真的 f_close 成功】✓
+ *             0 = 没存住 / 从没挂载 ✓
+ *  ★ 谁写谁读：`task_SD` 写、`task_DISP` 读 ⇒ 必须 volatile ✓ */
+volatile uint8_t g_shutdown_saved = 0;
+
 /* 交接消息：指针 + 有效长度（len 单独传，CSV 尾批不满 512B 也能写对） */
 typedef struct {
     uint8_t  *buf;
     uint16_t len;
+    uint16_t nrec;      /* ★ 2026-10-18 加：这批里【有几条记录】✗✓
+                         *   ★ 为什么要它 ✗：写卡失败时【按条记账】✓
+                         *     原来只知道"一批"✗ 一批约 40 条 ⇒ 记成 1 ✓
+                         *     → 丢掉 4000 条只报"100 次"✓✓ */
 } SdMsg_t;
 
 static QueueHandle_t      s_xQueueSdPtr  = NULL;    /* 工作队列：PROC → task_SD，传 {指针,长度} */
@@ -238,7 +261,7 @@ BaseType_t SD_BufAcquire(uint8_t **pbuf)
 /*============================================================================
  *  SD_LogEnqueue：PROC 交缓冲入口（交接第②步，task_sd.h 有完整时序）
  *==========================================================================*/
-BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len)
+BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len, uint16_t nrec)
 {
 	SdMsg_t msg;
 
@@ -261,8 +284,9 @@ BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len)
 		return pdFAIL;                  /* 不是池中两块之一：拒绝，防止污染池子 */
 	}
 
-	msg.buf = buf;
-	msg.len = len;
+	msg.buf  = buf;
+	msg.len  = len;
+	msg.nrec = (nrec != 0u) ? nrec : 1u;   /* ★ 兜底：至少 1 条 ✓ */
 
 	/* 超时 0：PROC 绝不许为写卡阻塞（它卡住会顶住采集队列，违反架构前提）。
 	 * 正常情况下队列不可能满（空闲队列已保证在途缓冲 ≤2），失败=时序被破坏 */
@@ -456,6 +480,134 @@ static FRESULT SD_AppendEvidence(const char *src,
 }
 
 /*============================================================================
+ *  ★★★★★ 2026-10-18 加：丢失记账（★ 复盘 §7 ★★★ 第 1 条 ✓）
+ *==========================================================================*/
+
+/* 待落盘的增量（★ 只加不减 ✗ 冲掉的由 flusher 扣 ✓）*/
+static volatile uint16_t s_loss_pending[LOSS_N];
+
+/* 理由名（★ 写进事件文件用 ✗ 纯 ASCII ✓）*/
+static const char *const s_loss_name[LOSS_N] = {
+	"q_full", "no_buf", "enq_fail", "row_big", "sd_write"
+};
+
+/* ★★★ 任何任务都能调 ✗ 但【中断里不许调】✓（用了临界区）*/
+void Loss_Add(uint8_t reason, uint16_t n)
+{
+	if ((reason >= LOSS_N) || (n == 0u)) { return; }
+
+	taskENTER_CRITICAL();
+	s_loss_pending[reason] = (uint16_t)(s_loss_pending[reason] + n);
+	taskEXIT_CRITICAL();
+}
+
+/* ★★★★ 往事件文件追加【一条通用事件行】✗✓
+ *
+ *  ★ 为什么要一个比 `SD_AppendEvidence` 更通用的 ✗：
+ *    · `SD_AppendEvidence` 是【专门给"时间倒退"写的】✗ 固定写两行 ✓
+ *    · ★★ 而"丢了多少"需要的格式不同 ✓
+ *    · ★ 复用一个通用入口 ⇒ 命名/表头/关闭策略【只有一份】✓✓
+ *
+ *  ★★ 约定 ✗：
+ *    · `#` 开头 ⇒ 所有 PC 解析器都当注释跳过 ✓
+ *    · 写完【立刻 f_sync】✗ 这种行丢了就等于没记 ✓
+ *  ★ 只能在 task_SD 里调（唯一允许碰 FatFs 的任务 ✓）*/
+static FRESULT SD_AppendEventLine(const char *line)
+{
+	FIL        ef;
+	FRESULT    fr;
+	char       evname[16];
+	char       txt[160];
+	UINT       bw = 0u;
+	uint16_t   len = 0u;
+	RTC_DateTime_t d;
+
+	MyRTC_GetDateTime(&d);
+	(void)sprintf(evname, "0:%02u%02u%02u%02u.CSV",
+	              (unsigned)(d.year % 100u), (unsigned)d.month, (unsigned)d.day, 90u);
+
+	fr = f_open(&ef, evname, FA_WRITE | FA_READ | FA_OPEN_ALWAYS);
+	if (fr != FR_OK) { return fr; }
+
+	if (f_size(&ef) == 0u)
+	{
+		static const char hdr[] =
+		    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc\r\n";
+		fr = f_write(&ef, hdr, (UINT)(sizeof(hdr) - 1u), &bw);
+		if (fr != FR_OK) { (void)f_close(&ef); return fr; }
+	}
+	else
+	{
+		fr = f_lseek(&ef, f_size(&ef));
+		if (fr != FR_OK) { (void)f_close(&ef); return fr; }
+	}
+
+	/* ★ 拷贝 + CRLF（★ 不用 strlen ✗ 少一个头文件依赖 ✓）*/
+	while ((line[len] != '\0') && (len < (uint16_t)(sizeof(txt) - 3u)))
+	{
+		txt[len] = line[len];
+		len++;
+	}
+	txt[len++] = '\r';
+	txt[len++] = '\n';
+
+	fr = f_write(&ef, txt, len, &bw);
+	if (fr == FR_OK) { fr = f_sync(&ef); }
+	(void)f_close(&ef);
+	return fr;
+}
+
+/* ★★★★ 把 RAM 里攒的增量冲进事件文件 ✗✓
+ *
+ *  ★★ 关键策略 ✗：**【先清零、写成功才算数】**
+ *    · 写失败 ⇒ 【把数补回去】✗ 等下一轮再试 ✓
+ *      → ★ 否则就成了"记账自己也丢"✓✓
+ *  ★ 全部为 0 时【不做任何 FatFs 操作】✓（每轮调一次也不费）*/
+static void Loss_Flush(void)
+{
+	char    line[120];
+	uint8_t i;
+
+	for (i = 0u; i < LOSS_N; i++)
+	{
+		uint16_t n;
+
+		taskENTER_CRITICAL();
+		n = s_loss_pending[i];
+		s_loss_pending[i] = 0u;
+		taskEXIT_CRITICAL();
+
+		if (n == 0u) { continue; }
+
+		(void)sprintf(line, "# LOST,%lu,%u,%s",
+		              (unsigned long)MyRTC_GetUnix(), (unsigned)n, s_loss_name[i]);
+
+		if (SD_AppendEventLine(line) != FR_OK)
+		{
+			/* ★★★ 2026-10-18 加：写不进卡 ⇒ 【先存进 W25 缓存】✗✓
+			 *   ★ 为什么这条最值钱 ✗：事件行是"证据"✓
+			 *     · 原来只能【攒在 RAM】✗ 等卡好了补记 ✓
+			 *     · ★★★ 而这期间一断电（现场最常见的"以为死机→拔电源"）
+			 *       ⇒ 【证据全丢】✓✓
+			 *   · ★ W25 走独立的软件 SPI ⇒ 【SD 坏着它也写得进】✓
+			 *   ⇒ 存进缓存 = 【断电也不丢证据】✓✓ */
+			if (DropCache_PutEvent(line) != 0u)
+			{
+				continue;                    /* ★ 已保住 ⇒ 不用补回 RAM ✓ */
+			}
+
+			/* ★ 没写进去 ⇒ 补回去 ✗ 别让它凭空消失 ✓ */
+			taskENTER_CRITICAL();
+			s_loss_pending[i] = (uint16_t)(s_loss_pending[i] + n);
+			taskEXIT_CRITICAL();
+
+			Serial_Printf("SD: LOST record FAILED to write (pending kept)\r\n");
+			return;                      /* ★ 后面几个也别试了 ✗ 卡坏了 ✓ */
+		}
+	}
+}
+
+/*============================================================================
  *  ★★★★ 【已删除】F2 原来在这里有个 SD_OpenIsolated()（2026-10-12 删 ✓）
  *
  *  ★ 它原来做什么 ✗：
@@ -484,6 +636,128 @@ static FRESULT SD_AppendEvidence(const char *src,
  *  内部：挂载 + 打开（或续写）日志文件
  *  返回 FR_OK = 可以开始写了；其他 = 未挂载态继续等
  *==========================================================================*/
+/*============================================================================
+ *  ★★★★ 2026-10-19 加：验一行 CSV 的 CRC（★ 用于"挂载时验文件尾"✓）
+ *
+ *  ★ 契约 ✗：一行 = 16 列 ✗ 前 15 列文本算 CRC16/KERMIT ⇒ 第 16 列 ✓
+ *    （★ 和 `check_csv_crc.py` 完全同一套 ✓）
+ *  ★★ 为什么需要它 ✗（★ 实测证据 ✓）：
+ *    · 卡上 `26101801.CSV` 里 **38,440 行是二进制垃圾**（16% ✗）
+ *    · 而 FatFs【完全不知道】内容坏了 ✓
+ *    · ★★★ 成因：反复"写卡中途拔卡/断电"
+ *      ⇒ 廉价卡把 FAT 认为有数据的块搞坏/重映射 ✓✓
+ *  ★ 返回 ✗：1 = 这一行 CRC 对得上 ✓ 0 = 对不上 / 不是数据行 ✓
+ *============================================================================*/
+static uint8_t Sd_LineCrcOk(const char *line)
+{
+	uint32_t stored = 0u;
+	uint16_t i;
+	uint16_t n        = 0u;
+	uint16_t lastcomma = 0u;
+
+	if (line == NULL) { return 0u; }
+
+	/* ① 找【最后一个逗号】⇒ 它前面就是被 CRC 覆盖的 15 列 ✓ */
+	for (i = 0u; (line[i] != '\0') && (i < 300u); i++)
+	{
+		if (line[i] == ',') { lastcomma = i; }
+	}
+	if (lastcomma == 0u) { return 0u; }         /* ★ 连逗号都没有 ⇒ 不是数据行 ✓ */
+	n = lastcomma;
+
+	/* ② 解析逗号后面的数字（第 16 列 = CRC 十进制 ✓）*/
+	for (i = (uint16_t)(lastcomma + 1u);
+	     (line[i] >= '0') && (line[i] <= '9');
+	     i++)
+	{
+		stored = stored * 10u + (uint32_t)(line[i] - '0');
+	}
+	if (i == (uint16_t)(lastcomma + 1u)) { return 0u; }   /* ★ 后面没数字 ✓ */
+
+	/* ③ 算前 15 列 ✓ 比对 ✓ */
+	return (Crc16_Kermit((const uint8_t *)line, (uint32_t)n) == (uint16_t)stored) ? 1u : 0u;
+}
+
+
+/*============================================================================
+ *  ★★★★ 2026-10-19 加：**多点抽样校验**（★ 专门抓"中间坏了、尾巴还好"✓）
+ *
+ *  ★ 为什么尾行校验不够 ✗（★ 实测证据 ✓）：
+ *    · 卡上 `26101801.CSV` 有 38,440 行二进制垃圾（9~16% ✗）
+ *    · 但【垃圾在中间】⇒ **尾行是好的** ⇒ 尾行校验【放行】✓
+ *    · ★★★ 于是它【继续往坏文件里追加】✓✓（实测：+133 KB ✓）
+ *
+ *  ★ 做法 ✗：等距取 4 个窗口（各 512 B）✗ 每窗按行验 CRC ✓
+ *    · 任一窗口【坏行 ≥ 60%】⇒ 判这个文件不可用 ✓
+ *  ★★ 为什么不用全文件扫描 ✗：21 MB @硬件 SPI1 9MHz ≈ 19 秒 ✗ 不可接受 ✓
+ *    · 4 × 512 B = 2 KB ⇒ 约 2 ms ✓（挂载时一次 ✓）
+ *  ★ 为什么用 static 缓冲 ✗：task_SD 栈只有 1.5 KB ✓（★ 不吃栈 ✓）
+ *  ★ 返回 ✗：1 = 看着是坏的 ✓  0 = 看着正常 / 小文件（不抽样 ⇒ 不误杀 ✓）
+ *============================================================================*/
+static uint8_t Sd_SampleLooksBad(FIL *fp)
+{
+	static const uint16_t pct[4] = { 12u, 37u, 62u, 87u };
+	static uint8_t  s_smp[512];                 /* ★ static：不吃栈 ✓ */
+	static char     s_line[200];
+	FSIZE_t   sz = f_size(fp);
+	uint8_t   k;
+
+	if (sz < 8192u) { return 0u; }              /* ★ 文件小 ⇒ 不抽样 ⇒ 绝不误杀 ✓ */
+
+	for (k = 0u; k < 4u; k++)
+	{
+		FSIZE_t  off = (sz / 100u) * (FSIZE_t)pct[k];
+		UINT     br  = 0u;
+		uint16_t good = 0u;
+		uint16_t bad  = 0u;
+		uint16_t i;
+
+		if (f_lseek(fp, off) != FR_OK) { continue; }
+		if (f_read(fp, s_smp, (UINT)sizeof(s_smp), &br) != FR_OK) { continue; }
+		if (br < 128u) { continue; }
+
+		/* ★ 跳到【第一个换行之后】✗ 免得把半行当坏行 ✓ */
+		i = 0u;
+		while ((i < (uint16_t)br) && (s_smp[i] != (uint8_t)'\n')) { i++; }
+		i++;
+
+		while (i < (uint16_t)br)
+		{
+			uint16_t start = i;
+			uint16_t len;
+			uint16_t n;
+			uint16_t j;
+
+			while ((i < (uint16_t)br) && (s_smp[i] != (uint8_t)'\n')) { i++; }
+			len = (uint16_t)(i - start);
+
+			/* ★ 只统计【末尾有换行的完整行】✓（最后一行可能是半行 ⇒ 不算 ✓）*/
+			if ((i < (uint16_t)br) && (len > 20u))
+			{
+				n = (len > (uint16_t)(sizeof(s_line) - 1u)) ? (uint16_t)(sizeof(s_line) - 1u) : len;
+				for (j = 0u; j < n; j++) { s_line[j] = (char)s_smp[start + j]; }
+				while ((n > 0u) && ((s_line[n - 1u] == '\r') || (s_line[n - 1u] == '\n'))) { n--; }
+				s_line[n] = '\0';
+
+				if (Sd_LineCrcOk(s_line) != 0u) { good++; } else { bad++; }
+			}
+			if (i < (uint16_t)br) { i++; }
+		}
+
+		/* ★ 至少 3 行才有统计意义 ✓ 坏行 ≥ 60% ⇒ 这一片基本是垃圾 ✓ */
+		if ((uint16_t)(good + bad) >= 3u)
+		{
+			if (((uint32_t)bad * 10u) >= ((uint32_t)(good + bad) * 6u))
+			{
+				return 1u;
+			}
+		}
+	}
+
+	return 0u;
+}
+
+
 static FRESULT sd_mount_and_open(uint32_t *pidx)
 {
 	FRESULT fr;
@@ -539,6 +813,21 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
 
 		for (nn = 1u; nn <= (uint8_t)SD_FILE_NN_MAX; nn++)
 		{
+			/* ★★★★ 2026-10-18 加：**跳过 90** ✗✓（★ 用户拍板 A ✓）
+			 *
+			 *  ★ 为什么必须跳 ✗：
+			 *    · `NN = 90` 是【事件文件】的固定编号 ✓
+			 *      （`# LOST` / `# SD_RECOVER` / `# TIME BACKWARD` 都写它 ✓）
+			 *    · ★★ 而数据文件是从 01 往后【一路试】✗ 原来【没有跳过 90】✓
+			 *      → 一旦 1~89 全不可用（目录满 / 长期不换卡 / 写保护）
+			 *      ⇒ ★★★ 数据就写进 `??90.CSV` ✗
+			 *        【数据行和事件行混一个文件】✓✓
+			 *    · ★ 后果很阴 ✗：所有 PC 工具都把 90 当"事件文件"跳过
+			 *      ⇒ 【那批数据看起来凭空消失】✗ 而且【不报任何错】✓✓
+			 *
+			 *  ★ 代价（说清楚）✗：极端情况下"能写的只剩 90"时
+			 *    ⇒ 【写不进去 ⇒ 报 SD 错误】✓ 但那本来就该报警 ✓✓ */
+			if (nn == 90u) { continue; }
 			sprintf(name, "0:%02u%02u%02u%02u.CSV",
 			        (unsigned)yy, (unsigned)mm, (unsigned)dd, (unsigned)nn);
 
@@ -574,7 +863,52 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
 				}
 				if (f_size(&s_log_file) < (FSIZE_t)SD_FILE_SIZE_LIMIT)
 				{
-					break;                  /* ★ 今天的这个还没到兜底 → 续写它 ✓ */
+					/* ★★★★★ 2026-10-19 加：续写之前【先验尾行 CRC】✗✓
+					 *
+					 *  ★ 为什么必须验 ✗（★ 实测证据 ✓）：
+					 *    · 卡上 `26101801.CSV` 里【38,440 行是二进制垃圾】
+					 *      （占 16% ✗ 而 FatFs【完全不知道】✓）
+					 *    · ★★ 成因：反复"写卡中途拔卡/断电"
+					 *      ⇒ 廉价卡把 FAT 认为有数据的块搞坏/重映射 ✓✓
+					 *    · ★★★ 【在同一根坏链上继续追加】= 继续污染 ✓
+					 *
+					 *  ★ 判据 ✗：读最后一行 ⇒ 前 15 列 + CRC16 对得上 ✓
+					 *    · 对不上 ⇒ 【关掉它 ✗ 试下一个 NN】✓
+					 *      （★ 坏文件【留着当证据】✗ 绝不删 ✓）
+					 *
+					 *  ★ 位置为什么【必须在这里】✗：
+					 *    · 这是【决定"要不要续写这个文件"】的那个判断点 ✓
+					 *    · ★★ 而且它在 `for (nn...)` 循环【里面】
+					 *      ⇒ `continue` 才能正确地"试下一个 NN" ✓✓
+					 *
+					 *  ★ 成本 ✗：一次读行 + 一次 CRC16 ≈ 几十微秒（只在挂载时 ✓）
+					 *  ★★ 覆盖面（说清楚）✗：
+					 *    · 能抓【尾部已坏】✓ ⇒ 不会继续追加上去 ✓
+					 *    · 抓不住【中间坏了但尾巴还好】✗
+					 *      ⇒ 那种只能靠 PC 侧校验发现 ✓（`check_csv_crc.py` ✓）*/
+					char tail[200];
+
+					(void)SD_ReadLastLine(&s_log_file, tail, (uint16_t)sizeof(tail));
+					if (Sd_LineCrcOk(tail) != 0u)
+					{
+						/* ★★★ 2026-10-19 加：尾行过了【还不够】✗✓
+						 *   ★ 实测：`26101801.CSV` 的垃圾在【中间】✗
+						 *     尾行是好的 ⇒ 只验尾行【会放行】✓✓
+						 *   ⇒ ★ 再【多点抽样】一轮 ✓（抓"中间坏"）*/
+						if (Sd_SampleLooksBad(&s_log_file) == 0u)
+						{
+							break;          /* ★ 抽样也正常 ⇒ 续写它 ✓ */
+						}
+						Serial_Printf("SD: sample CRC BAD -> skip %s (mid-file garbage)\r\n", name);
+					}
+					else
+					{
+						Serial_Printf("SD: tail CRC BAD -> skip %s (try next NN)\r\n", name);
+					}
+
+					(void)f_close(&s_log_file);
+					fr = FR_OK;
+					continue;               /* ★ 换下一个 NN ✓ */
 				}
 				/* ★★★★ 2026-10-14 改：不能再 `(void)` 丢掉返回值 ✗
 				 *   ★ 为什么 ✗：`fr` 里还留着【上一次的 FR_OK】✓
@@ -799,31 +1133,23 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
 			}
 			else if (diff < (86400L * 3650L))
 			{
-				/* ★★★ ③ > 1 天 ✗ → 【报警 + 留证据 + 【切换到 90】】✓✓ */
-				Serial_Printf("SD: TIME BACKWARD %lds (>1d) - SWITCH to evidence file\r\n",
+				/* ★★★★ 2026-10-18 改：③ **不再切 90** ✗✓（★ 用户拍板 A ✓）
+				 *
+				 *  ★ 原来的行为 ✗：报警 + 留证据 + 【关主文件、改开 90】✓
+				 *  ★★★ 为什么必须改 ✗：
+				 *    · 本板【没有 VBAT】⇒ 每次断电后 RTC 从【编译时刻】起算 ✓
+				 *      → ★★ "倒退 > 1 天"【会反复发生】✗ 不是罕见事件 ✓✓
+				 *    · ★★★ 而一旦切到 90 ⇒ 【正常文件停止增长】✓
+				 *      历史上"一旦触发就永远触发"那个缺陷就是这么来的 ✓
+				 *      （★ 本文件上方"已删除 `SD_OpenIsolated`"那段注释
+				 *        写的就是"只报警、继续写同一个文件"✗ 代码现在终于一致 ✓）
+				 *
+				 *  ★ 代价 ✗：文件里 `rtc` 会【先大后小】✓
+				 *    ⇒ ★★ PC 侧按 **seq** 排序即可（已有约定 ✓ 见 30 号 §二十四 ✓） */
+				Serial_Printf("SD: TIME BACKWARD %lds (>1d) - keep SAME file (no switch)\r\n",
 				              (long)diff);
-
-				fr = SD_AppendEvidence(name, last_rtc, now_ts, lastline,
-				                       evname, (uint16_t)sizeof(evname));
-				if (fr == FR_OK)
-				{
-					/* ★ 切换 ✗：关主文件 → 打开 90（★ 里面已有表头 ✓）→ 定位末尾 ✓ */
-					(void)f_close(&s_log_file);
-					fr = f_open(&s_log_file, evname, FA_WRITE | FA_READ | FA_OPEN_ALWAYS);
-					if (fr == FR_OK)
-					{
-						/* ★★ 把 name 换成 90 ✗ 让后面的 "SD: log" 显示对的名字 ✓
-						 *   （★ 手工拷贝 ✗ 不为这个引入 string.h 依赖 ✓）*/
-						uint8_t k = 0u;
-						while ((evname[k] != '\0') && (k < 23u))
-						{
-							name[k] = evname[k];
-							k++;
-						}
-						name[k] = '\0';
-						fr = f_lseek(&s_log_file, f_size(&s_log_file));
-					}
-				}
+				(void)SD_AppendEvidence(name, last_rtc, now_ts, lastline,
+				                        evname, (uint16_t)sizeof(evname));
 			}
 			else
 			{
@@ -896,6 +1222,126 @@ static uint8_t sd_note_failure(uint8_t *streak, uint8_t err)
 /*============================================================================
  *  任务本体
  *==========================================================================*/
+/* ★★★ 2026-10-19 加：从一批 CSV 文本里取【首行 / 末行】的 seq 和 rtc ✗✓
+ *   ★ 为什么连 rtc 一起取 ✗（★ 这是实测抓到的缺陷 ✓）：
+ *     · 一开始我只记 `seq=A-B` ✗
+ *     · ★★ 但 **`seq` 每次重启都从 1 重数** ⇒ 同一个 seq 范围
+ *       在一个文件里【出现十几次】✓
+ *     · ★ 实测：`seq=258~267` 在文件里出现了 **10 次**（10 个会话）✓✓
+ *     ⇒ ★★ 光有 seq 范围【根本定位不到是哪几行】✓
+ *     ⇒ 加上【那一行的 rtc】⇒ `(rtc, seq)` 组合才唯一 ✓✓
+ *   ★ 不引 `atoi` ✗ 省 flash ✓ */
+static void Sd_ParseRowRange(const uint8_t *p, uint16_t len,
+                             uint32_t *seq1, uint32_t *rtc1,
+                             uint32_t *seq2, uint32_t *rtc2)
+{
+	uint16_t i;
+	uint16_t k;
+	uint16_t field;
+
+	if (seq1) { *seq1 = 0u; }
+	if (rtc1) { *rtc1 = 0u; }
+	if (seq2) { *seq2 = 0u; }
+	if (rtc2) { *rtc2 = 0u; }
+	if ((p == NULL) || (len == 0u)) { return; }
+
+	/* ---- 首行：从第 0 字节开始 ✓ ---- */
+	i = 0u;
+	if (seq1)
+	{
+		while ((i < len) && (p[i] >= (uint8_t)'0') && (p[i] <= (uint8_t)'9'))
+		{
+			*seq1 = (*seq1) * 10u + (uint32_t)(p[i] - (uint8_t)'0');
+			i++;
+		}
+	}
+	if (rtc1)
+	{
+		field = 0u;
+		while ((i < len) && (p[i] != (uint8_t)'\n'))
+		{
+			if (p[i] == (uint8_t)',') { field++; }
+			else if ((field == 3u) && (p[i] >= (uint8_t)'0') && (p[i] <= (uint8_t)'9'))
+			{
+				*rtc1 = (*rtc1) * 10u + (uint32_t)(p[i] - (uint8_t)'0');
+			}
+			i++;
+		}
+	}
+
+	/* ---- 末行：退掉行尾 \r\n ✗ 再退回最后一个 \n 之后 ✓ ---- */
+	i = len;
+	while ((i > 0u) && ((p[i - 1u] == (uint8_t)'\n') || (p[i - 1u] == (uint8_t)'\r'))) { i--; }
+	k = i;
+	while ((k > 0u) && (p[k - 1u] != (uint8_t)'\n')) { k--; }
+
+	if (seq2)
+	{
+		uint16_t j = k;
+		while ((j < len) && (p[j] >= (uint8_t)'0') && (p[j] <= (uint8_t)'9'))
+		{
+			*seq2 = (*seq2) * 10u + (uint32_t)(p[j] - (uint8_t)'0');
+			j++;
+		}
+	}
+	if (rtc2)
+	{
+		uint16_t j = k;
+		field = 0u;
+		while ((j < i) && (p[j] != (uint8_t)'\n'))
+		{
+			if (p[j] == (uint8_t)',') { field++; }
+			else if ((field == 3u) && (p[j] >= (uint8_t)'0') && (p[j] <= (uint8_t)'9'))
+			{
+				*rtc2 = (*rtc2) * 10u + (uint32_t)(p[j] - (uint8_t)'0');
+			}
+			j++;
+		}
+	}
+}
+
+
+/*============================================================================
+ *  ★★★★ 2026-10-19 加：**把工作队列抽干 ⇒ 批进缓存 + 缓冲还池** ✗✓
+ *
+ *  ★ 为什么抽成一个函数 ✗：要在【两处】调 ✓
+ *    · 未挂载态每轮开头一次 ✓
+ *    · ★★ 以及失败重试的 3 秒里【每 100ms 一次】✓✓
+ *
+ *  ★★ 为什么要"勤抽" ✗（★ 实测数据推动 ✓）：
+ *    · 工作队列深度只有 **2** ✗ ⇒ 一轮最多捞 12 条 ✓
+ *    · 原来 **3 秒才抽一次** ⇒ 实测拔卡 23 秒只救回 **78 条（约 34%）**✓
+ *    · ★ 计算方法：7 轮 × 12 条 ≈ 84 ✓ 和实测 78 吻合 ✓✓
+ *    · ★★ 而生产速度只有 0.55 批/秒 ✗ 抽 10 次/秒 ⇒ 【理论上全救】✓✓
+ *
+ *  ★ 为什么打印 ✗：抽队列这条路【以前一声不响】✗
+ *    ⇒ 日志里只看到"写失败"那 1 次 `cached` ✗ 看不出真存了多少 ✓✓
+ *  ★ 返回 ✗：本轮捞到几批 ✓
+ *============================================================================*/
+static uint16_t Sd_DrainToCache(void)
+{
+	SdMsg_t  msg;
+	uint16_t n = 0u;
+
+	while (xQueueReceive(s_xQueueSdPtr, &msg, 0) == pdPASS)
+	{
+		if (DropCache_PutBatch(msg.buf, msg.len) != 1u)
+		{
+			Loss_Add(LOSS_SD_WRITE, msg.nrec);       /* ★ 缓存满/失败 ⇒ 才真丢 ✓ */
+		}
+		(void)xQueueSend(s_xQueueFree, &msg.buf, 0); /* ★ 还池 ⇒ PROC 不再 no_buf ✓ */
+		n++;
+	}
+
+	if (n != 0u)
+	{
+		Serial_Printf("SD: drained %u batch to cache (pending=%u)\r\n",
+		              (unsigned)n, (unsigned)DropCache_PendingBatches());
+	}
+	return n;
+}
+
+
 void task_SD(void *pvParameters)
 {
 	SdMsg_t  msg;
@@ -903,6 +1349,44 @@ void task_SD(void *pvParameters)
 	UINT     bw;                                /* f_write 的"实际写入字节数" */
 	uint8_t  mounted      = 0;                  /* 0=未挂载态 1=挂载态 */
 	uint8_t  fail_streak  = 0;                  /* 连续写失败批数 */
+
+	/* ★★★★★ 2026-10-18 加：本次关机请求【是否已经处理过】✗✓
+	 *
+	 *  ★ 为什么【必须有】✗（★ 这是我自己改出来的 bug，实测抓到的 ✓）：
+	 *    · 关机分支在循环顶部 ✗ `g_shutdown_req` 不撤就一直轮到 ✓
+	 *    · ★★ 而第一趟处理完会把 `mounted = 0`（已卸卷 ✓）
+	 *    · ★★★ 于是第二趟就进了 `else` 分支
+	 *      → 【重复打印 NOTHING saved】✗ 每 200ms 一条 = 刷屏 ✓
+	 *      → 更糟：【把 `g_shutdown_saved` 从 1 改回 0】✗
+	 *        ⇒ 屏上本该 `DATA SAVED`，结果变成 `NOT SAVED !!` ✓✓
+	 *
+	 *  ★ 语义 ✗：1 = 这一轮关机【已经落盘 + 关文件 + 判定完毕】✓
+	 *    撤消退出的那条路会把它清 0 ✓（下次长按还能重新走一遍 ✓）*/
+	uint8_t  shutdown_handled = 0;
+
+	/* ★★ 2026-10-19 加：回写统计（★ 用来写 `# SD_REPLAY` 那一行 ✓）
+	 *   · 一批批累计 ✗ 等【缓存彻底排空】的那一刻写一行总结 ✓
+	 *   · ★ 为什么不在每批后写 ✗：会有几十行噪声 ✗ 而且没信息量 ✓ */
+	static uint32_t s_rp_batches = 0u;   /* 本次连续回写了几批 */
+	static uint32_t s_rp_recs    = 0u;   /* 本次共回写多少条 */
+	static uint32_t s_rp_first   = 0u;   /* 第一行的 seq */
+	static uint32_t s_rp_last    = 0u;   /* 最后一行的 seq */
+	static uint32_t s_rp_rtc1    = 0u;   /* ★ 第一行的 rtc（★ seq 会重数 ⇒ 必须配 rtc ✓）*/
+	static uint32_t s_rp_rtc2    = 0u;   /* ★ 最后一行的 rtc */
+
+	/* ★★★ 2026-10-18 加：本次故障【从什么时候开始】✗✓
+	 *   · 0 = 当前没在故障 ✓
+	 *   · 非 0 = 故障起始的 Unix 秒 ⇒ 恢复时能算出"断了多久" ✓ ✓
+	 *   ★ 为什么需要它 ✗：复盘里那条"恢复即抹掉故障史"✓
+	 *     → 光清标志的话【曾经断记多久】就彻底没了 ✓✓ */
+	uint32_t s_err_since = 0;
+
+	/* ★★ 2026-10-18 加：故障期间【最后一次的错误码】✗
+	 *   ★ 为什么不直接用 `g_sd_last_err` ✗：
+	 *     · 关机时我们会把 `g_sd_last_err` 清 0（让屏回到 E:00 ✓）
+	 *     · ★★ 但恢复时那行 `# SD_RECOVER` 还要报"当时是多少"✓
+	 *   ⇒ 单独存一份 ✓ */
+	uint8_t  s_err_code = 0;
 	uint32_t sync_counter = 0;                  /* 距上次 f_sync 的批数 */
 	uint32_t file_idx     = 1;                  /* ★ 已废弃（2026-10-10）✗：
 	                                             *   文件名改成 YYMMDDNN.CSV 后不再需要序号 ✓
@@ -944,13 +1428,45 @@ void task_SD(void *pvParameters)
 		 *----------------------------------------------------------*/
 		if (g_shutdown_req != 0u)
 		{
+			/* ★★★★ 2026-10-18 加：整段【只走一趟】✗✓
+			 *   · 不加这一层 ⇒ 200ms 后 `mounted` 已是 0
+			 *     ⇒ 进 else 分支 ⇒ 【刷屏 + 覆盖 saved 标志】✓✓
+			 *   ★ 先置位再干活 ✗：万一中途 return/continue 也不会漏 ✓ */
+			if (shutdown_handled == 0u)
+			{
+			shutdown_handled = 1u;
+
 			if (mounted)
 			{
+				/* ★★★★ 2026-10-18 加：先等【尾批】落进队列 ✗✓
+				 *
+				 *  ★ 为什么必须等 ✗：
+				 *    · PROC 的尾批规则是"500ms 没新数据才交"✓
+				 *    · ★★ 关机时最后那批【还在 PROC 手里】✗
+				 *    · ★★★ 不等 ⇒ 我们这边把队列排空、f_close 掉
+				 *      → 那批【之后才入队】⇒ 【永远写不进去】✓✓
+				 *      → 而屏上已经写着 `DATA SAVED` ✓（说谎）
+				 *
+				 *  ★ 为什么是 700ms ✗：PROC 的超时是 500ms
+				 *    ⇒ 留 200ms（一拍 DISP）余量 ✓
+				 *  ★★ 代价：关机多花 0.7 秒 ✗ 换来"最后一批不丢"✓ */
+				vTaskDelay(pdMS_TO_TICKS(700));
+
 				/* ★ ① 把还在队列里的最后一批写完 ✓
 				 *   （★ 缓冲【必须还池**✗ 否则 PROC 以后拿不到空缓冲 ✓）*/
 				while (xQueueReceive(s_xQueueSdPtr, &msg, 0) == pdPASS)
 				{
-					(void)f_write(&s_log_file, msg.buf, (UINT)msg.len, &bw);
+					/* ★★★ 2026-10-18 改：`f_write` 的返回值【不许丢】✗✓
+					 *   · 原来 `(void)f_write(...)` ✗ 写失败【完全静默】✓
+					 *   · ★★ 而下面只看 `f_sync` ⇒ 【写没写进去根本不知道】✓
+					 *     → 屏上照样 `DATA SAVED` ✓✓
+					 *   ⇒ 接住返回值，失败就把错误码留给 OLED/STAT ✓ */
+					fr = f_write(&s_log_file, msg.buf, (UINT)msg.len, &bw);
+					if (fr != FR_OK)
+					{
+						g_sd_last_err = (uint8_t)fr;
+						g_sd_error    = 1u;
+					}
 					(void)xQueueSend(s_xQueueFree, &msg.buf, 0);
 				}
 
@@ -963,9 +1479,54 @@ void task_SD(void *pvParameters)
 				(void)f_mount(NULL, "0:", 0);   /* ★ 无论成败【都要作废卷登记】✓ */
 				mounted = 0;
 
+				/* ★★★ 2026-10-18 加：只有【真的关成功】才算"已保存"✓
+				 *   ★ 判据 = `f_close` 返回 FR_OK ✓
+				 *     （☆ 不信"我写了" ✗ 要看"它真的进去了" ✓ 和 `U` 命令同一个原则）*/
+				g_shutdown_saved = (fr == FR_OK) ? 1u : 0u;
+				if (fr != FR_OK)
+				{
+					g_sd_last_err = (uint8_t)fr;
+					g_sd_error    = 1u;
+				}
+
 				/* ★ 关键路径【不许静默**✗ 关得成不成功都要说出来 ✓ */
-				Serial_Printf("SD: SAFE SHUTDOWN fr=%u (file closed)\r\n", (unsigned)fr);
+				Serial_Printf("SD: SAFE SHUTDOWN fr=%u saved=%u\r\n",
+				              (unsigned)fr, (unsigned)g_shutdown_saved);
 			}
+			else
+			{
+				/* ★★★ 2026-10-18 加：从没挂载过 = 【一个字节都没写进卡】✗
+				 *   ★ 这种时候屏上【绝不能】显示 `DATA SAVED` ✓
+				 *   ★★ 这是复盘里最让人难受的一条 ✗：
+				 *     没插卡、按电源键、屏上写着"数据已保存，可以断电"✓✓ */
+				g_shutdown_saved = 0u;
+				Serial_Printf("SD: shutdown while NOT MOUNTED -> NOTHING saved\r\n");
+			}
+
+			/* ★★★★★ 2026-10-18 加：关机完成 ⇒ 【运行期故障标志作废】✗✓
+			 *
+			 *  ★ 实测痛点（用户 2026-10-18 报）✗：
+			 *    · 关机态下蜂鸣器【一直哔哔叫】✗
+			 *    · ★★ 而且【把卡插回去也不停】✗ 必须重新开机 ✓✓
+			 *
+			 *  ★ 为什么 ✗：
+			 *    · 关机分支结尾是 `continue` ✗
+			 *      ⇒ 【永远不会走到"未挂载态重试挂载"那段】✓
+			 *    · ★★ 于是 `g_sd_error` 一旦为 1
+			 *      【再也没有任何代码会把它清 0】✓
+			 *    · ★★★ 而蜂鸣器正是在 task_DISP 里看 `g_sd_error` 的 ✓
+			 *      → 【一直响到重启为止】✓✓
+			 *
+			 *  ★ 为什么清掉是【对的】而不是掩盖问题 ✗：
+			 *    · 此刻状态已经明确 = "已停机"✗
+			 *      ★★ "停机后发现卡没了"不是"运行期故障"✓
+			 *    · ★ 该不该报警由 `g_shutdown_saved` 决定：
+			 *      没存住 ⇒ 屏上 `NOT SAVED !!` ✓（信息一点没丢 ✓）
+			 *    · ★★ 而且故障细节已经记进事件文件（`# LOSS` / `# SD_RECOVER`）✓ */
+			g_sd_error    = 0u;
+			g_sd_last_err = 0u;
+
+			}   /* ★ 结束：if (shutdown_handled == 0u) ✓ */
 
 			g_shutdown_done = 1u;               /* ★ ⑤ 【最后】才说"可以断电"✓ */
 			vTaskDelay(pdMS_TO_TICKS(200));
@@ -975,20 +1536,80 @@ void task_SD(void *pvParameters)
 		/* ★★ 请求被撤销了（★ 用户又长按了一次 ✓）✗
 		 *   → 【清掉 done ✗ 下面"未挂载态"那段【会自己把卡重新挂上】】✓✓
 		 *     （★ 这就是【不写新代码就能"恢复记录"**的原因 ✓）*/
-		g_shutdown_done = 0u;
+		g_shutdown_done  = 0u;
+		g_shutdown_saved = 0u;
+		shutdown_handled = 0u;              /* ★ 撤销 ⇒ 下次长按可以重新走一遍 ✓ */
 
 		/*------------------------------------------------------------
 		 * 未挂载态：周期性重试挂载（开机无卡 / 中途拔卡都会到这里）
 		 *----------------------------------------------------------*/
 		if (!mounted)
 		{
+			/* ★★★★★ 2026-10-19 加：**先把工作队列里的批搬进缓存 + 还池** ✗✓
+			 *
+			 *  ★ 这是本次最值钱的一改 ✗（★ 实测数据推动 ✓）：
+			 *    · 实测：拔卡 23 秒 ≈ 230 条 ⇒ 缓存只抓到 **6 条**
+			 *      ⇒ ★★ 其余约 224 条【仍然丢了】（96% ✗）✓✓
+			 *
+			 *  ★ 根因（想清楚才敢改）✗：
+			 *    · 未挂载态原来【循环开头就 continue】✗
+			 *      ⇒ 【完全不去收工作队列】✓
+			 *    · ★★ 而工作队列只有 2 个位置 ⇒ 两块 512B 缓冲
+			 *      【永久卡在队列里】✓
+			 *    · ★★★ 于是 PROC 每次申请缓冲都失败 ⇒ 一路 `no_buf` ✓
+			 *      ⇒ 那些批【从来没走到"写失败"那条路】✗
+			 *        ⇒ 【缓存当然抓不到它们】✓✓
+			 *
+			 *  ★ 修法 ✗：每轮把队列抽干 ⇒ 【批进缓存 + 缓冲还池】✓
+			 *    · 还池之后 PROC 马上能拿到空缓冲 ⇒ 【不再 no_buf】✓✓
+			 *    · 缓存失败才真的记 LOST ✓（口径保持"真的丢了才记"✓）
+			 *  ★ 顺序铁律 ✗：先存缓存，再还池 ✓
+			 *    （★ 反过来：缓冲一旦还池就可能被 PROC 覆写 ✗ 数据就错了 ✓）*/
+			/* ★★ 抽干队列（★ 实现见 `Sd_DrainToCache` ✓）*/
+			(void)Sd_DrainToCache();
+
 			fr = sd_mount_and_open(&file_idx);
 			if (fr == FR_OK)
 			{
+				/* ★★★★ 2026-10-18 加：故障恢复 ⇒ 往事件文件记一笔"断了多久"✗✓
+				 * （★ 复盘 §7 ★★ 第 6 条："恢复即抹掉故障史"✓）
+				 *
+				 *  ★ 原来的错 ✗：挂载成功就把 `g_sd_last_err` 清 0 ✓
+				 *    → ★★ 事后屏上永远 `E:00` ✗
+				 *      【曾经断记过多久、断过几次 ⇒ 查不出来】✓✓
+				 *
+				 *  ★ 现在的做法 ✗：
+				 *    · 屏上【仍回到 E:00】（当前健康 ✓ 显示语义不变 ✓）
+				 *    · ★★ 但卡上留一行：
+				 *      `# SD_RECOVER,<rtc>,fr=<码>,down=<断了几秒>`
+				 *    ⇒ 事后能查"这台机器运行期间断过几次、每次多久"✓✓ */
+				if (s_err_since != 0u)
+				{
+					char line[120];
+					uint32_t now_ts = MyRTC_GetUnix();
+					/* ★★★ 2026-10-19 修：`down` 【下溢保护】✗✓
+					 *   ★ 实测抓到的错 ✗ 卡上出现过
+					 *     `# SD_RECOVER,1792296021,fr=3,down=4294893665s` ✓
+					 *   · ★★ 原因：对时把 RTC 往回拨（`T<更早时间>`）⇒
+					 *     `now_ts < s_err_since` ⇒ 无符号减法【下溢】✓✓
+					 *   · 4.29e9 秒 ≈ 136 年 ✗ 一眼假 ✓
+					 *   ⇒ ★ 回拨时【按 0 处理】✗ 绝不写假数 ✓ */
+					uint32_t down = (now_ts >= s_err_since) ? (now_ts - s_err_since) : 0u;
+
+					(void)sprintf(line, "# SD_RECOVER,%lu,fr=%u,down=%lus",
+					              (unsigned long)now_ts, (unsigned)s_err_code,
+					              (unsigned long)down);
+					(void)SD_AppendEventLine(line);
+					Serial_Printf("SD: recovered after %lus (fr was %u)\r\n",
+					              (unsigned long)down,
+					              (unsigned)s_err_code);
+					s_err_since = 0u;
+				}
+
 				mounted     = 1;
 				fail_streak = 0;
 				g_sd_error  = 0;            /* 复位故障标志：DISP 上摘掉报警 */
-				g_sd_last_err = 0;          /* ★ Y2：错误史一并清 0（E:00 = 无错误史） */
+				g_sd_last_err = 0;          /* ★ 屏上语义仍是 E:00 = 当前无错 ✓ */
 
 				/* TODO(你): 挂载成功想报个信也行（栈 256 字装得下 Serial_Printf，
 				 * 但别放进循环高频打）。示例：
@@ -1001,9 +1622,39 @@ void task_SD(void *pvParameters)
 				 *   disk_initialize=完整 SD_Init，失败返回 FR_NOT_READY(3)，
 				 *   屏上 E:03 就是"没插卡/接触不良"，而不是笼统的"坏了" */
 				g_sd_last_err = (uint8_t)fr;
-				/* 重试不能裸转：SD_Init 失败链本身 ~1s，再垫 3s 节流，
-				 * 保证本任务在故障期 CPU 占用可忽略 */
-				vTaskDelay(pdMS_TO_TICKS(SD_REMOUNT_PERIOD_MS));
+				if (s_err_since == 0u)
+				{
+					s_err_since = MyRTC_GetUnix();
+					/* ★★ 2026-10-19 修：这里【也要记原因码】✗✓
+					 *   · 原来只在"写失败"那条路设 `s_err_code` ✗
+					 *   · ★★ 于是挂载失败导致的故障
+					 *     恢复时写出的 `# SD_RECOVER` 是 **`fr=0`** ✓
+					 *   · ★ 实测证据：卡上 `# SD_RECOVER,...,fr=0,down=18s`
+					 *     ⇒ 【0 = 未知 ✗ 白记一行】✓✓ */
+					s_err_code = (uint8_t)fr;
+				}
+				/* ★★★★ 2026-10-19 改：把 3 秒节流【切成 30 × 100ms】✗✓
+				 *
+				 *  ★ 原来是什么行为 ✗：
+				 *    · `vTaskDelay(SD_REMOUNT_PERIOD_MS)` = 3 秒【裸睡】✗
+				 *    · ★★ 这 3 秒里【完全不抽队列】✓
+				 *    · 而队列只有 2 位 ⇒ 拔卡 23 秒只救回 78 条（34%）✓✓
+				 *
+				 *  ★ 现在 ✗：每 100ms 抽一次 ⇒ 抽 10 次/秒 ✓
+				 *    · 生产速度 0.55 批/秒 ⇒ 【理论上全救】✓✓
+				 *  ★ 为什么不是"不睡、一直抽" ✗：
+				 *    · 铁律：任务循环必须有阻塞点 ✓
+				 *    · ★★ 而且 100ms 的延迟正是给 PROC/ACQ 让出 CPU ✓
+				 *  ★ 总时长不变 ✗：30 × 100ms = 3 秒 ✓（重试节奏不变 ✓）*/
+				{
+					uint8_t t;
+
+					for (t = 0u; t < 30u; t++)
+					{
+						(void)Sd_DrainToCache();
+						vTaskDelay(pdMS_TO_TICKS(100));
+					}
+				}
 				continue;
 			}
 		}
@@ -1012,9 +1663,204 @@ void task_SD(void *pvParameters)
 		 * 挂载态：收缓冲 → 写卡 → sync → 还缓冲
 		 * 超时 1s：既是阻塞点（铁律：任务循环必有阻塞），又顺便兜底 sync
 		 *----------------------------------------------------------*/
+		/* ★★★ 2026-10-18 加：把 RAM 里攒的"丢失记录"落进事件文件 ✓
+		 *   · 位置：挂载态、每轮一次 ✓（没卡时攒着 ✗ 有卡了补记 ✓✓）
+		 *   · ★ 全为 0 时不做任何 FatFs 操作 ⇒ 平时零开销 ✓ */
+		Loss_Flush();
+
+		/* ★★★★ 2026-10-18 加（② 用户拍板 A）：运行期检查【单文件上限】✗✓
+		 *
+		 *  ★ 原来只在【挂载时】判一次 ✗：
+		 *    · 一直写同一个文件（不跨天、不复位）⇒ 【永远不检查】✓
+		 *    · ★★ 于是"200 MB 上限"在连续运行时【形同虚设】✓✓
+		 *  ★ 现在每轮（约 1 秒）查一次 ✓
+		 *    · `f_size()` 在 FatFs 里只是读 `FIL.fsize` 缓存字段
+		 *      ⇒ 【不是真 IO】✗ 成本几乎为零 ✓
+		 *  ★★ 超限后怎么办 ✗：关文件 + 卸卷 ⇒ 【`mounted=0`】✓
+		 *    → 下一轮走"未挂载态重挂" ⇒ 挂载逻辑看到本文件已超限
+		 *      ⇒ 【自动试下一个 NN】✓✓（复用现成逻辑，不写新代码 ✓）
+		 *  ★ 注意：这里的 `continue` 是【跳过本轮收批】✗ 不影响数据 ✓
+		 *    （PROC 侧的缓冲还在队列里 ✓ 下一轮照收 ✓）*/
+		if (f_size(&s_log_file) >= (FSIZE_t)SD_FILE_SIZE_LIMIT)
+		{
+			Serial_Printf("SD: file over %uMB -> roll to next NN\r\n",
+			              (unsigned)(SD_FILE_SIZE_LIMIT / (1024u * 1024u)));
+			(void)f_sync(&s_log_file);
+			(void)f_close(&s_log_file);
+			(void)f_mount(NULL, "0:", 0);
+			mounted = 0;
+			continue;
+		}
+
+		/* ★★★★ 2026-10-18 加：**先把缓存搬回来，再收新批** ✗✓
+		 *
+		 *  ★ 为什么必须"先搬" ✗：新数据源源不断 ⇒ 缓存【永远排不空】✓
+		 *  ★★ 每轮搬【一批数据 + 一条事件】✗ 不搞 while 循环
+		 *    · 一次最多几十 ms ⇒ 不会把正常落盘拖住 ✓
+		 *    · ★ 生产速度 10 条/秒 ≈ 0.55 批/秒 < 1 批/秒 ⇒ 【追得上】✓✓
+		 *  ★★★ 顺序铁律 ✗：**Peek → 写成功 → 才 Pop** ✓
+		 *    （反过来会出现"指针前进了但数据没写进去"⇒ 真丢 ✓）*/
+		if (DropCache_PendingBatches() != 0u)
+		{
+			static uint8_t s_cbuf[SD_BUF_SIZE];   /* ★ 静态：task_SD 栈只有 1.5KB ✓ */
+			uint16_t clen = 0u;
+
+			if (DropCache_PeekBatch(s_cbuf, &clen) != 0u)
+			{
+				fr = f_write(&s_log_file, s_cbuf, (UINT)clen, &bw);
+				if ((fr == FR_OK) && (bw == (UINT)clen))
+				{
+					fr = f_sync(&s_log_file);
+				}
+
+				if (fr == FR_OK)
+				{
+					/* ★★★ 2026-10-19 加：统计 + 排空后的总结行 ✓
+					 *   ★ 字段含义 ✗：
+					 *     `# SD_REPLAY,<rtc>,batches=N,recs=M,seq=A-B`
+					 *     · batches = 这次连续搬了几批 ✓
+					 *     · recs    = 一共多少条记录（数 `\n` 得到 ✓）
+					 *     · seq=A-B = ★ 被回写的【行号范围】✓✓
+					 *       ⇒ PC 侧靠它就能【精确圈出"哪几行是补回来的"】✓
+					 *         （★ 这些行的 rtc 往往【比周围小】✗ 光看时间认不出来 ✓）*/
+					uint32_t sq1 = 0u;
+					uint32_t sq2 = 0u;
+					uint32_t r1  = 0u;
+					uint32_t r2  = 0u;
+					uint16_t k;
+
+					Sd_ParseRowRange(s_cbuf, clen, &sq1, &r1, &sq2, &r2);
+					if (s_rp_batches == 0u)
+					{
+						s_rp_first = sq1;
+						s_rp_rtc1  = r1;
+					}
+					s_rp_last = sq2;
+					s_rp_rtc2 = r2;
+					s_rp_batches++;
+
+					for (k = 0u; k < clen; k++)
+					{
+						if (s_cbuf[k] == (uint8_t)'\n') { s_rp_recs++; }
+					}
+
+					DropCache_PopBatch();
+
+					if (DropCache_PendingBatches() == 0u)
+					{
+						char rline[180];
+						/* ★★ 2026-10-19 改：**加 rtc 范围**✗✓
+						 *   ★ 为什么 ✗：`seq` 每次重启从 1 重数 ⇒
+						 *     实测同一个 `seq=258~267` 在文件里【出现 10 次】✓
+						 *   · ★★ 只有 `(rtc, seq)` 组合才能唯一定位 ✓✓ */
+						(void)sprintf(rline,
+						              "# SD_REPLAY,%lu,batches=%lu,recs=%lu,seq=%lu-%lu,rtc=%lu-%lu",
+						              (unsigned long)MyRTC_GetUnix(),
+						              (unsigned long)s_rp_batches,
+						              (unsigned long)s_rp_recs,
+						              (unsigned long)s_rp_first,
+						              (unsigned long)s_rp_last,
+						              (unsigned long)s_rp_rtc1,
+						              (unsigned long)s_rp_rtc2);
+
+						/* ★ 写不进卡（刚恢复也可能又不稳）⇒ 先塞回缓存 ✓ */
+						if (SD_AppendEventLine(rline) != FR_OK)
+						{
+							(void)DropCache_PutEvent(rline);
+						}
+						Serial_Printf("SD: replay done %lu batches / %lu recs\r\n",
+						              (unsigned long)s_rp_batches,
+						              (unsigned long)s_rp_recs);
+						s_rp_batches = 0u;
+						s_rp_recs    = 0u;
+						s_rp_first   = 0u;
+						s_rp_last    = 0u;
+						s_rp_rtc1    = 0u;
+						s_rp_rtc2    = 0u;
+					}
+					else
+					{
+						Serial_Printf("SD: cache restored 1 batch (left=%u)\r\n",
+						              (unsigned)DropCache_PendingBatches());
+					}
+				}
+				else
+				{
+					/* ★ 卡又不稳了 ⇒ 指针【不前进】✓ 走错误流程 ✓ */
+					g_sd_last_err = (uint8_t)fr;
+					mounted = 0;
+					continue;
+				}
+			}
+		}
+
+		/* ★ 事件行也搬一条（★ 目标是 90 文件，和数据批分流 ✓）*/
+		if (DropCache_PendingEvents() != 0u)
+		{
+			char ev[200];
+
+			if (DropCache_PeekEvent(ev, (uint16_t)sizeof(ev)) != 0u)
+			{
+				if (SD_AppendEventLine(ev) == FR_OK)
+				{
+					DropCache_PopEvent();
+				}
+			}
+		}
+
 		if (xQueueReceive(s_xQueueSdPtr, &msg, pdMS_TO_TICKS(1000)) == pdPASS)
 		{
 			fr = f_write(&s_log_file, msg.buf, (UINT)msg.len, &bw);
+
+			/* ★★★ 2026-10-18 加：整批丢了 ⇒ 按【条】记账 ✓
+			 *   · `msg.nrec` 是 PROC 报上来的"这批几条" ✓
+			 *   · ★★ 原来是【完全不计】✗ 丢了也不知道 ✓✓ */
+			if (fr != FR_OK)
+			{
+				uint8_t dc;
+
+				/* ★★★★ 2026-10-18 加：**先试着存进 W25 缓存** ✗✓
+				 *   · 1 = 存进去了 ⇒ 【这批数据没丢】✓ 不计 LOST ✓✓
+				 *   · 0 = 缓存写失败（W25 坏 / 锁超时 / 没焊）⇒ 才计 LOST ✓
+				 *   · 2 = 缓存满 ⇒ 只能丢 ⇒ 计 LOST ✓
+				 * ★ 这一步的意义 ✗：从"丢数据 + 记账"变成"数据保住了"✓ */
+				dc = DropCache_PutBatch(msg.buf, msg.len);
+
+				if (dc == 1u)
+				{
+					Serial_Printf("SD: cached 1 batch (%u recs) pending=%u\r\n",
+					              (unsigned)msg.nrec,
+					              (unsigned)DropCache_PendingBatches());
+				}
+				else if (dc == 2u)
+				{
+					Loss_Add(LOSS_SD_WRITE, msg.nrec);
+					Serial_Printf("SD: cache FULL -> lost %u recs\r\n", (unsigned)msg.nrec);
+				}
+				else
+				{
+					Loss_Add(LOSS_SD_WRITE, msg.nrec);
+					Serial_Printf("SD: cache write FAILED (W25?) -> lost %u recs\r\n",
+					              (unsigned)msg.nrec);
+				}
+
+				if (s_err_since == 0u)
+				{
+					s_err_since = MyRTC_GetUnix();
+					s_err_code  = (uint8_t)fr;
+				}
+				/* ★★★ 2026-10-18 加：失败【立刻上屏】✗✓
+				 *   ★ 实测痛点（用户 2026-10-18 报）✗：
+				 *     · 拔卡后要【约 10 秒】屏上才出现 E:xx ✓
+				 *     · ★★ 因为"判离场"要【连续 3 批失败】✓
+				 *       （3 × (1.8s 批间隔 + 1.5s 写超时) ≈ 10 秒 ✓）
+				 *     · ★★★ 而这 10 秒里【数据一直在静默丢弃】✓
+				 *   ⇒ ★ 显示可以快，判离场仍保持"3 连击"不变 ✓
+				 *     （`g_sd_last_err` 只驱动屏上那个数字 ✗
+				 *       `g_sd_error` 才驱动蜂鸣器和"离场"✓）
+				 * ★ 效果：拔卡后【第一批就变 E:xx】✓✓ */
+				g_sd_last_err = (uint8_t)fr;
+			}
 
 			/* ★ 无论成败先把缓冲还回空闲队列：数据是丢是留是下一行的事，
 			 *   缓冲泄漏会让 PROC 拿不到空缓冲、整条链慢慢停摆。
@@ -1086,7 +1932,18 @@ void task_SD(void *pvParameters)
 						              (unsigned)((s_cur_key >>  8) & 0xFFu),
 						              (unsigned)( s_cur_key        & 0xFFu));
 #endif
-						(void)f_sync(&s_log_file);      /* ★ 旧文件先落盘 ✓ 再关 ✓（别丢尾巴 ✓）*/
+						fr = f_sync(&s_log_file);      /* ★ 旧文件先落盘 ✓ 再关 ✓（别丢尾巴 ✓）*/
+				/* ★★★ 2026-10-18 改：返回值【不许丢】✗✓（复盘 T5）
+				 *   · 原来 `(void)f_sync` ✗ 而它正是【R3 修复专门改过】的地方 ✓
+				 *   · ★★ 跨天这两处【漏改】⇒ 若拔着卡跨天
+				 *     落盘失败【不报错、不响蜂鸣、不置 g_sd_error】✓✓
+				 *     紧接着 `mounted` 被手工置 0 ⇒ 【错误被淹没】✓ */
+				if (fr != FR_OK)
+				{
+					g_sd_last_err = (uint8_t)fr;
+					g_sd_error    = 1u;
+					if (s_err_since == 0u) { s_err_since = MyRTC_GetUnix(); }
+				}
 						(void)f_close(&s_log_file);
 						mounted = 0;                    /* ★ 回未挂载态 → 下一轮按新周期重挂 ✓✓ */
 					}

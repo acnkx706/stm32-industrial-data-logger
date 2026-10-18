@@ -118,6 +118,13 @@ extern volatile uint8_t g_sd_last_err;
 extern volatile uint8_t g_shutdown_req;    /* ★ 1 = 请求安全关机 ✓ */
 extern volatile uint8_t g_shutdown_done;   /* ★ 1 = 已经落盘关文件 ✗ 可以断电 ✓ */
 
+/* ★★★ 2026-10-18 加：这次关机【真的存住了吗】✗
+ *   · 1 = 文件 f_close 成功 ✓
+ *   · 0 = 没存住 / 从没挂载过 ⇒ 屏上【不许】写 `DATA SAVED` ✓
+ *   ★ 为什么单独一个标志 ✗：`g_shutdown_done` 只说"我处理完了"✗
+ *     分不清"存好了"和"根本没卡"✓✓ */
+extern volatile uint8_t g_shutdown_saved;
+
 void task_sd_Init(void);                /* 建交接队列+信号量（调度器启动【前】调一次） */
 void task_SD(void *pvParameters);       /* 任务本体（start_task 里创建） */
 
@@ -126,6 +133,36 @@ void task_SD(void *pvParameters);       /* 任务本体（start_task 里创建�
  * ② 填好后 SD_LogEnqueue(buf, len) 交出去；交不出去（pdFAIL）就换一块再试
  * ★ 拿了不交 = 缓冲泄漏，整条链会慢慢停摆 —— 申请和交接必须成对出现在代码里 */
 BaseType_t SD_BufAcquire(uint8_t **pbuf);
-BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len);
+BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len, uint16_t nrec);
+
+/*==========================================================================
+ *  ★★★★★ 2026-10-18 加：**丢失记账**（★ 复盘 §7 ★★★ 第 1 条 ✓）
+ *
+ *  ★ 为什么必须做 ✗✓（★ 这是整套系统最要命的缺陷 ✓）：
+ *    · 丢数据的分支【一共 5 处】✗
+ *    · ★★ 而它们【全都只在一个 RAM 变量里 +1】✗
+ *      → 断电就没 ✗ 事后【卡上查不到任何痕迹】✓✓
+ *    · ★★★ 于是"这台记录仪丢过多少、什么时候丢的"
+ *      【连你自己都答不出来】✓
+ *
+ *  ★★ 做法 ✗：
+ *    · 每个理由【一个独立计数器】⇒ 分得清"是谁丢的"✓
+ *    · task_SD 在【挂载态】每轮把它冲进 `??90.CSV` 的事件行 ✓
+ *      → 没卡的时候【攒在 RAM】✗ 有卡了【补记】✓✓
+ *    · 行格式：`# LOST,<rtc>,<count>,<reason>` ✓
+ *      （★ `#` 开头 ⇒ 所有 PC 解析器都会当注释跳过 ✓）
+ *
+ *  ★★★ 口径 ✗：**一律按"条"计数** ✓
+ *    （★ 原来的 `s_drop` 口径混用：一处记"一整批≈40 条"，一处记"1 条"✓）
+ *========================================================================*/
+#define LOSS_Q_FULL       0u    /* ACQ 入队失败（采集队列满）        */
+#define LOSS_NO_BUF       1u    /* PROC 拿不到 512B 乒乓缓冲         */
+#define LOSS_ENQ_FAIL     2u    /* PROC 交批失败（工作队列满/ObjNull）*/
+#define LOSS_ROW_BIG      3u    /* 单行超 512B（兜底闸，理论不发生）  */
+#define LOSS_SD_WRITE     4u    /* task_SD 写卡失败                  */
+#define LOSS_N            5u
+
+/* ★ 任何任务都可以调（内部进临界区 ✓ 中断里不许调 ✓）*/
+void Loss_Add(uint8_t reason, uint16_t n);
 
 #endif
