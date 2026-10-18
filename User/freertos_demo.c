@@ -72,10 +72,31 @@ void task_KEY(void *pvParameters);
 
 /* task_DISP：OLED 显示（200ms 刷一次）
  * ★ 本任务是 OLED 的【唯一所有者】，别的任务一律不许碰屏 */
+/* ★ 2026-10-19 记录一个坑（★ 曾把优先级改成 3 ✗ 已改回 1 ✓）：
+ *   当时以为"屏冻住"是【同优先级被时间片切碎 ⇒ 软件 I2C 时序被拉长】✗
+ *   ★★ 实测证明【不是】✗ 真因是 `Clk_CalibOnce()` 阻塞本任务 11 秒 ✓
+ *     （已搬到 task_GOLDEN ✓ 见本文件 `task_GOLDEN` ✓）
+ *   ⇒ 优先级【恢复为 1】✗ 保持 20 小时长稳验证过的那套调度 ✓ */
 #define TASK_DISP_PRIO              1
 #define TASK_DISP_STACK_SIZE        256
 TaskHandle_t    task_disp_handler;
 void task_DISP(void *pvParameters);
+
+/* ★★★★ 2026-10-18 加：OLED 超时黑屏（★ 低功耗改造 序 3 ✓）
+ *
+ *  ★ 为什么要有 ✗：本板实测【屏占约 6~7 mA】✗ 而 25 mA 里有 13 mA 是
+ *    纯硬件底噪（LDO+LED ✗ 软件动不了）⇒ 屏是【唯一还能靠软件砍的一块】✓
+ *
+ *  ★★ 取值 ✗：30000 = 30 秒没人按键就黑屏 ✓
+ *     · ★ 设 0 = 【永不黑屏】✗ 台面上调试时用这个 ✓
+ *       （改了要重新编译烧录 ✓ 因为它是编译期常量 ✓）
+ *
+ *  ★ 谁算"有人在看" ✗：现在只有【按键】会刷新 `g_ui_act_tick` ✓
+ *     · ★ 串口命令【不算】✗ —— 现场没有 PC ✗ 不必为它亮屏 ✓
+ *
+ *  ★★★ 关机态（SAFE TO OFF）【绝不黑屏】✗ 见 task_DISP 里的判断 ✓
+ *     因为那正是"必须让人看见"的唯一状态 ✓ */
+#define OLED_BLANK_MS               30000u
 
 /* task_SD：SD 卡落盘任务（乒乓缓冲的接收方，task_sd.c 实现本体）
  * ★ 优先级/栈大小用 task_sd.h 的定版宏（1 / 256 字），别在这里手抄数字 ——
@@ -108,8 +129,9 @@ void task_GOLDEN(void *pvParameters);
 typedef struct {
     uint32_t seq;          /* 序号：从 1 开始，只有 task_acq 会自增 */
     uint32_t tick;         /* 时间戳：产生这一条时的 tick（阶段3 换成 RTC 时间）*/
-	uint32_t press;     /* ×10 Pa（BMP580；未接时恒 0）*/
-	uint32_t rtc;       /* 秒（阶段3 填；现在恒 0）*/
+	uint32_t press;     /* ×10 Pa（BMP280；读失败/未接=0；★ 2026-10-18 起负值也钳 0 ✓）*/
+	uint32_t rtc;       /* ★ 真 Unix 秒(UTC) ✓ —— 2026-10-18 修正：原"现在恒 0"【早已过期】✗
+     *   ★★ 可信度【不在数据里】（16 列没有 trust 位）⇒ 只能靠屏上 `T?`（复盘 T2）✓ */
     int16_t  ax, ay, az;   /* 加速度原值（阶段2 换 MPU6050） */
     int16_t  gx, gy, gz;   /* 角速度原值 */
 	int16_t  temp_ds;   /* ★ ×100 °C（DS18B20）*/
@@ -117,7 +139,9 @@ typedef struct {
 	uint16_t humi;      /* ×10 %RH（DHT22；未接时约定 0xFFFF）*/
     uint16_t light;        /* 光敏：PB13 是数字量，只能判亮/暗，不是 ADC */
 	uint16_t vbat; 
-	uint16_t crc;       /* CRC16（阶段3 填；现在恒 0）*/
+	uint16_t crc;       /* ★ CRC-16/KERMIT，算的是【CSV 前 15 列文本】而不是本结构体 ✓
+     *   —— 2026-10-18 修正：原"现在恒 0"【早已过期】✗
+     *   ★★ 口径见 `Crc16.h` 顶部那段"修正说明"（原文写过一份错的示例 ✓）*/
 } Record_t;
 
 /* 尺寸断言：布局一变就【编译期】报错（不占 Flash/RAM） */
@@ -140,6 +164,52 @@ typedef struct {
     uint32_t q_max_depth;  /* 队列历史最大积压 ★ 决定队列该开多大的依据 */
 } Stat_t;
 Stat_t g_stat;
+
+/* ★★★★ 2026-10-18 加：空闲钩子【进入次数】—— 低功耗改造 序 1 的观测点 ✓
+ *
+ *  ★ 它量的是什么 ✗：
+ *    · `vApplicationIdleHook()` 里加了 `__WFI()` 之后 ✗
+ *      钩子【每进一次 ≈ 睡到下一个 1ms SysTick】✓
+ *    ⇒ 【每秒进入次数 ÷ 1000 ≈ 空闲占比】✓✓
+ *      例：500 次/秒 ⇒ 约 50% 时间在睡 ✓
+ *
+ *  ★★ 为什么不能拿这个次数直接当"CPU 占用率"✗：
+ *    · 没加 WFI 时钩子是【死循环空转】✗ ⇒ 每秒上万次 ✗ 没有物理意义 ✓
+ *    · ⇒ ★ 只有【加了 WFI 之后】这个换算才成立 ✓
+ *      所以它同时也是"WFI 到底生效没有"的判据 ✓（前后差一个数量级 ✓）
+ *
+ *  ★ 必须 volatile：空闲任务写、task_DISP(prio2) 读 ✓
+ *    （不加会被编译器缓存进寄存器 ✗ 读到永远是旧值 ✓）*/
+volatile uint32_t g_idle_cnt = 0u;
+
+/* ★★ 2026-10-18 加：`低功耗改造方案.md` §7.2 的指标 —— "每秒有多少毫秒闲过"✓
+ *   · `g_idle_ms`：计的是【某一个 tick 里至少进过一次空闲】⇒ +1 ✓
+ *     同一 tick 里进很多次【只算一次】（靠下面的 `g_last_idle_tick` 去重 ✓）
+ *   ★★ 它和 `g_idle_cnt` 的区别（★ 别混用 ✓）：
+ *     · `g_idle_ms` 量的是【还有多少可睡的空间】✗ 不随 WFI 变化 ✓
+ *       ⇒ 适合"改之前量一次、改之后量一次"对比 ✓
+ *     · `g_idle_cnt` 量的是【钩子被调了多少次】✗ 一加 WFI 就掉一个数量级 ✓
+ *       ⇒ 适合"证明 WFI 真的生效"✓
+ *   ★ 已知局限（★ 别把它当精确占用率 ✓）：
+ *     只要某一毫秒里【闲过一次】就算 1 ⇒ 被切得很碎的忙时会被"算成闲"✗
+ *     ⇒ 它读出来的是【可睡时间的下界】✓ 不是"空闲百分比" ✓ */
+volatile uint32_t g_idle_ms       = 0u;
+volatile uint32_t g_last_idle_tick = 0u;
+
+/* ★★★★ 2026-10-18 加：最近一次"有人在看屏"的 tick（★ 低功耗 序 3 ✓）
+ *   · 现在只有【按键】会刷新它 ✓（`task_KEY` 里写 ✓）
+ *   · ★ 初值 0 ⇒ 开机 30 秒没人按键就【自动黑屏】✓
+ *     现场无人值守本来就该这样 ✓ 想看屏按一下键就行 ✓ */
+volatile uint32_t g_ui_act_tick = 0u;
+
+/* ★★★★ 2026-10-18 加：屏【现在】是不是黑着的（★ 给 `task_KEY` 判断用 ✓）
+ *   ★ 为什么要跨任务告诉按键任务 ✗：
+ *     · 黑屏时【第一下按键只该唤醒 ✗ 不该执行功能】✓
+ *     · 而按键里有个【暂停采集】✗ 用户只想看一眼屏 ⇒ 结果把记录停了 ✓
+ *       ★★ 现场无人值守 ⇒ 停了也没人知道 ✗ 这是真会丢数据的动作 ✓✓
+ *   ★ 谁写谁读：`task_DISP` 写、`task_KEY` 读 ⇒ 必须 volatile ✓ */
+volatile uint8_t  g_oled_blanked = 0u;
+
 volatile uint16_t g_i2c_us_last = 0;
 volatile uint16_t g_i2c_us_max  = 0;
 /* ★★ I2C 总线互斥量（2026-10-09 加）—— MPU6050(ACQ,prio6) 与 BMP280(sensor,prio1)
@@ -199,7 +269,14 @@ volatile uint8_t g_pause = 0;       /* 0=采集运行  1=采集暂停 */
  *   · 任务状态表格式化后 200+ 字节；TaskStatus_t 数组 8×约24 字节
  *   · PROC 的栈只有 1KB，这些放栈上就爆了 */
 static char         s_task_list_buf[512];
-static TaskStatus_t s_task_status[8]; 
+/* ★★ 2026-10-18 改：8 → 12 ✗✓
+ *   ★ 现在实际有：START(已删) / ACQ / PROC / KEY / DISP / sensor / SD / GOLD / IDLE
+ *     = **9 个**（含 IDLE，不含已自删的 start_task）✓
+ *   ★★ 而原来只给 8 个槽 ⇒ `uxTaskGetSystemState` 只会填前 8 个
+ *     ⇒ 【栈水位表被截断】✗ 最后一个（通常是 IDLE 或 GOLD）看不到 ✓✓
+ *   ★ 为什么这事要紧 ✗：上次 SD 栈只剩 16 字那次险情
+ *     正是靠这张表才发现的 ✓✓ */
+static TaskStatus_t s_task_status[12]; 
 /******************************************************************************
  *  FreeRTOS 例程入口
  ******************************************************************************/
@@ -408,7 +485,7 @@ void task_ACQ(void *pvParameters)//100ms定时器
 		  g_i2c_us_max = g_i2c_us_last;
 	 rec.seq=++seq;
 	 rec.tick=xTaskGetTickCount();
-	 rec.press = (uint32_t)g_press_x10pa;      /* ★ 真实气压 ×10 Pa ✓（读失败=0 ✓）*/
+	 rec.press = (g_press_x10pa > 0) ? (uint32_t)g_press_x10pa : 0u;   /* ★ 真实气压 ×10 Pa ✓（读失败=0 ✓；★ 负值也钳 0 —— T6 防回绕成 42 亿 ✓）*/
 	 rec.rtc=MyRTC_GetUnix();
 	 rec.ax=ax;
 	 rec.ay=ay;
@@ -439,6 +516,7 @@ void task_ACQ(void *pvParameters)//100ms定时器
 	 {
 		taskENTER_CRITICAL();
         g_stat.queue_full++;
+        Loss_Add(LOSS_Q_FULL, 1u);   /* ★ 队列满 ⇒ 丢 1 条 ✓（★ 此刻在临界区里 ✗ 嵌套安全 ✓）*/
         taskEXIT_CRITICAL(); 
 	 }
 	 else
@@ -474,7 +552,7 @@ static void print_task_diagnostics(void)
 	Serial_SendString(s_task_list_buf);
 
 	/* ② 栈水位：usStackHighWaterMark = 剩余余量（单位【字】），越小越危险 */
-	n = uxTaskGetSystemState(s_task_status, 8, &total_run_time);
+	n = uxTaskGetSystemState(s_task_status, 12, &total_run_time);
 	Serial_SendString("---- Stack free (words) ----\r\n");
 	for (i = 0; i < n; i++)
 	{
@@ -492,6 +570,12 @@ static void print_task_diagnostics(void)
 static uint8_t *s_cur   = NULL;
 static uint16_t s_pos   = 0;
 static uint32_t s_drop  = 0;
+
+/* ★★★ 2026-10-18 加：当前缓冲里【已经攒了几条】✗✓
+ *   ★ 为什么需要 ✗：交批失败时【整批都丢】✓
+ *     → 要按【条】记账 ✗ 就得知道这一批是几条 ✓
+ *   ★ 什么时候清 ✗：缓冲交出去 / 换新缓冲时归零 ✓ */
+static uint16_t s_nrec  = 0;
 
 /* 串口 REC 回显开关：调试期 1（边跑边看数据长什么样），正式跑改 0 ——
  * 正式数据走卡不走串口，回显纯属人眼验收，还占带宽（最坏 220B×10Hz） */
@@ -569,6 +653,7 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 		if (SD_BufAcquire(&s_cur) != pdPASS)
 		{
 			s_drop++;
+			Loss_Add(LOSS_NO_BUF, 1u);      /* ★ 拿不到缓冲 ⇒ 丢 1 条 ✓ */
 		}
 	}
 
@@ -581,16 +666,21 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 		/* 交失败也不用操心缓冲去哪了：SD_LogEnqueue 内部要么把它还进
 		 * 空闲池、要么已置 g_sd_error 报"所有权被破坏"——两种结局它
 		 * 都不再属于我们，s_cur 清空重拿即可（不泄漏、不重复持有） */
-		if (SD_LogEnqueue(s_cur, s_pos) != pdPASS)
+		if (SD_LogEnqueue(s_cur, s_pos, s_nrec) != pdPASS)
 		{
-			s_drop++;
+			/* ★ 2026-10-18 改：按【条】记账 ✗ 不是"加 1 次事件" ✓
+			 *   ★ 这一批（s_nrec 条）全都进不了卡 ⇒ 全丢 ✓ */
+			s_drop += s_nrec;
+			Loss_Add(LOSS_ENQ_FAIL, s_nrec);
 		}
 		s_cur = NULL;
 		s_pos = 0;
+		s_nrec = 0;
 
 		if (SD_BufAcquire(&s_cur) != pdPASS)    /* 新缓冲拿不到：丢本条 */
 		{
 			s_drop++;
+			Loss_Add(LOSS_NO_BUF, 1u);          /* ★ 丢 1 条 ✓ */
 		}
 	}
 
@@ -604,10 +694,12 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 		s_pos += (uint16_t)rowlen;
 		s_cur[s_pos++] = '\r';
 		s_cur[s_pos++] = '\n';
+		s_nrec++;                           /* ★ 2026-10-18：这批又多 1 条 ✓ */
 	}
 	else if (s_cur != NULL)
 	{
 		s_drop++;       /* 走到这 = 单行放不下（见上）：丢本条 */
+		Loss_Add(LOSS_ROW_BIG, 1u);         /* ★ 丢 1 条 ✓（★ 理论不发生 ✓）*/
 	}
 
 #if PROC_SERIAL_ECHO
@@ -631,9 +723,10 @@ else
 	 * 否则暂停采集后最后几条会一直捂在手里等下一批，违反秒级落盘口径 */
 	if ((s_cur != NULL) && (s_pos > 0))
 	{
-		if (SD_LogEnqueue(s_cur, s_pos) != pdPASS)
+		if (SD_LogEnqueue(s_cur, s_pos, s_nrec) != pdPASS)
 		{
-			s_drop++;
+			s_drop += s_nrec;                   /* ★ 尾批整批丢 ⇒ 按条记 ✓ */
+			Loss_Add(LOSS_ENQ_FAIL, s_nrec);
 		}
 		/* 只在"确实交过手"之后才清空：交成功 = 所有权已转移给 task_SD；
 		 * 交失败 = 缓冲已被接口回收进空闲池（或已置错）——两种结局都不
@@ -641,6 +734,7 @@ else
 		 * 拿了不还又不用 = 512B 缓冲永久泄漏，整条链慢慢停摆 */
 		s_cur = NULL;
 		s_pos = 0;
+		s_nrec = 0;                         /* ★ 尾批交完 ⇒ 计数归零 ✓ */
 	}
 }
 
@@ -661,7 +755,22 @@ else
 			 *   · heapmin = ★【历史最低水位】—— ★ 判据看【它】，不是看 heap ✗
 			 *       heapmin 下降后【不再回升】= 内存泄漏 ✗✓（慢性故障唯一可靠的信号 ✓）
 			 *   本工程 12KB heap：开机实测 heap=11856 ✓（已用 432B ✓）
-			 *   长稳时 heapmin 保持稳定 = 无泄漏 ✓✓ */
+			 *   长稳时 heapmin 保持稳定 = 无泄漏 ✓✓
+			 *
+			 * ★★★★★ 2026-10-17 更新：判据从" > 2KB "改成【不降 + ≥ 1KB 】✗✓
+			 *   ★ 改的原因（★ 实测 ✓）✗
+			 *     · 20.37 小时长稳实测：heap=2080 ✗ heapmin=【1456】✓
+			 *     · 而这里一直写着" > 2KB " ✗ ⇒ 按字面【这条判据不通过】✓
+			 *     · ★★ 但 heapmin【20 小时恒为 1456 不降】⇒ 真正要看的
+			 *       【"泄不泄漏"】是【通过】的 ✓✓
+			 *   ★★ 为什么"不降"比"绝对余量"更重要 ✗
+			 *     · 绝对余量【取决于当次功能的临时开销】✗ 会随版本起落 ✓
+			 *     · 而"降下去不再回升"才是【泄漏】的签名 ✓✓
+			 *   ★★★ 为什么是 1KB 下限 ✗
+			 *     · 2026-10-17 给 `Serial_Printf` 加了互斥量（★ 约 80~88 B ✓）
+			 *        ⇒ heapmin 预计还要降一点 ✓
+			 *     · 1KB 是【还能再分配几个小对象】的底线 ✓
+			 *   ★ 判据 ✗：heapmin ≥ 1024 且【整段长稳内不降】⇒ 通过 ✓✓ */
 			Serial_Printf("STAT(key) acq=%lu proc=%lu full=%lu qmax=%lu drop=%lu i2c=%u i2c_max=%u sd_err=%u sd_last=%u heap=%u heapmin=%u\r\n",
 			          (unsigned long)snap.acq_count,
                       (unsigned long)snap.proc_count,
@@ -726,7 +835,36 @@ void task_KEY(void *pvParameters)
 	{
 		uint8_t ev = Key_Scan();
 
-		if (ev & KEY1_EVENT)                    /* 状态类：翻转暂停标志 */
+		/* ★★★ 2026-10-18 加：有按键就记一笔"有人在看"✗ 供 task_DISP 超时黑屏用 ✓
+		 *   ★ 本任务【禁止打印】✗ 这里只写一个 uint32 ✓ 不违反约定 ✓ */
+		if (ev != 0u)
+		{
+			g_ui_act_tick = (uint32_t)xTaskGetTickCount();
+
+			/* ★★★★ 黑屏时的【第一下按键只唤醒 ✗ 不执行功能】✓
+			 *   · 判据 `g_oled_blanked` 由 task_DISP 维护 ✓
+			 *   · ★★ 为什么要"吃掉"这一下 ✗：按键里有【暂停采集/安全关机】✗
+			 *     用户只想看一眼屏 ⇒ 结果把记录停了 ✓ 而现场没人知道 ✓✓
+			 *   · ★ 屏会在 ≤200ms 内自己亮起（task_DISP 下一帧 ✓）不用管 ✓ */
+			if (g_oled_blanked != 0u)
+			{
+				ev = 0u;                /* ★ 这一下只唤醒，不往下面走 ✓ */
+			}
+		}
+
+		/* ★★★★★ 2026-10-18 加：关机态【屏蔽 KEY1】✗✓（★ 复盘 §7 ★★ 第 5 条 ✓）
+		 *
+		 *  ★ 原来会怎样 ✗：
+		 *    · 关机态下按一下 KEY1 ⇒ `g_pause` 翻回 0 ⇒ 【采集又起来了】✓
+		 *    · ★★ 而 task_SD 正处在"已卸卷、不再排空队列"的状态 ✓
+		 *    · ★★★ 于是数据【以 10 条/秒静默丢弃】✗
+		 *      而屏上还写着 `SAFE TO OFF` ⇒ 【人以为在记，其实在丢】✓✓
+		 *
+		 *  ★ 为什么选择"直接不理"，而不是"顺手恢复记录" ✗：
+		 *    · ★ 恢复记录是【电源键长按】的语义 ✗ 两个键做同一件事只会乱 ✓
+		 *    · ★★ 而且此时 SD 未必挂得回来 ⇒ 又是静默丢数据 ✓
+		 *    ⇒ ★ 关机态只认电源键 ✓✓ */
+		if ((ev & KEY1_EVENT) && (g_shutdown_req == 0u) && (g_shutdown_done == 0u))
 		{
 			g_pause = !g_pause;
 			/* ★★★ 按键反馈（2026-10-13 加 ✓）
@@ -836,6 +974,39 @@ void task_KEY(void *pvParameters)
 /* ★★★★ 请求升级（★ 2026-10-14 加 `force` 参数 ✗ 审计 G6 ✓）
  *   ★ `force = 0` ✗【备份失败就【中止升级】】✓（★ 默认 ✗ 安全 ✓）
  *   ★★ `force = 1` ✗【明知没有备份也继续】（★ 只有 PC 发 `U!` 才会走到这儿 ✓）*/
+/* ★★★★★ 2026-10-18 加：升级 / 回退 / 备份期间的【专用界面】✗✓
+ *
+ *  ★ 为什么可以直接在这里画屏 ✗：
+ *    · `task_DISP` 是 OLED 的【唯一所有者】✓
+ *    · ★★ 而这几条命令的解析（`TimeSync_Handle`）【就跑在 task_DISP 里】✓✓
+ *      （由帧尾的 `TimeSync_Poll()` 调进来 ✓）
+ *    ⇒ ★ 所以这里画屏【不违反"唯一所有者"规矩】✓
+ *
+ *  ★★ 为什么每行【必须补齐 16 个字符】✗：
+ *    · 本工程老规矩：写不满 16 列 ⇒ 【右边残留上一帧的字】✓
+ *    · ★ 而升级界面【正好压在正常画面上】⇒ 不补满就露馅 ✓✓
+ *
+ *  ★★★ 为什么这个界面【特别重要】✗：
+ *    · 存金副本要【2~3 秒】✗ 这期间整个 DISP 任务【卡住不动】✓
+ *      → 屏上还停着"正常采集画面" ⇒ 【看起来像没反应 / 像死机】✓✓
+ *    · ★★ 而这 2~3 秒【恰恰是最不能断电的时候】✓
+ *
+ *  ★★★★ 为什么【不做进度百分比】✗✓（★ 这是零成本的关键 ✓）：
+ *    · 真正把固件搬进 Flash 的是【Bootloader】✗ 它【没有 OLED 驱动】✓
+ *    · ★★ 但 SSD1306 的面板在【复位后仍显示最后一帧】✓
+ *      ⇒ 所以这里画好的"升级中"，在 Boot 搬 112KB 的整个过程中
+ *        【一直显示着】✓✓
+ *    ★ 想要真进度条 ⇒ 要给 Boot 加 3KB 显示代码 ✗ 先不做 ✓
+ *      （★ 而且会成为"第二份 OLED 实现"✗ 两份迟早不一致 ✓）*/
+static void Ui_Msg(const char *l1, const char *l2, const char *l3, const char *l4)
+{
+	OLED_Clear();                               /* ★ 先清 ✗ 免残影 ✓ */
+	OLED_ShowString(1, 1, (char *)l1);          /* ★ 每行都是 16 字符 ✓ */
+	OLED_ShowString(2, 1, (char *)l2);
+	OLED_ShowString(3, 1, (char *)l3);
+	OLED_ShowString(4, 1, (char *)l4);
+}
+
 static void App_RequestUpgrade(uint8_t force)
 {
 	Serial_Printf("\r\nAPP: upgrade requested\r\n");
@@ -883,6 +1054,14 @@ static void App_RequestUpgrade(uint8_t force)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
 	PWR_BackupAccessCmd(ENABLE);
 
+	/* ★ 2026-10-18 加：备份完了 ⇒ 屏上进第 2 步 ✓
+	 *   ★★ 这一帧会【一直留到 Boot 把固件搬完】✓（面板复位不掉内容）
+	 *     ⇒ 用户看到的是"等 PC 发固件"，而不是一片死寂 ✓ */
+	Ui_Msg("UPGRADING       ",
+	       "STEP 2/2 RESET  ",
+	       "DO NOT POWER OFF",
+	       "WAIT FOR PC ... ");
+
 	/* ★★★ 写标志 ✓ */
 	BKP_WriteBackupRegister(BOOT_FLAG_DR, BOOT_FLAG_MAGIC);
 
@@ -912,7 +1091,18 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *   ★ 为什么用【单个字母**✗：★ 好敲 ✗ 而且【不会和 `T<数字>` 混】✓✓ */
 	if ((n == 1u) && (s[0] == 'U'))
 	{
+		/* ★ 2026-10-18 加：先画"升级中"✗ 再去做那 2~3 秒的备份 ✓
+		 *   ★ 不画的话：屏上停着正常采集画面 ⇒ 【看起来像没反应】✓ */
+		Ui_Msg("UPGRADING       ",
+		       "STEP 1/2 BACKUP ",
+		       "DO NOT POWER OFF",
+		       "WAIT ...        ");
+
 		App_RequestUpgrade(0u);     /* ★ 默认：备份失败就中止 ✓ */
+
+		/* ★ 只有【中止】才会走到这里 ✗ 把屏恢复成正常画面 ✓
+		 *   ★★ 必须 Clear ✗ 否则第 1/2 行右边会【残留 "GRADING" 之类】✓ */
+		OLED_Clear();
 		return;                     /* ★ 理论上不会返回 ✗ 但写上更安全 ✓ */
 	}
 
@@ -925,7 +1115,16 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *     【手不会"顺手"打出来 ✗ 心里会过一下】✓✓ */
 	if ((n == 2u) && (s[0] == 'U') && (s[1] == '!'))
 	{
+		/* ★ 2026-10-18 加：强制升级也画屏 ✗ 而且【明说没有备份】✓
+		 *   ★ 这句 `NO BACKUP!` 是【故意吓人的】**✗
+		 *     用户选了 `U!` 就该在屏上也看到代价 ✓ */
+		Ui_Msg("FORCED UPGRADE  ",
+		       "NO BACKUP!      ",
+		       "DO NOT POWER OFF",
+		       "WAIT ...        ");
+
 		App_RequestUpgrade(1u);     /* ★ 我知情 ✗ 接受"没有备份"的风险 ✓ */
+		OLED_Clear();
 		return;
 	}
 
@@ -940,7 +1139,18 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *     · ★★ 但【那是【另一个阶段】✗ 【App 在跑的时候 Boot 根本不在】】✓✓ */
 	if ((n == 1u) && (s[0] == 'R'))
 	{
+		/* ★ 2026-10-18 加：回退也画屏 ✓
+		 *   ★ 回退同样是"复位 + Boot 搬 112KB"✗ 同样不能断电 ✓ */
+		Ui_Msg("ROLLING BACK    ",
+		       "RESTORE BACKUP  ",
+		       "DO NOT POWER OFF",
+		       "WAIT ...        ");
+
 		Golden_RequestRollback();
+
+		/* ★ 走到这里 = 【就地拒绝】（没有有效备份 ✗ 不复位）✓
+		 *   ⇒ 把屏恢复成正常画面 ✓ */
+		OLED_Clear();
 		return;                     /* ★ 不会返回 ✗ 但写上更安全 ✓ */
 	}
 	if ((n == 1u) && (s[0] == 'B'))
@@ -978,7 +1188,18 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *========================================================================*/
 	if ((n == 1u) && (s[0] == 'S'))
 	{
+		/* ★ 2026-10-18 加：存备份也要画屏 ✗
+		 *   ★ 这一步同样要【2~3 秒】✗ 而且【正在擦 W25 的块】✓
+		 *   ★★ 用户最容易在这时候以为"卡死了"然后去断电 ✓✓ */
+		Ui_Msg("SAVING BACKUP   ",
+		       "TO SPI FLASH    ",
+		       "DO NOT POWER OFF",
+		       "PLEASE WAIT ... ");
+
 		(void)Golden_SaveCurrent();
+
+		/* ★ 存完/失败都恢复画面 ✓（正常刷新会在 200ms 内重画满 4 行 ✓）*/
+		OLED_Clear();
 		return;
 	}
 
@@ -1050,9 +1271,62 @@ static void TimeSync_Poll(void)
 }
 
 
+/* ★★★★★ 2026-10-17 加：用 RTC（LSE）校准 SysTick（HSE）✗ 不需要任何仪器 ✓
+ *
+ *  ★★★★ 为什么要它 ✗✓：
+ *    2026-10-17 用【PC 时钟当裁判】量出来【系统时钟偏慢 ≈1900 ppm】✗
+ *    （★ 三方比速率 ✗ PC 9.9811 / RTC 9.9822 / SysTick 10.0000 条每秒
+ *      ⇒ 只有 SysTick 是离群的 ⇒ 偏的是 HSE 那一路 ✓✓）
+ *    而 1900 ppm 远超石英晶振规格（±20 ppm）
+ *    ⇒ ★★ 怀疑那颗 8MHz 是【陶瓷谐振器】✗ 不是石英晶振 ✓
+ *
+ *  ★★ 为什么要测【10 秒】✗：tick 的分辨率是 1 ms ✓
+ *    · 测 1 秒 ⇒ 量化误差 ±1000 ppm ⇒ 【和要测的量同级 ⇒ 没用】✓
+ *    · 测 10 秒 ⇒ 误差 ±100 ppm ⇒ 够用 ✓✓
+ *
+ *  ★★★ 为什么放在【本任务（task_DISP）】✗✓：
+ *    · 它是【最低优先级 + 输出类任务】✗ 卡它 10 秒不伤数据链路 ✓
+ *    · ★★ 绝对不能放 task_PROC ✗ 那里停 10 秒 = 【数据断流 10 秒】✓✓
+ *    · ★ 等的时候用 `vTaskDelay` ✗ 不空转 ⇒ 不烧 CPU ✓
+ *
+ *  ★ 判据 ✗：|ppm| ≤ 100 ⇒ 合格 ✓ ／ > 500 ⇒ 去查晶振型号与负载电容 ✓ */
+static void Clk_CalibOnce(void)
+{
+	static uint8_t s_done = 0u;
+	uint32_t r0, k0, k1;
+	int32_t  dms, ppm;
+
+	if (s_done != 0u) { return; }
+	s_done = 1u;
+
+	/* ★ 先对齐到 RTC 的【秒沿】✗ 否则起点误差最大 1 秒 ✓ */
+	r0 = MyRTC_GetUnix();
+	while ((uint32_t)(MyRTC_GetUnix() - r0) < 1u) { vTaskDelay(pdMS_TO_TICKS(1)); }
+
+	k0 = xTaskGetTickCount();
+	r0 = MyRTC_GetUnix();
+	/* ★ 再等 RTC 走满 10 秒 ✓ */
+	while ((uint32_t)(MyRTC_GetUnix() - r0) < 10u) { vTaskDelay(pdMS_TO_TICKS(1)); }
+	k1 = xTaskGetTickCount();
+
+	/* ★ tick 配成 1ms/tick ⇒ 差值就是毫秒数 ✓ */
+	dms = (int32_t)(k1 - k0);
+	if (dms <= 0) { return; }
+
+	/* ppm = (dms-10000)/10000 × 1e6 = (dms-10000) × 100 ✓ */
+	ppm = (dms - 10000) * 100;
+
+	Serial_Printf("CLK: over RTC 10s, tick advanced %ld ms (expect 10000) => %+ld ppm %s\r\n",
+	              (long)dms, (long)ppm,
+	              ((ppm > 100) || (ppm < -100)) ?
+	                  "*** SYSTEM CLOCK OFF (check the 8MHz XTAL: crystal or ceramic resonator?)" : "OK");
+}
+
+
 /* task_DISP：① 先拷快照 ② 状态字定长防残影
  * ③ 第4行的心跳数字用来区分【暂停】和【卡死】——没有它这个验收项无法判定
- * ④ 第4行 13~16 列是 SD 错误码 E:xx（Y2）——OLED 从"坏了"升级到"为什么" */
+ * ④ 第4行 13~16 列是 SD 错误码 E:xx（Y2）——OLED 从"坏了"升级到"为什么"
+ * ★★ 2026-10-17 加 ⑤：时间不可信时第 4 行【常驻】显示 `T?` ✓ */
 void task_DISP(void *pvParameters)
 {
 	Stat_t snap;
@@ -1070,10 +1344,50 @@ void task_DISP(void *pvParameters)
 	static uint32_t s_us_sum = 0u;
 	static uint16_t s_cnt    = 0u;
 
+	/* ★★ 空闲占比采样的"上次值"（★ 2026-10-18 加，低功耗改造 序 1 ✓）
+	 *   · s_idle_last：上次快照时 `g_idle_cnt` 的值 ✗ 做差得"这段时间进了几次" ✓
+	 *   · s_idle_tick：上次快照时的 tick ✗ 做差得"这段时间多长" ✓
+	 *   ★ 两个必须【同时更新】✗ 否则算出来的速率是错的 ✓ */
+	static uint32_t s_idle_last = 0u;
+	static uint32_t s_idle_tick = 0u;
+	static uint32_t s_idle_ms_last = 0u;   /* ★ §7.2 指标的上次快照 ✓ */
+
+	/* ★★ 2026-10-18 加：超时黑屏的三个状态（★ 低功耗 序 3 ✓）
+	 *   · s_blank     ：本帧【逻辑上】该不该黑 ✓
+	 *   · s_blanked   ：屏【物理上】已经关掉了吗 ✓（用来做边沿，别每次都发命令 ✓）
+	 *   · s_need_full ：下一帧要不要【整屏重画】✓
+	 *     ★ 从黑屏恢复后【必须】重画 ✗ 因为 GDDRAM 里还是旧内容 ✓ */
+	static uint8_t  s_blank     = 0u;
+	static uint8_t  s_blanked   = 0u;
+	static uint8_t  s_need_full = 0u;
+
 	DWT_Delay_Init();       /* ★★ 保险：确保周期计数器在跑（重复调用无害 ✓）*/
 
 	for (;;)
 	{
+		/* ★★★★★ 2026-10-18 校准挪到这里（★ 计时起点【之前】✓）
+		 *
+		 *  ★★★ 为什么必须在这 ✗✓：
+		 *    · `Clk_CalibOnce()` 故意卡本任务约 10 秒（★ 等 RTC 走满 10 秒 ✓）
+		 *    · 它若在 `t0 = DWT->CYCCNT` 之后 ⇒ 那 10 秒
+		 *      【被算成"一帧的耗时"】✗ ⇒ `max` 被顶到 10.58 秒 ✓✓
+		 *      （★ 2026-10-18 第一次烧上去就实测到了 ✓）
+		 *    · 而 `s_us_max` 【不清零】⇒ 每次开机污染一次
+		 *      ⇒ ★★ 判据「max 比 avg 重要」彻底作废 ✓✓
+		 *  ★ 为什么阈值是 `frame == 200` ✗
+		 *    · frame 每 200ms +1 ⇒ 约 40 秒 ✓
+		 *    · 不在刚开机就量 ✗ 那时还在初始化 / 挂卡 ✗ 时机不干净 ✓
+		 *  ★★ 位置在 `frame++` 之前 ⇒ 此处 `frame` 还是上一轮的值
+		 *    ⇒ `== 200` 对应"第 201 轮开头" ✗ 时间上无差别 ✓ */
+		/* ★★★ 2026-10-19 教训（★ 保留成注释 ✗ 不再留死代码 ✓）：
+		 *   校准【绝不能放在 task_DISP 里】✗
+		 *   · `Clk_CalibOnce()` 故意阻塞约 11 秒 ✓
+		 *   · 放这里 ⇒ 【屏 11 秒不更新 + 蜂鸣器卡在最后状态】✗✓
+		 *     （`Buzz_Poll()` 也在本任务里 ✓）
+		 *   · ★★ 现象"看起来像拔卡导致的"✗ 其实是
+		 *     `frame == 200` ⇒ 开机后 40~55 秒的固定窗口 ✓✓
+		 *   ⇒ ★ 已搬到 `task_GOLDEN`（没人等它 ✓）*/
+
 		/* ★★★ 帧计时【从这里开始】✓ */
 		t0 = DWT->CYCCNT;
 		did_refresh = 0u;   
@@ -1084,6 +1398,122 @@ void task_DISP(void *pvParameters)
 
 		/* ★★ 心跳计数【两种状态都要走】**✗ 所以先加 ✓ */
 		frame++;
+
+		/* ★★★★★ 2026-10-18 加：OLED 超时黑屏判定（★ 低功耗改造 序 3 ✓）
+		 *
+		 *  ★ 为什么放在【屏幕的唯一所有者】里 ✗：
+		 *    · `task_DISP` 是 OLED 的【唯一所有者】✗ 别人一律不许碰屏 ✓
+		 *    · ⇒ 开关屏也只能在这里判 ✓✓
+		 *
+		 *  ★★★ 关机态【绝不黑屏】✗：
+		 *    · `SAFE TO OFF` 是【唯一必须让人看见】的状态 ✓
+		 *    · 屏一黑 ✗ 用户就不知道能不能断电了 ✓✓
+		 *
+		 *  ★★ 边沿判断（s_blanked）✗：只在【状态变化】的那一帧发命令 ✓
+		 *     否则每 200ms 都发一遍 `0xAE` ✗ 白跑 I2C 时序 ✓
+		 *
+		 *  ★ 判据（烧进去看）✗：
+		 *    · 静置 30 秒 ⇒ 屏灭，串口打 `OLED: blank`
+		 *    · 按任意键 ⇒ 屏亮，串口打 `OLED: wake`，且【整屏立刻重画】✓ */
+		{
+			uint32_t now_tick;
+			uint32_t idle_ms;
+
+			now_tick = (uint32_t)xTaskGetTickCount();
+			idle_ms  = now_tick - g_ui_act_tick;
+
+			/* ★★★ 2026-10-18 加：这三种情况【强制亮屏】✗ 一个键都不占 ✓
+			 *   ① `g_shutdown_done` ── SAFE TO OFF 必须看得见 ✓
+			 *   ② `OLED_BLANK_MS == 0` ── 有人把黑屏关了（台面调试 ✓）
+			 *   ③ `g_sd_error != 0` ── ★ SD 故障：无人值守时"数据存不进去"
+			 *      必须【看得见】✓ 光靠蜂鸣器不够 ✓（★ 屏再黑着 = 彻底没提示 ✓）
+			 *   ★★ 特别注意【不要】把"时间不可信 `T?`"加进来 ✗
+			 *     本板没 VBAT ⇒ 每次上电都是 `T?` ⇒ 加进去屏就【永不黑】✓ */
+			if ((g_shutdown_done != 0u) || (OLED_BLANK_MS == 0u) || (g_sd_error != 0u))
+			{
+				s_blank = 0u;                      /* ★ 关机 / 禁用 / SD 故障 ⇒ 常亮 ✓ */
+
+				/* ★★★★ 2026-10-18 修：强制亮屏期间【持续续期】✗✓
+				 *   （★ 用户实测抓到的 bug："恢复正常之后直接一下子黑屏"✓）
+				 *
+				 *  ★ 原来的错 ✗：`g_ui_act_tick` 【只有按键会刷新】✗
+				 *     · SD 故障期间，屏靠上面这个条件【强制】亮着 ✓
+				 *     · ★★ 但 30 秒计时【在后台一直往下跑】✗ 没人管它 ✓
+				 *     · ⇒ 故障一解除 ⇒ `idle_ms` 早就 > 30000 ⇒ 【屏立刻又黑】✓✓
+				 *       （★ 插回卡、关机态恢复 都会撞上 ✓）
+				 *
+				 *  ★ 改法 ✗：只要还在"强制亮屏"，就【当成刚刚有人看过】✓
+				 *     ⇒ 强制条件解除后，仍然有【完整 30 秒】✓✓
+				 *
+				 *  ★ 为什么由 task_DISP 写这个全局也安全 ✗：
+				 *     · 写的是 uint32 ⇒ CM3 上单条 STR ✗ 天然原子 ✓
+				 *     · 另一个写者是 task_KEY ✗ 两边都只是"更新成当前 tick"✓
+				 *       ⇒ 谁后写都无害 ✓ */
+				g_ui_act_tick = now_tick;
+			}
+			else
+			{
+				s_blank = (idle_ms >= OLED_BLANK_MS) ? 1u : 0u;
+			}
+
+			if ((s_blank != 0u) && (s_blanked == 0u))
+			{
+				OLED_DisplayOff();                 /* ★ 连电荷泵一起关 ✓ */
+				s_blanked   = 1u;
+				g_oled_blanked = 1u;               /* ★ 告诉 task_KEY：第一下只唤醒 ✓ */
+				s_need_full = 1u;                  /* ★ 恢复时要重画 ✓ */
+				Serial_Printf("OLED: blank (%lu ms idle)\r\n",
+				              (unsigned long)OLED_BLANK_MS);
+			}
+			else if ((s_blank == 0u) && (s_blanked != 0u))
+			{
+				OLED_DisplayOn();
+				s_blanked   = 0u;
+				g_oled_blanked = 0u;
+				s_need_full = 1u;
+				Serial_Printf("OLED: wake\r\n");
+			}
+		}
+
+		/* ★★★★ 2026-10-19 加：SD 故障期【每秒做一次 OLED 总线恢复】✗✓
+		 *
+		 *  ★ 为什么 ✗（★ 实测驱动 ✓）：
+		 *    · 拔卡期间 `oled` 计数【稳定上涨】⇒ 每帧都画了 ✓
+		 *    · ★★ 但屏上数字【冻住 11 秒】⇒ 【面板没接受写入】✓✓
+		 *    · ★★★ 怀疑：I2C 从机被留在"事务中途"（SDA 被拉住）
+		 *      ⇒ 之后【每一次写入都失败】✓
+		 *    · 驱动里【本来就有】`OLED_BusRecover()`（9 时钟 + Stop）
+		 *      但【只在初始化时调过一次】✗✓
+		 *  ★ 做法 ✗：故障期每秒恢复一次 + 强制整屏重画 ✓
+		 *    · 一次最多 1 秒的屏滞后 ✗ 换来"面板一定回得来"✓✓
+		 *  ★ 为什么【只在故障期】做 ✗：
+		 *    · 正常时 I2C 没有任何被打断的压力 ✗ 不做也无害 ✓
+		 *    · ★★ 而且恢复动作会重发面板命令 ✗ 正常期没必要增加总线负载 ✓ */
+		/* ★★★ 2026-10-19 教训（★ 注释保留 ✗ 死代码已删 ✓）：
+		 *   曾加过"SD 故障期每秒做一次 OLED 总线恢复"✗
+		 *   · 依据是"屏冻住 = I2C 从机被卡在事务中途"✗
+		 *   · ★★ 实测推翻：`sda/scl` 全程高电平（总线从未被拉低）✓
+		 *     真因 = `Clk_CalibOnce()` 阻塞 DISP 11 秒 ✓
+		 *   · ★★★ 而且它有副作用：每秒重发 `0x8D 0x14`
+		 *     （电荷泵 关→开）⇒ 面板【瞬间灭再亮】
+		 *     ⇒ 用户实测"屏幕切换时闪得挺明显"✓✓
+		 *   ⇒ 调用点和这个函数【都已删除】✓
+		 *     （★ 驱动里原有的 `OLED_BusRecover()` 仍在 ✗
+		 *       只在 `OLED_Init` 里用一次 ✓ 那是它本来该在的位置 ✓）*/
+
+		/* ★★★★★ 2026-10-17 加：第一帧先【整屏清一次】✗✓
+		 *   ★ 为什么需要 ✗：`main.c` 启动时会在屏上打 4 行警告
+		 *     （★ "RTC NOT SET / RUN time_sync / …" ✓）
+		 *   ★★ 而本任务的正常画面【只写固定那几列】✗
+		 *     例：第 1 行只写 1~10 列（"ACQ:" + 6 位数字 ✓）
+		 *     ⇒ 警告残留在 11~16 列 ⇒ 【像多出几个怪字符】✓✓
+		 *     （★ 实测：第 1 行末尾冒出 `ET!` ✗ 第 2 行末尾冒出 `ync`
+		 *        —— 正是 ` RTC NOT SET !` 与 `RUN time_sync` 的尾巴 ✓）
+		 *   ★★★ 这就是本项目"状态字定长防残影"规矩的【另一面】✗
+		 *     · 老代码守的是"自己写的东西【自己写满】"✓
+		 *     · ★★ 而【别人写过的内容】必须【有人负责清】✓✓
+		 *     ⇒ 在【接管屏幕的那一帧】清一次 ✗ 最省事也最保险 ✓ */
+		if ((s_blank == 0u) && ((frame == 1u) || (s_need_full != 0u))) { OLED_Clear(); }
 
 		/* ★★★★ 安全关机态 → 【整屏重画】**✗✓（★ 2026-10-13 深夜加 ✓）
 		 *
@@ -1101,30 +1531,78 @@ void task_DISP(void *pvParameters)
 		 *    · ★ 不加边沿判断 ✗ → 【每 200ms 请求一次 ✗ 一直响】✓✓ */
 		if (g_shutdown_done != 0u)
 		{
-			OLED_ShowString(1, 1, "SHUTDOWN        ");   /* ★ 8 + 8 空格 = 16 ✓ */
-			OLED_ShowString(2, 1, "DATA SAVED      ");   /* ★ 10 + 6 = 16 ✓ */
-			OLED_ShowString(3, 1, "SAFE TO OFF     ");   /* ★ 11 + 5 = 16 ✓ */
-			OLED_ShowNum   (4, 1, frame, 5);
-			OLED_ShowString(4, 7, " OFF      ");         /* ★ 10 字符 = 第 7~16 列 ✓ */
-			did_refresh = 1u;                            /* ★★★ 关机画面【每帧都刷】✓ */
+			/* ★★★★★ 2026-10-18 改：屏必须【说实话】+ 关机态【别每帧刷】✗✓
+			 *
+			 *  ★ 改动一：`DATA SAVED` 改成【有条件的】✗
+			 *    · 原来【无条件】写 `DATA SAVED` ✗
+			 *    · ★★ 而 `g_shutdown_saved` 才代表"文件真的关成功了"
+			 *      → 写失败、没插卡、从没挂载过 ⇒ 【一个字节都没进卡】✓✓
+			 *    ★★★ 这是复盘里最让人难受的一条 ✗：
+			 *      没卡的时候按电源键，屏上写着"数据已保存，可以断电"✓
+			 *
+			 *  ★ 改动二：静态那 3 行【只画一次】✗ 心跳【1 秒刷一次】✗
+			 *    · 原来【每一帧都全屏重画】✗
+			 *      → 帧周期 = 200 + 85 = 285ms ⇒ 3.5 次/秒 × 85ms
+			 *      → 【30% CPU】✗ 而正常态才 17.5% ✓✓
+			 *    · ★★ 于是"关机态最省电"这句话【实际是反的】✓
+			 *    ⇒ 现在：进态清一次屏 + 只重画心跳那 5+10 个字符
+			 *      ⇒ 30% → 【约 2%】✓✓ */
 			if (s_shutdown_seen == 0u)
 			{
 				s_shutdown_seen = 1u;
+
+				OLED_Clear();                            /* ★ 清掉上一屏残留 ✓ */
+				OLED_ShowString(1, 1, "SHUTDOWN        ");   /* ★ 8 + 8 空格 = 16 ✓ */
+
+				if (g_shutdown_saved != 0u)
+				{
+					OLED_ShowString(2, 1, "DATA SAVED      ");   /* ★ 10 + 6 = 16 ✓ */
+					OLED_ShowString(3, 1, "SAFE TO OFF     ");   /* ★ 11 + 5 = 16 ✓ */
+				}
+				else
+				{
+					OLED_ShowString(2, 1, "NOT SAVED !!    ");   /* ★ 12 + 4 = 16 ✓ */
+					OLED_ShowString(3, 1, "CHECK SD CARD   ");   /* ★ 13 + 3 = 16 ✓ */
+				}
+
 				Buzz_Request(BUZZ_EV_LONG);              /* ★ 1.6 秒长响 ✓ */
-				Serial_Printf("SYS: shutdown done -> SAFE TO POWER OFF\r\n");
+
+				if (g_shutdown_saved != 0u)
+				{
+					Serial_Printf("SYS: shutdown done -> SAFE TO POWER OFF\r\n");
+				}
+				else
+				{
+					Serial_Printf("SYS: shutdown done but ** DATA NOT SAVED ** -> check SD card\r\n");
+				}
+			}
+
+			/* ★ 心跳：1 秒刷一次（★ 只重画第 4 行，约 20ms ✓）
+			 *   ★★ 为什么还要留心跳 ✗：区分"安全停机"和"死机"✓ */
+			if ((frame % 5u) == 0u)
+			{
+				OLED_ShowNum   (4, 1, frame, 5);
+				OLED_ShowString(4, 7, " OFF      ");         /* ★ 10 字符 = 第 7~16 列 ✓ */
+				did_refresh = 1u;
 			}
 		}
 		else
 		{
 			s_shutdown_seen = 0u;                        /* ★ 恢复时重新武装 ✓ */
-			if ((frame % 2u) == 0u)
+			if ((((frame % 2u) == 0u) || (s_need_full != 0u)) && (s_blank == 0u))
 			{
 			/* 刷新（OLED 16 列 x 4 行）：FUL=队列满次数  QMX=历史最大积压 */
 			OLED_ShowString(1, 1,  "ACQ:");  OLED_ShowNum(1, 5,  snap.acq_count,    6);
 			OLED_ShowString(2, 1,  "PRC:");  OLED_ShowNum(2, 5,  snap.proc_count,   6);
 			OLED_ShowString(3, 1,  "FUL:");  OLED_ShowNum(3, 5,  snap.queue_full,   3);
 			OLED_ShowString(3, 9,  "QMX:");  OLED_ShowNum(3, 13, snap.q_max_depth,  2);
-			OLED_ShowString(4, 1,  g_pause ? "PAUSE" : "RUN  ");
+			/* ★★★★ 2026-10-17 改：时间不可信时【常驻】显示 `T?` ✗✓
+			 *   · 原来只有 RUN / PAUSE 两个状态 ✓
+			 *   · ★★ 为什么要常驻 ✗：开机那 4 行警告【0.4 秒就被本任务刷掉了】✗
+			 *     而记录仪是【无人值守】的 ⇒ 必须有个【一直看得见】的记号 ✓✓
+			 *   · ★ 判据 ✗：`T?` = 本次上电后【没对过时】✗ 数据时间戳不可信 ✓ */
+			OLED_ShowString(4, 1, g_pause ? "PAUSE" :
+			                        ((MyRTC_IsTrusted() != 0u) ? "RUN  " : "T?   "));
 			/* ★ 心跳：用来区分【暂停】和【卡死】 */
 			OLED_ShowNum(4, 7, frame, 5);
 
@@ -1137,6 +1615,7 @@ void task_DISP(void *pvParameters)
 			OLED_ShowString(4, 13, "E:");
 			OLED_ShowNum(4, 15, g_sd_last_err, 2);
 			did_refresh = 1u;                            /* ★★★ 正常画面【每 3 帧】刷一次 ✓ */
+			s_need_full = 0u;                            /* ★ 重画完了 ⇒ 清标记 ✓ */
 			}
 		}
 
@@ -1162,6 +1641,18 @@ void task_DISP(void *pvParameters)
 		if (g_sd_error != 0u) { Buzz_Request(BUZZ_EV_SD_ERR); }
 		else                  { Buzz_Clear(BUZZ_EV_SD_ERR);   }
 		Buzz_Poll();
+
+		/* ★★★★ 2026-10-18 从这里【移走】：校准不能放在 t0 之后 ✗✓
+		 *   ★ 原因 ✗ 它故意卡本任务约 10 秒（★ 等 RTC 走满 ✓）
+		 *     而下面那行的位置在 `t0 = DWT->CYCCNT` 之后 ⇒
+		 *     【这 10 秒被当成"一帧的耗时"】✓
+		 *   ★★ 后果（★ 2026-10-18 烧完第一次实测就撞上了 ✓）✗
+		 *     `DISP: avg=82044 us  max=10581722 us` ⇒ 【max = 10.58 秒】✓
+		 *     而 `s_us_max` 【不清零】⇒ 每次开机 max 都被顶到 ~10 秒
+		 *     ⇒ ★★ 判据「max 比 avg 重要」【直接作废】✓✓
+		 *   ★★★ 已挪到【循环开头 ✗ `t0 = DWT->CYCCNT` 之前】
+		 *     （★ 见本函数 `for (;;)` 的第一句 ✓✓）*/
+
 			/* ★★★★ 2026-10-14 改：只统计【真的刷了屏】的那些帧 ✓
 		 *   ★ 为什么 ✗：现在每 3 帧才刷一次 ✗
 		 *     另外两帧只花几十µs ✓ 全算进去会把 avg 拉得很低 ✗ 看不出真实开销 ✓
@@ -1180,8 +1671,15 @@ void task_DISP(void *pvParameters)
 
 		/* ★★★ 平时【安静】✗ 只在"这一帧明显偏慢"时才报 ✓
 		 *   （★ 115200 下发一行约 30 字符 ≈ 2.6ms ✗ 每帧都报会污染测量 ✓）
-		 *   ★★ 60ms 是个经验阈值 ✗ 你的目标应该是远低于它 ✓ */
-		if (dt_us > 60000u)
+		 *   ★★★★ 2026-10-17 改：阈值 60ms → 120ms ✗✓
+		 *     · ★ 60ms 那个阈值【早就失效了】✗ 因为 OLED 优化（148→84ms）之后
+		 *       【常态帧耗时就是 64~84 ms】✓
+		 *     · ⇒ 【每一帧都触发】✗ 20.37 小时长稳刷了 147,238 条 ✓✓
+		 *     · ★★ 而它原本的设计意图是"平时安静 ✗ 只在明显偏慢时报" ✓
+		 *     · ★★★ 新阈值 120ms 的依据 ✗
+		 *        常态 max ≈ 84~98 ms ✗ 留约 25% 余量 ⇒ 120 ms ✓
+		 *        （★ 超过它 = 真的被谁拖了 ✗ 值得看一眼 ✓✓）*/
+		if (dt_us > 120000u)
 		{
 			Serial_Printf("DISP: SLOW frame %u us !\r\n", (unsigned)dt_us);
 		}
@@ -1196,6 +1694,48 @@ void task_DISP(void *pvParameters)
 			/* ★ s_us_max【不清】✗ 保留历史最大 ✓（看最坏情况 ✓）*/
 		}
 		}
+
+		/* ★★★★ 2026-10-18 加：空闲占比（★ 低功耗改造 序 1 的判据 ✓）
+		 *
+		 *   ★★★ 为什么【从上面那个 `did_refresh` 块里挪出来】✗✓
+		 *     （★ 2026-10-18 加黑屏后【自己踩到的坑】✓）
+		 *     · 它原来在 `if (did_refresh != 0u)` 里面 ✗
+		 *     · ★★ 而屏一黑就【不再刷屏】⇒ `did_refresh` 恒 0
+		 *       ⇒ 【这一整块统计全停】✗ 恰恰是做省电实验时最需要看它的时候 ✓✓
+		 *     ⇒ ★ 挪到【循环末尾 ✗ 刷不刷屏都跑】✓
+		 *
+		 *   ★ 换算依据 ✗：`__WFI()` 生效后，钩子每进一次 ≈ 睡到下一个
+		 *     1ms SysTick ⇒ 【次数/秒 ÷ 1000 ≈ 空闲占比】✓
+		 *   ★★ 为什么【先除后除】而不是 `dn * 1000 / dms` ✗：
+		 *     · 没加 WFI 时 dn 可能是【每秒几十万】(空转 ✗)
+		 *     · `dn * 1000` 会【溢出 uint32】✗ ⇒ 算出个假数 ✓✓
+		 *   ★ 判据 ✗：
+		 *     · WFI 生效 ⇒ 从"上万"掉到【几百】✓
+		 *     · 500/s ⇒ 约 50% 空闲 ✓（和 CPU 预算吻合 ✓）
+		 *     · 若还是上万 ⇒ ★ WFI 没起作用 ✗ 回头查钩子有没有真被调用 ✓
+		 *
+		 *   ★★ 代价（说清楚）✗：现在【每秒一行】✗ 约 30 字节 ≈ 2.6ms/s ✓
+		 *      占 CPU 0.26% ✗ 可忽略 ✓ 换来的是"黑屏时也看得见"✓ */
+		{
+			TickType_t now = xTaskGetTickCount();
+			uint32_t   dms = (uint32_t)(now - s_idle_tick);
+			if (dms >= 1000u)
+			{
+				uint32_t dn    = (uint32_t)(g_idle_cnt - s_idle_last);
+				uint32_t per_s = (uint32_t)(dn / (dms / 1000u));
+				/* ★ 归一化成【每 1000ms 有多少 ms 闲过】✓
+				 *   ★ 先乘后除可能溢出 ⇒ 先取商再补 ✗ 这里 ms ≤ 4000、×1000 安全 ✓ */
+				uint32_t ms_raw = (uint32_t)(g_idle_ms - s_idle_ms_last);
+				uint32_t ms_per = (uint32_t)((unsigned long)ms_raw * 1000u / (unsigned long)dms);
+				Serial_Printf("IDLE: %lu/1000 ms  hook %lu/s  blank %u\r\n",
+				              (unsigned long)ms_per, (unsigned long)per_s,
+				              (unsigned)s_blanked);
+				s_idle_last    = g_idle_cnt;
+				s_idle_ms_last = g_idle_ms;
+				s_idle_tick    = now;
+			}
+		}
+
 		vTaskDelay(pdMS_TO_TICKS(200));
 	}
 }
@@ -1217,6 +1757,21 @@ void task_DISP(void *pvParameters)
 void task_GOLDEN(void *pvParameters)
 {
 	(void)pvParameters;
+
+	/* ★★★★★ 2026-10-19 加：**时钟校准搬到这里做** ✗✓
+	 *   ★ 为什么搬 ✗：它故意阻塞约 11 秒（等 RTC 走满 10 秒 ✓）
+	 *     · 原来在 `task_DISP` 里 ✗ ⇒ 【屏冻 11 秒 + 蜂鸣器卡住】✓✓
+	 *       （★ 实测：IDLE 空档 11.36 秒，用户反复报告 ✓）
+	 *   ★★ 为什么放这里 ✗：
+	 *     · 本任务优先级 1 ✗ 本来就"闲睡 5 秒"✓ 无时限要求 ✓
+	 *     · ★ 它唯一的活是金副本后台填 ✗ 晚 11 秒毫无影响 ✓✓
+	 *   ★★★ 为什么先等 30 秒 ✗：
+	 *     · 开机初期 SD 挂载 / 金副本判断都在跑 ✗ 别插队 ✓
+	 *     · ★★ 而且此时 RTC 早已对过时 / 走稳 ✓ 测出来更准 ✓
+	 *   ★ 注意 ✗：`Clk_CalibOnce()` 内部有 `s_done` 保护
+	 *     ⇒ 只跑一次 ✓（这里也只调一次 ✓ 双保险 ✓）*/
+	vTaskDelay(pdMS_TO_TICKS(30000));
+	Clk_CalibOnce();
 
 	for (;;)
 	{
@@ -1392,5 +1947,38 @@ void WD_Init(void)
  *============================================================================*/
 void vApplicationIdleHook(void)
 {
+	/* ★★★★ 2026-10-18 加（低功耗改造 序 1 ✓）：空闲就【睡】，别空转 ✓
+	 *
+	 *  ★ 为什么是这里 ✗：空闲任务是"系统确实没事干"的【唯一可靠信号】✓
+	 *    别的地方睡都会撞上"其实还有活没干"✗
+	 *
+	 *  ★★ 为什么只敢 `__WFI()` ✗ 不敢上停止模式 ✓：
+	 *    · `__WFI()` = 停【内核时钟】，等任意中断唤醒 ✓
+	 *      最近的唤醒源就是【1ms 的 SysTick】⇒ 最多睡 1ms ✓
+	 *    · ★★★ Sleep 下 SysTick【照跑】✓ ⇒ tick 不丢 ✓
+	 *      ⇒ 【所有任务的周期一个 tick 都不变】✓✓（含 100ms 的 ACQ ✓）
+	 *    · ✗✗ 换成 `PWR_EnterSTOPMode` 就死锁：
+	 *      Stop 停掉内核时钟 ⇒ SysTick 不再产生 ⇒ FreeRTOS 心跳没了
+	 *      ⇒ 所有 `vTaskDelay` 永远等下去 ✓（`低功耗改造方案.md` §九 已列为禁止 ✓）
+	 *
+	 *  ★★ 喂狗和睡眠【不冲突】✓：
+	 *    睡 ≤1ms 就醒 ⇒ 醒来又进这个钩子 ⇒ 喂狗照旧 ✓
+	 *    IWDG 超时 6.55 秒 vs 这里 1ms ⇒ 差【三个数量级】✓✓
+	 *    （★ 所以 IWDG × 回退炸弹【只在停止模式成立】✗ 与 WFI 无关 ✓）*/
+	g_idle_cnt++;                   /* ★ 先记一笔：这一步证明钩子真被调到 ✓ */
+
 	IWDG_ReloadCounter();           /* ★ 空闲任务能跑到 = 系统还活着 ✓ */
+
+	/* ★★ §7.2 的指标：同一个 tick 里进多次【只记一次】✓
+	 *   ★ 用 `!=` 而不是 `>`：tick 是 uint32 会回绕 ✗ `!=` 天然安全 ✓ */
+	{
+		uint32_t now = (uint32_t)xTaskGetTickCount();
+		if (now != g_last_idle_tick)
+		{
+			g_last_idle_tick = now;
+			g_idle_ms++;
+		}
+	}
+
+	__WFI();                        /* ★★ 睡到下一个中断（≤1ms）✓ */
 }

@@ -231,8 +231,10 @@ void OLED_Clear(void)
 {  
 	/* ★ 整页 128 字节一次写完 ✓（★ 原来 128 次事务 ✗ 现在 1 次 ✓✓）*/
 	static const uint8_t zeros[128] = {0};    /* ★ const → 放 Flash 里 ✗ 不占 RAM ✓ */
-	uint8_t i, j;
-		for (j = 0; j < 8; j++)
+	uint8_t j;                      /* ★ 2026-10-17 修：原来是 `uint8_t i, j;` ✗✓
+	                                *   而 `i` 【从未被引用】⇒ warning #177-D ✓
+	                                *   （★ 明显是"改成一次写 128 字节"时留下的残骸 ✓）*/
+	for (j = 0; j < 8; j++)
 	{
 		OLED_SetCursor(j, 0);
 		OLED_WriteDataN(zeros, 128u);
@@ -595,3 +597,52 @@ void OLED_SelfCheck(void)
 	Serial_Printf("OLED: found %u, ACK addr=%u ctrl=%u cmd=%u\r\n",
 	              (unsigned)n, (unsigned)a_addr, (unsigned)a_ctrl, (unsigned)a_cmd);
 }
+
+/*==============================================================================
+ *  ★★★★ 2026-10-18 加：显示开关（★ 低功耗改造 序 2 ✓）
+ *
+ *  ★★★ 为什么【不能只发 0xAE】✗✓ —— 这是本节最容易被坑的一点 ✓
+ *    · `0xAE` 只关【显示驱动 ✗ 面板不亮而已】
+ *    · ★★ 而 SSD1306 内部的【电荷泵 DC-DC】还在跑 ✗
+ *      它负责把 3.3V 升压给面板 ⇒ 【电流的大头就在这儿】✓✓
+ *    ⇒ ★ 必须【先关电荷泵 `0x8D 0x10` ✗ 再关显示 `0xAE`】✓
+ *      只发 `0xAE` 大概只省【一半不到】✗ 两条都发才接近省满 ✓
+ *
+ *  ★ 实测口径（2026-10-18 本板）：
+ *    · 屏亮时整机 25 mA ✗ 其中屏约 6~7 mA ✓
+ *    · 黑屏后应掉到【21~22 mA】✓
+ *      —— 若只掉到 24 mA ✗ 那就是电荷泵没真关 ✓（回头查这条命令）
+ *
+ *  ★★ 恢复时为什么调用者【必须整屏重画】✗：
+ *    · 关的是【电荷泵 + 显示】✗ 显存 GDDRAM 在 VDD 下【不掉】✓
+ *    · ⇒ `0xAF` 之后面板会把【旧内容】重新点亮 ✗ 看着像"画面冻住了"✓
+ *    · ⇒ ★ 上层（task_DISP）用 `s_need_full` 标记，恢复后 Clear + 重画 ✓
+ *============================================================================*/
+static uint8_t s_oled_on = 1u;      /* ★ 上电默认亮（OLED_Init 里发了 0xAF ✓）*/
+
+void OLED_DisplayOff(void)
+{
+	if (s_oled_on == 0u) { return; }        /* ★ 幂等：重复调用不发多余命令 ✓ */
+
+	OLED_WriteCommand(0x8D);                /* ★ ① 电荷泵设置 ✓ */
+	OLED_WriteCommand(0x10);                /*   0x10 = 关 ✗ 0x14 = 开 ✓ */
+	OLED_WriteCommand(0xAE);                /* ★ ② 关显示 ✓ */
+	s_oled_on = 0u;
+}
+
+void OLED_DisplayOn(void)
+{
+	if (s_oled_on != 0u) { return; }
+
+	OLED_WriteCommand(0x8D);                /* ★ ① 先把电荷泵开回来 ✓ */
+	OLED_WriteCommand(0x14);
+	OLED_WriteCommand(0xAF);                /* ★ ② 再开显示 ✓ */
+	s_oled_on = 1u;
+}
+
+uint8_t OLED_IsOn(void)
+{
+	return s_oled_on;
+}
+/* ★ 2026-10-17：本行以下是空行 ✗ 只为消掉 warning #1-D
+ *   「last line of file ends without a newline」（★ 文件末尾缺换行 ✓）*/

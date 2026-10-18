@@ -166,7 +166,20 @@ extern uint32_t SystemCoreClock;   /* 在 system_stm32f10x.c 中定义，默认 
 
 /* 是否启用软件定时器
  *   1 = 内核会自动创建一个"定时器服务任务"和一个定时器命令队列 */
-#define configUSE_TIMERS                         1
+/* ★★★★ 2026-10-18 改：1 → 0 ✗✓
+ *
+ *  ★ 为什么关掉 ✗：全工程【一个 `xTimerCreate` 都没有】✓（已全树 grep 核实）
+ *  ★★ 而 `configUSE_TIMERS = 1` 会【白建】一个定时器服务任务：
+ *    · 栈 = `configMINIMAL_STACK_SIZE * 2` = 256 字 = **1 KB 堆** ✓
+ *    · 命令队列 5 项 ✓
+ *    · ★★★ 而且它的优先级是 **31（全系统最高）** ✓
+ *  ★★★★ 而本项目 `heapmin` 实测只剩 **1352 B** ✓✓
+ *    ⇒ 关掉它 = 直接还给堆约 **1 KB**，还少一个最高优先级任务 ✓
+ *
+ *  ★ 将来真要软件定时器 ⇒ 改回 1 并做一次回归即可 ✓
+ *    ★★ 注意：改回 1 时【不要】在定时器回调里写阻塞代码
+ *      （它优先级最高 ⇒ 会把整个系统拖住 ✓）*/
+#define configUSE_TIMERS                         0
 
 /* 定时器服务任务的优先级（这里 = configMAX_PRIORITIES-1 = 31，最高）
  *   ?? 因为它优先级最高，所以定时器回调函数里【绝不能】写耗时或阻塞的代码 */
@@ -187,7 +200,11 @@ extern uint32_t SystemCoreClock;   /* 在 system_stm32f10x.c 中定义，默认 
 #define INCLUDE_vTaskDelayUntil                  1   /* 允许绝对延时（精确定周期，采样必备） */
 #define INCLUDE_vTaskDelay                       1   /* 允许相对延时 */
 #define INCLUDE_xTaskGetSchedulerState           1   /* 允许查询调度器是否已启动 */
-#define INCLUDE_xTimerPendFunctionCall           1   /* 允许把函数"委托"给定时器任务去执行 */
+/* ★★ 2026-10-18 改：1 → 0 ✗（★ 与 `configUSE_TIMERS = 0` 配套 ✓）
+ *   · 它 = 1 时，`timers.c` 里会 `#error` 要求 `configUSE_TIMERS` 必须为 1 ✓
+ *   · ★★ 而全工程【没有任何地方】调 `xTimerPendFunctionCall` ✓（已 grep）
+ *   ⇒ 关掉它，`timers.c` 才不会拦编译 ✓ */
+#define INCLUDE_xTimerPendFunctionCall           0
 
 /* ======================== 九、中断优先级配置（最容易出错的一段） ======================== */
 
