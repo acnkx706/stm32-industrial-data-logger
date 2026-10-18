@@ -29,7 +29,18 @@
 #include "BMP280.h"
 #include "MyRTC.h"  
 #include "buzz.h"                  /* ★ 蜂鸣器服务（PB12 ✓ 低电平触发 ✓）*/
-#include "W25Q64.h"                /* ★★ W25Q64 8MB SPI Flash（PB5/6/7/10 ✓ 2026-10-14 加 ✓）*/
+#include "W25Q64.h"                /* ★★ W25Q64 8MB SPI Flash
+                                    *   ★★★ 引脚（2026-10-17 从 `W25Q64.c:31~39` 核出的真值）✗
+                                    *     SCK=PA8 / MISO=PA11 / MOSI=PA12 / CS=PB13 ✓
+                                    *   ⚠️ 原来这里写着 PB5/6/7/10 ✗ 那是错的 ✓
+                                    *     （★ 而 PB5/PB6 正是【给 HC-SR04 预留的 TRIG/ECHO】✓
+                                    *       信了那条注释 ⇒ 会给超声波重选引脚 ⇒ 【改错硬件】✓✓）
+                                    *   ⇒ ★ 教训：改板子前【回代码核引脚】✗ 别信注释 ✓ */
+#include "Crc16.h"                 /* ★★ 2026-10-17 加 ✗✓
+                                    *   `main.c` 里用了 `Crc16_Kermit` / `Crc16_Xmodem`
+                                    *   （★ 那两个 CRC 契约自检 ✓）
+                                    *   但【一直没包含这个头】✗ 靠"隐式声明"侥幸通过 ✓
+                                    *   ⇒ 编译器一直在报 warning #223-D ✗ 已修 ✓✓ */
 #include "ProbeConfig.h"
 
 /*==============================================================================
@@ -107,7 +118,22 @@ static void BMP280_Probe(void)
 	}
 }
 #endif
-#define APP_VER_STR   "APP: ver 2  (2026-10-14 CBT6 + new partition)"
+/* ★★★★★ 2026-10-18 改：ver 3 → ver 4 ✗✓
+ *
+ *  ★ 为什么必须升 ✗：
+ *    · 10-18 又改了【两批】App 代码（WFI 睡眠 + OLED 超时黑屏）✗
+ *    · ★★ 而版本串还写着 10-17 ⇒ 【从串口根本分不清板子里是哪一版】✓✓
+ *
+ *  ★★ 为什么写【功能名】而不是只写编号 ✗：
+ *    · 现场排障第一句话就是"你这版有没有黑屏功能"✗
+ *    · ★ 编号要靠记忆 ✗ 名字不用 ✓
+ *
+ *  ★ 这条是【人手维护】的 ✗ 【改代码时必须一起改】✓
+ *    ★★ 别指望用 `__DATE__` 自动 ✗：
+ *      · 它是【该 .o 的编译时间】✗ 增量编译时【不更新】✓
+ *      · 本项目已经在 RTC 初值上【踩过这个坑】✓（净偏 22h35m 那次）
+ *    ⇒ ★ 宁可人手改 ✗ 也不要一个"看起来自动、其实会骗人"的版本号 ✓ */
+#define APP_VER_STR   "APP: ver 15 (2026-10-19 CALIB-TO-GOLD; cleanup)"
 int main(void)
 {int16_t oax, oay, oaz, ogx, ogy, ogz;
 /* ---------- 第一批：先把"能显示/能通信"的立起来（诊断能力优先） ---------- */
@@ -204,7 +230,61 @@ int main(void)
 			              (unsigned)dt.year, (unsigned)dt.month, (unsigned)dt.day,
 			              (unsigned)dt.hour, (unsigned)dt.minute, (unsigned)dt.second,
 			              (unsigned long)MyRTC_GetUnix());
-			Serial_Printf("  ^^ must match 'set from compile time' above (within seconds)\r\n");
+
+			/* ★★★★★ 2026-10-17 改：这一行原来是【骗人的自检】✗✓
+			 *   ★ 原来写的是 ✗
+			 *     「^^ must match 'set from compile time' above (within seconds)」
+			 *   ★★★★ 为什么它永远通过（★ 实测过一次 22 小时的错 ✗ 它照样 PASS ✓）✗
+			 *     · 【写进去】用 `MyRTC_YmdToUnix(__DATE__, __TIME__)`
+			 *     · 【读回来】用 `MyRTC_UnixToYmd(RTC_GetCounter())`
+			 *     · 这两个是【互为反函数】✗ 而且【同一套无时区换算】✓
+			 *     ⇒ 那个 32 位数【无论是什么意思】**✗ 两边都相等 ✓✓
+			 *     ⇒ ★ 它只证明了【计数器能往返】✗ 证明不了【时间对不对】✓✓
+			 *   ★★★ 这和 10-17 那个金副本 CRC bug 是【同一类】✗
+			 *     交接文档 §10.2 的教训原文：
+			 *     「自检和被检用同一套错逻辑 ⇒ 永远自洽 ⇒ 永远查不出来」✓✓
+			 *   ★★ 所以真正的校验【必须在 PC 端用外部参照做】✗
+			 *     ⇒ `time_sync.py` 的 `wait_ack()` 会断言【与 PC 差 ≤ 2 秒】✓✓ */
+			Serial_Printf("  ^^ NOTE: this self-check only proves the counter ROUND-TRIPS,\r\n");
+			Serial_Printf("         NOT that the time is correct. The real check is on the PC:\r\n");
+			Serial_Printf("         time_sync.py asserts |diff| <= 2 s against the PC clock.\r\n");
+
+			/* ★★★★★ 2026-10-17 加：时间【不可信】就当场喊出来 ✗✓
+			 *   判据 = `BKP_DR5`（★ 只有串口对时成功才会置它 ✓）
+			 *   ★★ 为什么必须上 OLED ✗：串口【不是随时有人看】✗
+			 *     而记录仪是【无人值守】的 ✓✓ */
+			if (MyRTC_IsTrusted() == 0u)
+			{
+				Serial_Printf("\r\n");
+				Serial_Printf("********************************************************************\r\n");
+				Serial_Printf("*** RTC: TIME NOT TRUSTED !!!  (BKP_DR5 has no magic)\r\n");
+				Serial_Printf("*** cause: no VBAT -> on every power-up the RTC is set from\r\n");
+				Serial_Printf("***        MyRTC.c's compile time -- an OLD .o stamp\r\n");
+				Serial_Printf("***        (measured 8h35m stale) -- and it is used as UTC\r\n");
+				Serial_Printf("***        => real error measured: 22h35m\r\n");
+				Serial_Printf("*** fix  : run time_sync.bat on the PC now (or send T<unix>)\r\n");
+				Serial_Printf("***        data written before that has WRONG timestamps\r\n");
+				Serial_Printf("********************************************************************\r\n");
+				Serial_Printf("\r\n");
+
+				/* ★ 屏上也留一条 ✗ 直到对时为止 ✓
+				 *   （★ 之后 task_DISP 会用 `T?` 常驻提示 ✓ 见 freertos_demo.c ✓）*/
+				OLED_Clear();
+				/* ★★★ 2026-10-17 修：每行【补空格到 16 列】✗✓
+				 *   本工程的规矩是"状态字定长防残影"✓
+				 *   ★★ 我第一版忘了补 ⇒ 【11~16 列会留上一屏的残影】✓
+				 *     （★ 实测现象：第 1 行末尾冒出 `ET!`
+				 *       第 2 行末尾冒出 `ync` —— 正是这两行的尾巴 ✓✓）
+				 *   ★★★ 但【只补空格还不够】✗：
+				 *     本任务正常画面的第 1 行【只写 1~10 列】✓
+				 *     ⇒ 11~16 列仍是这里写下的内容 ✓
+				 *     ⇒ 真正的修法是【接管屏幕的那一帧整屏清一次】✓✓
+				 *       （★ 见 freertos_demo.c 的 `frame == 1u` ✓）*/
+				OLED_ShowString(1, 1, " RTC NOT SET !  ");   /* 14 + 2 = 16 ✓ */
+				OLED_ShowString(2, 1, "RUN time_sync   ");   /* 13 + 3 = 16 ✓ */
+				OLED_ShowString(3, 1, "TIME IS WRONG   ");   /* 13 + 3 = 16 ✓ */
+				OLED_ShowString(4, 1, " on your PC !  ");    /* 14 + 2 = 16 ✓ */
+			}
 		}
 	}
 

@@ -575,6 +575,23 @@ static void Up_HandleEnd(uint16_t n)
 	 *       （★ 这就是【Q5 那个"或"条件**的价值 ✓）*/
 	BootFlag_ClearUpgrade();
 
+	/* ★★★★★ 2026-10-18 加（★ 复盘 B2 的另一半 ✓）：
+	 *   ★ 新固件【写进去 + 校验通过 + 第 0 页有效】⇒ 升级成功 ✓
+	 *     ⇒ 【任何还挂着的"回退请求"都该作废】✗
+	 *   ★★ 不清会怎样 ✗：
+	 *     · 用户之前在 App 里发过 `R` 但没恢复成功 ⇒ `DR3` 残留 ✓
+	 *     · 这次升级 `PASS` 了、跳进新固件 ✓
+	 *     · ★★★ 可【下次开机】Boot 又看到 `DR3` ⇒ 又去回退
+	 *       ⇒ 【刚升好的新固件被换回旧的】✓✓
+	 *   ⇒ 升级成功 = 回退请求作废 ✓ 一起清掉 ✓ */
+	BootFlag_ClearRollback();
+
+	/* ★ 2026-10-18 加（⑥）：新固件装好并验证通过 ⇒ 【IWDG 回退计数清零】✓
+	 *   ★ 语义 ✗：这算是"人重新给了它一次完整机会"✓
+	 *   ★★ 不清会怎样 ✗：以后偶发一次狗咬就直接【停升级模式】✗
+	 *     而不是先尝试自愈 ✓✓ */
+	BootFlag_ClearIwdgRetry();
+
 	Serial_SendString("PASS\r\n");
 	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) { }
 
