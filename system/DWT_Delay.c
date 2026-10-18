@@ -40,8 +40,33 @@ void DWT_Delay_Init(void)
 	 * （复位后默认关闭，不打开的话 DWT->CTRL/CYCCNT 写入无效） */
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 
-	DWT->CYCCNT = 0;                        /* 周期计数值清零 */
-	DWT->CTRL  |= DWT_CTRL_CYCCNTENA_Msk;   /* CYCCNTENA：启动周期计数器 */
+	/* ★★★★★ 2026-10-19 修（★ 实测抓到的"屏幕卡住"根因 ✓）：
+	 *
+	 *  ★ 原来的 bug ✗：**无条件 `DWT->CYCCNT = 0`** ✓
+	 *    · ★ 本函数被【多处】调用 ✗
+	 *      —— `SD_Init()` 每次都会调它 ✓（★ 拔卡期间【每 3 秒一次】✓）
+	 *    · ★★ 而只要有【别的任务正拿 DWT 做计时/延时】✗
+	 *      计数器被清零 ⇒ 之后 `DWT_Delay_us` 里 `now - start`
+	 *      变成【天文数字】⇒ 等待循环【瞬间返回】⇒ 【延时完全失效】✓✓
+	 *
+	 *  ★★★ 实测现象（2026-10-19 用户报 + 日志确认）✗：
+	 *    ① 屏幕【整屏卡住/花】✗
+	 *       —— OLED 的软件 I2C 靠 `DWT_Delay_us(1)` 撑时序 ✓
+	 *          延时一失效 ⇒ I2C 跑飞 ⇒ SSD1306 收不全一帧 ✓✓
+	 *    ② `DISP: SLOW frame 35420278 us`（35 秒）✗
+	 *       —— 那是【假数据】✓ t0 被清零算出来的 ✓
+	 *    ③ 同一机理威胁 W25 的软件 SPI（延时不灵 ⇒ 写太快）✓ 隐患 ✓
+	 *
+	 *  ★ 修法 ✗：**只在"还没启动"时清零并启动**✓
+	 *    · 后来者只保证"使能位是开的"✗ 【绝不动计数值】✓✓
+	 *  ★ 为什么这样对 ✗：
+	 *    · DWT 是【全局唯一的自由计数器】✗ 语义上属于"系统时钟基准" ✓
+	 *    · ★★ 谁都没有权利在运行期把它清零 ✓✓ */
+	if ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) == 0u)
+	{
+		DWT->CYCCNT = 0;                        /* ★ 只有第一个人清 ✓ */
+		DWT->CTRL  |= DWT_CTRL_CYCCNTENA_Msk;   /* CYCCNTENA：启动周期计数器 */
+	}
 }
 
 /**

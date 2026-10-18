@@ -2,6 +2,16 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+/* ★★★★★ 2026-10-17 加：串口打印的互斥量 ✗✓
+ *   ★ 为什么驱动里要引 FreeRTOS ✗：见 `Serial_Printf` 那段账 ✓
+ *     （★ 它的职责已经从"发字节"升级成"把一整行原子地发出去" ✓）
+ *   ★★ 句柄放这里 ✗ 在 `Serial_Init` 里建 ✓ */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+
+static SemaphoreHandle_t s_ser_lock = NULL;
+
 void Serial_Init(void)
 {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);
@@ -56,7 +66,16 @@ void Serial_Init(void)
 	}
 
 	USART_Cmd(USART1,ENABLE);
-	
+
+	/* ★★★★★ 2026-10-17 加：为"整行原子打印"建互斥量 ✗✓
+	 *   ★ 为什么在这里建 ✗：`Serial_Init` 跑在【调度器启动之前】✗
+	 *     而 FreeRTOS 【允许在启动前创建内核对象】✓✓
+	 *   ★★ 失败（堆不够）⇒ 句柄保持 NULL ✗
+	 *     ⇒ `Serial_Printf` 会【退化成不加锁】✗ 但【绝不崩】✓✓
+	 *   ★★★ 代价 ✗：约 80~88 字节堆 ✓
+	 *     （★ 本工程堆余量本来就紧 ✗ heapmin 1456 ⇒ 判据要跟着调 ✓
+	 *       见 `长稳验收报告.md` §七 第 ⑧ 条 ✓）*/
+	s_ser_lock = xSemaphoreCreateMutex();
 }
 
 
@@ -197,8 +216,48 @@ void Serial_Printf(char*format,...)
 	 *   —— 200 的缓冲会被 vsnprintf 静默截断成 199 字节，CRC 列永远看不全 */
 	char String[256];
 	va_list arg;
+	uint8_t locked = 0u;
+
+	/* ★★★★★ 2026-10-17 加：整行【原子】发送 ✗✓
+	 *
+	 *  ★★★★ 为什么要（★ 实测证据 ✓）✗
+	 *    20.37 小时长稳的日志里【10,061 条碎片行（5.49%）】✗
+	 *    例如只剩 `us !` / `0 us !`（★ 前半截被别的任务抢走了 ✓）
+	 *    ★ 机理 ✗：本函数先 `vsnprintf` 进 `String[]` ✗ 再逐个字节发 ✓
+	 *      · 一行的发送时间 ≈ 220 字节 × 86.8 µs ≈ 【19 ms】✓
+	 *      · 这 19 ms 里【任何更高优先级的任务都能抢占】✗
+	 *        → 它自己的打印【插到中间】⇒ 一条被撕成两半 ✓✓
+	 *
+	 *  ★★★ 为什么用【互斥量】而不是 `taskENTER_CRITICAL()` ✗✓
+	 *    · 关中断 19 ms ⇒ 【SysTick 被挡 ⇒ 整个调度停摆】✗
+	 *      而且串口接收 ISR 也进不来 ⇒ 【对时命令会被丢字节】✓✓
+	 *    · 互斥量只挡住【同样想打印的任务】✗ 完全不挡中断 ✓
+	 *    · ★★ 它还有【优先级继承】✗ 不会出现优先级反转 ✓
+	 *
+	 *  ★★★★ 但【调度器没起来之前不能拿互斥量】✗✓
+	 *    · 初始化阶段（`MyRTC_Init` / `OLED_Init` / 各驱动自检）就在打印 ✓
+	 *    · 那时拿互斥量【会断言失败或死等】✗
+	 *    ⇒ ★ 必须判 `xTaskGetSchedulerState()` ✓✓
+	 *
+	 *  ★★ 为什么这个判断【放在函数里】而不是让调用者判 ✗
+	 *    · 调用点有十几处 ✗ 【一定会漏】✓
+	 *    · 在这里判一次【永远不亏】✗ 而且新代码自动受益 ✓✓
+	 *
+	 *  ★ 拿不到锁怎么办 ✗：★ 等 20 ms ✗ 还拿不到就【宁可不打】✓
+	 *    （★ 打印是诊断 ✗ 不是数据 ✗ 绝不能因为打印把数据链路堵住 ✓✓）*/
+	if (s_ser_lock != NULL)
+	{
+		if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+		{
+			if (xSemaphoreTake(s_ser_lock, pdMS_TO_TICKS(20)) == pdPASS) { locked = 1u; }
+			else { return; }        /* ★ 宁可丢这一行 ✗ 也不插队 ✓ */
+		}
+	}
+
 	va_start(arg,format);
 	vsnprintf(String,sizeof(String),format,arg);
 	va_end(arg);
 	Serial_SendString(String);
+
+	if (locked != 0u) { (void)xSemaphoreGive(s_ser_lock); }
 }

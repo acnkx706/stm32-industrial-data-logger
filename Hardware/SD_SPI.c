@@ -74,7 +74,16 @@
 #define SD_INIT_TIMEOUT_MS  2000    /* ACMD41 timeout widened 1s->2s for marginal-contact debug */    /* ACMD41 总超时：规范典型 ~500ms，给一倍余量 */
 #define SD_READ_TIMEOUT_MS  100     /* 读数据 token 等待（规范 NAC=100ms） */
 #define SD_BUSY_TIMEOUT_MS  500     /* 写 busy 等待（规范单块编程最长 250ms，留一倍） */
-#define SD_OP_RETRY         3       /* 读/写整操作重试次数（执行表 T2.1：3 次） */
+/* ★★★ 2026-10-18 改：3 → 2 次 ✗✓
+ *  ★ 断卡时【单批失败】耗时 = `SD_BUSY_TIMEOUT_MS` × 重试次数
+ *    · 3 次 = 1.5 秒 ✗ 2 次 = 1.0 秒 ✓
+ *  ★★ 真实收益不在"少等 0.5 秒"，而在【这段时间缓冲被占着】✗
+ *    → PROC 拿不到 512B 缓冲 ⇒ 【以 10 条/秒丢数据】✓✓
+ *    ⇒ 每批少丢约 5 条 ✓
+ *  ★ 不动 `SD_BUSY_TIMEOUT_MS` 的原因 ✗：500 ms 已是规范值 250 ms 的【一倍余量】，
+ *    动它容易把【慢卡】误判成坏卡 ✓
+ *    （详见 `杂项文件\设计文档\SD-E03-卡锁死-问题记录-2026-10-18.md`）*/
+#define SD_OP_RETRY         2
 
 /*============================================================================
  *  命令表（SD 规范：命令字节 = 0x40 | 命令号）
@@ -510,7 +519,7 @@ static SD_Result_t SD_WriteRaw(const uint8_t *buf, uint32_t sector, uint32_t cou
 		}
 		/* ★ 2026-10-05：改发【真 CRC16】（原来发哑元 0xFF ✗，只在 CMD59 生效时才成立 ✓）
 		 *   大端序（高字节先）✓ */
-		{
+		
 		{
 			/* ★★★★ 2026-10-14 改：SD 数据块必须用 CRC-16/XMODEM ✗
 			 *   · 原来用 `Crc16_Kermit` ✗ 那是【反射】变体（多项式 0x8408 ✓）
@@ -522,7 +531,7 @@ static SD_Result_t SD_WriteRaw(const uint8_t *buf, uint32_t sector, uint32_t cou
 			uint16_t wcrc = Crc16_Xmodem(buf, 512u);
 			(void)SD_SwapByte((uint8_t)(wcrc >> 8));
 			(void)SD_SwapByte((uint8_t)(wcrc & 0xFFu));
-		}
+		
 		}
 
 		/* 数据响应 token：规范形状 = xxx0 sss 1（bit0 恒 1、bit4 恒 0）

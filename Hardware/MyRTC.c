@@ -20,6 +20,24 @@
 #define RTC_BKP_MAGIC       0x5A5Bu
 #define RTC_BKP_DR          BKP_DR1
 
+/* ★★★★★ 2026-10-17 新增：【对过时没有】的独立标志 ✗✓
+ *
+ *  ★★★★ 为什么【必须】和 `RTC_BKP_DR`（DR1）分开 ✗✓：
+ *    · `DR1` 只回答"RTC 被【初始化】过吗" ✗
+ *    · 而初始化用的可能是【编译时刻】——
+ *      一个可能【很旧】、而且被当成 UTC 用的值 ✓
+ *    ⇒ ★★【"配过" ≠ "对过"】✗✓ 两者必须分开记 ✓✓
+ *
+ *  ★ 寄存器选择 ✗：`DR1`=RTC 魔数 / `DR2`=升级标志 / `DR3`=回退标志
+ *    / `DR4`=低功耗预留 ⇒ ★【`DR5` 是空的】✓
+ *  ★★ 语义 ✗：★ 只有 `MyRTC_SetUnix()`（串口 `T<unix>` 对时）才置它 ✓
+ *    · 没装 VBAT ⇒ 【一断电就丢】⇒ 自动回到"不可信"✓✓
+ *    · 而【软复位/看门狗复位】不会丢 ⇒ 时间还连着 ✗ 标记也该留着 ✓
+ *      （★ 这正是我们要的语义 ✓）
+ *  ★★★ 有没有 VBAT 都一样对 ✗：装了电池 ⇒ 断电也保留 ✗ 更准 ✓ */
+#define RTC_TRUST_MAGIC     0x5A5Au
+#define RTC_TRUST_DR        BKP_DR5
+
 /* LSE 起振检查（★ 与 RTC 逻辑分开验 ✓ 一次只动一个变量 ✓）*/
 static uint8_t MyRTC_CheckLSE(void)
 {
@@ -171,6 +189,25 @@ uint8_t MyRTC_Init(void)
 	else
 	{
 		Serial_Printf("MyRTC: already configured (BKP magic hit) -> keep counter\r\n");
+		/* ★★ 注意 ✗：`DR1` 命中【只说明"配过"✗ 不代表"对过"】✓✓
+		 *   · 可能是上次上电时用【编译时刻】配的 ✓
+		 *   · 也可能是本次【软复位】✗ 计数器还连着 ✓
+		 *   ⇒ 真正的判据看下面的 `MyRTC_IsTrusted()`（`BKP_DR5`）✓ */
+	}
+
+	/* ★★★★★ 2026-10-17 加：把"这个时间【可不可信】"明确报出来 ✗✓
+	 *
+	 *  ★★★★ 为什么必须在【驱动里】报 ✗：
+	 *    · 调用者（main）可能忘了查 ✗
+	 *    · 而"忘了查"的代价是【22 小时 35 分的错时间戳 + 界面毫无异常】✓✓
+	 *      （★ 2026-10-17 实测，见 `长稳验收报告.md` §八 ✓）
+	 *  ★★ 为什么不能靠"编译时刻自检"兜底 ✗：
+	 *    那是【自洽式自检】✗ 永远 PASS ✓（★ 见 main.c 里那处的说明 ✓✓）
+	 *  ★★★ 判据 ✗：`BKP_DR5` 有魔数 = 【本次上电后被对过时】✓ */
+	if (MyRTC_IsTrusted() == 0u)
+	{
+		Serial_Printf("!!! MyRTC: ** TIME NOT TRUSTED ** (BKP_DR5 has no magic) !!!\r\n");
+		Serial_Printf("!!! this time may be WRONG by hours -> run time_sync on the PC !!!\r\n");
 	}
 
 	return RTC_OK;
@@ -211,6 +248,17 @@ void MyRTC_SetUnix(uint32_t ts)
 {
 	RTC_SetCounter(ts);
 	RTC_WaitForLastTask();          /* ★ 写完必须等 ✓ 否则 RTC 跨时钟域写入会静默丢失 ✗ */
+
+	/* ★★★★★ 2026-10-17 加：标上"这个值是【人对过的】"✓
+	 *   ★ 为什么放在【写完计数器之后】✗：先置标记再写 ✗
+	 *     万一写失败（RTC 没配好 / 跨时钟域丢）⇒ 会留下【假的"已对时"】✓✓
+	 *   ★★ 写 BKP 需要备份域解锁 ✗ —— 但 `MyRTC_Init` 里已经
+	 *     `PWR_BackupAccessCmd(ENABLE)` 过（★ 见 `MyRTC_CheckLSE` ✓）
+	 *     ⇒ 这里【不用再解一次】✓
+	 *   ★★★ 唯一的调用点：`freertos_demo.c` 的 `T<unix>` 处理器
+	 *     （★ 它【已经先查过 `MyRTC_IsConfigured()`】✓
+	 *       ⇒ 走到这里时 RTC 一定是配好的 ✓✓）*/
+	BKP_WriteBackupRegister(RTC_TRUST_DR, RTC_TRUST_MAGIC);
 }
 
 /* ★★★ MyRTC_IsConfigured —— RTC 是否【曾被正确初始化过】
@@ -224,5 +272,14 @@ void MyRTC_SetUnix(uint32_t ts)
 uint8_t MyRTC_IsConfigured(void)
 {
 	return (BKP_ReadBackupRegister(RTC_BKP_DR) == RTC_BKP_MAGIC) ? 1u : 0u;
+}
+
+/* ★★★★★ 2026-10-17 新增：RTC 的值【可不可信】✓
+ *   ★ 判据 = `BKP_DR5` 上的魔数 ✗（★ 只有 `MyRTC_SetUnix` 会置它 ✓）
+ *   ★★ 和 `MyRTC_IsConfigured()` 的区别（★ 见 MyRTC.h 的为什么 ✓）✗
+ *     · 配过 ≠ 对过 ✓ */
+uint8_t MyRTC_IsTrusted(void)
+{
+	return (BKP_ReadBackupRegister(RTC_TRUST_DR) == RTC_TRUST_MAGIC) ? 1u : 0u;
 }
 
