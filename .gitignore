@@ -40,3 +40,7 @@ FreeRTOS/_原始英文版备份/
 .vscode/
 *.code-workspace
 __pycache__/
+
+# Keil 事件记录器桩
+/EventRecorderStub.scvd
+/Boot/EventRecorderStub.scvd
