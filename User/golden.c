@@ -75,6 +75,8 @@ static uint8_t  s_fail    = 0u;     /* ★★ 连续失败次数（★ 超过上
  *      【内部函数【一律假定"锁已经在我手里"】】✓✓
  *============================================================================*/
 static SemaphoreHandle_t s_w25_lock = NULL;
+/* ★★ 2026-10-19 加：互斥量的【静态控制块】（★ RAM 优化 R2 ✗ 不再从堆里分配 ✓）*/
+static StaticSemaphore_t s_w25_mutex_cb;
 
 
 /*==============================================================================
@@ -757,8 +759,9 @@ uint8_t Golden_Init(void)
 {
 	uint16_t hdr_crc = 0u;
 
-	/* ★★★ 先建互斥量 ✗ 审计 G1 ✓ */
-	s_w25_lock = xSemaphoreCreateMutex();
+	/* ★★★ 先建互斥量 ✗ 审计 G1 ✓
+	 *   ★★ 2026-10-19：改【静态创建】✗ 控制块放 .bss 里 ✓（★ RAM 优化 R2 ✓）*/
+	s_w25_lock = xSemaphoreCreateMutexStatic(&s_w25_mutex_cb);
 	if (s_w25_lock == NULL)
 	{
 		Serial_Printf("GOLD: !! mutex create FAILED -> backup disabled\r\n");

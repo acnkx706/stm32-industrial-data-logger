@@ -58,7 +58,9 @@ void start_task(void *pvParameters);
  * ★ 本任务【绝不阻塞】：入队超时给 0；周期靠 vTaskDelayUntil 保证不漂移 */
 /* TASK_ACQ任务配置：100ms节拍器*/
 #define TASK_ACQ_PRIO        6
-#define TASK_ACQ_STACK_SIZE        256
+#define TASK_ACQ_STACK_SIZE        128  /* ★★ 2026-10-19 R4：256 → 128 ✗ 省 512 B ✓
+                                         *  ★ 实测最深只用 **69 字**（水位 187/256）✓
+                                         *  ★★ 68 × 1.3 ≈ 90 ⇒ 128 有 86% 余量 ✓✓ */
 TaskHandle_t    task_acq_handler;
 void task_ACQ(void *pvParameters);
 
@@ -66,14 +68,20 @@ void task_ACQ(void *pvParameters);
  * ★ 仍是【唯一】串口打印者；栈 **384 字**的依据是 Serial_Printf 调用链 352 字节 */
 /* TASK_PROC 任务配置：出队+拼批落卡+串口回显*/
 #define TASK_PROC_PRIO              2
-#define TASK_PROC_STACK_SIZE        256
+#define TASK_PROC_STACK_SIZE        320  /* ★★★ 2026-10-19 R4：256 → **320**（★ 反而加 ✓）
+                                          *  ★ 实测最深 **206 字**（水位只剩 50/256 = 19.5%）✗
+                                          *    比 SD 还紧 ✗✓
+                                          *  ★★ 206 × 1.3 ≈ 268 ⇒ 320 有 55% 余量 ✓✓
+                                          *  （★ 老注释说的"256 够用"是【没跑过 S 路径】的数据 ✓）*/
 TaskHandle_t    task_proc_handler;
 void task_PROC(void *pvParameters);
 
 /* task_KEY：20ms 扫键（扫描周期本身就是消抖基准）
  * ★ 本任务【禁止 Serial_Printf】：栈 128 字只剩约 96 字节余量，打印甩给 PROC */
 #define TASK_KEY_PRIO               2
-#define TASK_KEY_STACK_SIZE         128
+#define TASK_KEY_STACK_SIZE         64   /* ★★ 2026-10-19 R4：128 → 64 ✗ 省 256 B ✓
+                                          *  ★ 实测最深 **23 字**（水位 105/128）✓
+                                          *  ★★ 23 × 1.3 ≈ 30 ⇒ 64 有 178% 余量 ✓✓ */
 TaskHandle_t    task_key_handler;
 void task_KEY(void *pvParameters);
 
@@ -85,7 +93,14 @@ void task_KEY(void *pvParameters);
  *     （已搬到 task_GOLDEN ✓ 见本文件 `task_GOLDEN` ✓）
  *   ⇒ 优先级【恢复为 1】✗ 保持 20 小时长稳验证过的那套调度 ✓ */
 #define TASK_DISP_PRIO              1
-#define TASK_DISP_STACK_SIZE        256
+#define TASK_DISP_STACK_SIZE        224  /* ★★★ 2026-10-19 R4：256 → 224 ✗ 省 128 B ✓
+                                          *  ★ 实测最深 **150 字** ✗ 而且【是 `S` 命令那趟】
+                                          *    撑上去的 ✓✓
+                                          *  ★★ 为什么 ✗ `App_RequestUpgrade()` /
+                                          *     `S` 那条路会【在 DISP 栈上】调
+                                          *     `Golden_SaveCurrent()`（★ 2~3 秒的整份备份 ✓）
+                                          *     ⇒ 水位从 126 掉到 106（★ 多吃了 20 字 ✓）
+                                          *  ★★★ 150 × 1.3 ≈ 195 ⇒ 224 有 49% 余量 ✓✓ */
 TaskHandle_t    task_disp_handler;
 void task_DISP(void *pvParameters);
 
@@ -126,7 +141,12 @@ void task_sensor(void *pvParameters);
  *     （★ 只见一个 64B 头结构 + `Serial_Printf` 调用链 ✓
  *       ★★ 页数据【直接从内部 Flash 指过去 ✗ 不要 RAM 缓冲】✓）✓ */
 #define TASK_GOLDEN_PRIO            1
-#define TASK_GOLDEN_STACK_SIZE      256
+#define TASK_GOLDEN_STACK_SIZE      192  /* ★★★ 2026-10-19 R4：256 → 192 ✗ 省 256 B ✓
+                                          *  ★ 实测最深 **129 字** ✗ 而且【是 RTC 校准那趟】
+                                          *    撑上去的（★ 水位 235 → 127 ✓）
+                                          *  ★★ `Clk_CalibOnce()` 在 task_GOLDEN 里跑
+                                          *     （★ 10 秒 RTC 校准 + printf ✓）
+                                          *  ★★★ 129 × 1.3 ≈ 168 ⇒ 192 有 49% 余量 ✓✓ */
 TaskHandle_t    task_golden_handler;
 void task_GOLDEN(void *pvParameters);
 
@@ -283,7 +303,11 @@ volatile uint8_t g_pause = 0;       /* 0=采集运行  1=采集暂停 */
 /* 诊断用缓冲区：★ 必须放全局，不能放任务栈上
  *   · 任务状态表格式化后 200+ 字节；TaskStatus_t 数组 8×约24 字节
  *   · PROC 的栈只有 1KB，这些放栈上就爆了 */
-static char         s_task_list_buf[512];
+/* ★★★★ 2026-10-19 R3：这里原来有一块 `static char s_task_list_buf[512]` ✗ 【已删除】✓
+ *   · 它只喂 `vTaskListTasks()` ✗ 而那个函数内部会 `pvPortMalloc`
+ *     ⇒ 它是【全工程最后一个还会碰堆的人】✓✓
+ *   · ★★ 换成 `uxTaskGetSystemState()`（数组由调用者给）
+ *     ⇒ 这 512 B 缓冲和那个 1 KB 堆【一起不用了】✓ 并且 `heap_4.o` 会被链接器丢弃 ✓✓ */
 /* ★★ 2026-10-18 改：8 → 12 ✗✓
  *   ★ 现在实际有：START(已删) / ACQ / PROC / KEY / DISP / sensor / SD / GOLD / IDLE
  *     = **9 个**（含 IDLE，不含已自删的 start_task）✓
@@ -297,13 +321,78 @@ static TaskStatus_t s_task_status[12];
  ******************************************************************************/
  
  
+/*==============================================================================
+ *  ★★★★★ 2026-10-19 加：**全静态分配的内存块**（★ RAM 优化 R2 ✓）
+ *
+ *  ★ 为什么放这个文件 ✗ 本工程铁律【不许新建 .c】✗ 所以就近放在"建任务的地方"✓
+ *  ★★ 为什么值得改 ✗（★ 实测 ✓）：
+ *    · 原来 12KB 堆 ✗ `STAT` 显示 `heapmin=2664` ⇒ **2,664 B 永远空转**✓✓
+ *    · 改成静态 ✗ 这些数组就变成 **.bss 里有名字的对象**
+ *      ⇒ `map` 里能逐项对账 ✗ 没有块头开销、没有碎片、没有"分配失败"路径 ✓✓
+ *  ★★★ `MakeTask()` 这个小包装 ✗ 只是把
+ *    `xTaskCreateStatic` 的【NULL = 失败】翻译回 `pdPASS/pdFAIL`
+ *    ⇒ 上层那 8 个 `if (... != pdPASS)` **一个字都不用改** ✓✓
+ *  ★★★★ 栈大小用的还是原来的宏 ✗ 所以**行为完全等价** ✗ 只是"内存从堆搬到了 .bss" ✓
+ *============================================================================*/
+static StackType_t  s_start_stack [START_TASK_STACK_SIZE];
+static StaticTask_t s_start_tcb;
+static StackType_t  s_acq_stack   [TASK_ACQ_STACK_SIZE];
+static StaticTask_t s_acq_tcb;
+static StackType_t  s_proc_stack  [TASK_PROC_STACK_SIZE];
+static StaticTask_t s_proc_tcb;
+static StackType_t  s_key_stack   [TASK_KEY_STACK_SIZE];
+static StaticTask_t s_key_tcb;
+static StackType_t  s_disp_stack  [TASK_DISP_STACK_SIZE];
+static StaticTask_t s_disp_tcb;
+static StackType_t  s_sensor_stack[TASK_SENSOR_STACK_SIZE];
+static StaticTask_t s_sensor_tcb;
+static StackType_t  s_sd_stack    [TASK_SD_STACK_SIZE];
+static StaticTask_t s_sd_tcb;
+static StackType_t  s_golden_stack[TASK_GOLDEN_STACK_SIZE];
+static StaticTask_t s_golden_tcb;
+
+/* ★★ 队列/互斥量的静态存储（★ 控制块 + 缓冲，都是 .bss ✓）
+ *   ★ 缓冲用 `uint32_t` 数组 ⇒ 天然 4 字节对齐 ✓
+ *     （★ 实测 `xQueueGenericCreateStatic` **没有** 8 字节对齐断言 ✓ 4 即可 ✓）*/
+static StaticQueue_t s_qrec_cb;
+static uint32_t      s_qrec_storage[(REC_QUEUE_LEN * sizeof(Record_t) + 3u) / 4u];
+static StaticSemaphore_t s_i2c_mutex_cb;
+
+/* ★★★★ 2026-10-19：与 `xTaskCreate` **同签名、同返回约定** ✗ 但内部走静态分配 ✓
+ *
+ *  ★ 为什么这么设计 ✗ 这样 8 个调用点【只把函数名换掉】**✗ 参数一个都不用动 ✓✓
+ *    （★ 少改 40 行 = 少 40 个改错的机会 ✓）
+ *  ★★ 静态内存按【任务函数指针】挑 ✗ 各任务在 55~131 行都有前置声明 ✓
+ *    ⇒ 这里能直接比较函数地址 ✓ 表里没登记的直接 `pdFAIL`（★ 不会静默 ✓）*/
+static BaseType_t MakeTask(TaskFunction_t fn, const char *name, uint32_t depth,
+                           void *pv, UBaseType_t prio, TaskHandle_t *out)
+{
+	StackType_t  *stk = NULL;
+	StaticTask_t *tcb = NULL;
+
+	if      (fn == task_ACQ)    { stk = s_acq_stack;    tcb = &s_acq_tcb;    }
+	else if (fn == task_PROC)   { stk = s_proc_stack;   tcb = &s_proc_tcb;   }
+	else if (fn == task_KEY)    { stk = s_key_stack;    tcb = &s_key_tcb;    }
+	else if (fn == task_DISP)   { stk = s_disp_stack;   tcb = &s_disp_tcb;   }
+	else if (fn == task_sensor) { stk = s_sensor_stack; tcb = &s_sensor_tcb; }
+	else if (fn == task_SD)     { stk = s_sd_stack;     tcb = &s_sd_tcb;     }
+	else if (fn == task_GOLDEN) { stk = s_golden_stack; tcb = &s_golden_tcb; }
+	else if (fn == start_task)  { stk = s_start_stack;  tcb = &s_start_tcb;  }
+
+	if ((stk == NULL) || (tcb == NULL)) { return pdFAIL; }
+
+	*out = xTaskCreateStatic(fn, name, depth, pv, prio, stk, tcb);
+	return (*out != NULL) ? pdPASS : pdFAIL;
+}
+
 /* freertos_demo：内核对象必须在 vTaskStartScheduler() 之前创建，NULL 要查 */
 void freertos_demo(void)
 {
-    xQueueRec = xQueueCreate(REC_QUEUE_LEN, sizeof(Record_t));
+    xQueueRec = xQueueCreateStatic(REC_QUEUE_LEN, sizeof(Record_t),
+                                   (uint8_t *)s_qrec_storage, &s_qrec_cb);  /* ★ 静态 ✓ */
 	if (xQueueRec == NULL)
 	{
-		Serial_Printf("!!! xQueueCreate FAILED (out of heap) !!!\r\n");
+		Serial_Printf("!!! xQueueCreateStatic FAILED (bad args) !!!\r\n");
 		return; 
 	}
 		/* ★ 开机预读一次 BMP280（2026-10-09）
@@ -320,20 +409,19 @@ void freertos_demo(void)
 		}
 	}
 	/* ★ 新增：I2C 互斥量（同样必须在 vTaskStartScheduler() 之前 ✓）*/
-	s_i2c_lock = xSemaphoreCreateMutex();
+	s_i2c_lock = xSemaphoreCreateMutexStatic(&s_i2c_mutex_cb);   /* ★ 静态 ✓ */
 	
 	if (s_i2c_lock == NULL)
 	{
-		Serial_Printf("!!! xSemaphoreCreateMutex FAILED (out of heap) !!!\r\n");
+		Serial_Printf("!!! xSemaphoreCreateMutexStatic FAILED !!!\r\n");
 		return;
 	}
 
-	Serial_Printf("queue ok: item=%d bytes, free heap=%u\r\n",
-				  (int)sizeof(Record_t), (unsigned)xPortGetFreeHeapSize());
+	Serial_Printf("queue ok: item=%d bytes\r\n", (int)sizeof(Record_t));
 ;
 	
 	/* 只创建"装配工"这一个任务，其余任务由它统一建（正点原子惯例，见 start_task） */
-	xTaskCreate((TaskFunction_t 			   )   start_task,
+	(void)MakeTask((TaskFunction_t 			   )   start_task,
 				(char *          			   )   "start_task",
 				(configSTACK_DEPTH_TYPE        )   START_TASK_STACK_SIZE,
 				(void *                        )   NULL,
@@ -376,7 +464,7 @@ void start_task(void *pvParameters)
 	taskENTER_CRITICAL();
 
 	/* 返回值必须判（评审确认的 bug：heap 不够时任务会静默消失，掩盖 RAM 不足症状） */
-	if (xTaskCreate(  (TaskFunction_t )   task_ACQ,
+	if (MakeTask(  (TaskFunction_t )   task_ACQ,
                    (char *         )   "ACQ",
                    (uint32_t       )   TASK_ACQ_STACK_SIZE,
                    (void *         )   NULL,
@@ -385,7 +473,7 @@ void start_task(void *pvParameters)
 	{
 		fail_mask |= (1u << 0);		/* bit0 = ACQ 没建起来 */
 	}
-	if (xTaskCreate(  (TaskFunction_t )   task_PROC,
+	if (MakeTask(  (TaskFunction_t )   task_PROC,
                    (char *         )   "PROC",
                    (uint32_t       )   TASK_PROC_STACK_SIZE,
                    (void *         )   NULL,
@@ -394,7 +482,7 @@ void start_task(void *pvParameters)
 	{
 		fail_mask |= (1u << 1);		/* bit1 = PROC 没建起来 */
 	}
-	if (xTaskCreate(  (TaskFunction_t )   task_KEY,
+	if (MakeTask(  (TaskFunction_t )   task_KEY,
                    (char *         )   "KEY",
                    (uint32_t       )   TASK_KEY_STACK_SIZE,
                    (void *         )   NULL,
@@ -404,7 +492,7 @@ void start_task(void *pvParameters)
 		fail_mask |= (1u << 2);		/* bit2 = KEY 没建起来 */
 	}
 	/* ★ task_DISP 也在这里创建（OLED 唯一所有者；prio 1 最低，不影响采集） */
-	if (xTaskCreate(  (TaskFunction_t )   task_DISP,
+	if (MakeTask(  (TaskFunction_t )   task_DISP,
                    (char *         )   "DISP",
                    (uint32_t       )   TASK_DISP_STACK_SIZE,
                    (void *         )   NULL,
@@ -414,7 +502,7 @@ void start_task(void *pvParameters)
 		fail_mask |= (1u << 3);		/* bit3 = DISP 没建起来 */
 	}
 
-	if (xTaskCreate(  (TaskFunction_t )   task_sensor,
+	if (MakeTask(  (TaskFunction_t )   task_sensor,
                    (char *         )   "sensor",
                    (uint32_t       )   TASK_SENSOR_STACK_SIZE,
                    (void *         )   NULL,
@@ -429,7 +517,7 @@ void start_task(void *pvParameters)
 	 *   被隔离在最低优先级，ACQ→PROC 采集链永远先跑（task_sd.h 顶注释）。
 	 *   建任务前 task_sd_Init() 已在 freertos_demo() 里建好队列，收缓冲
 	 *   不会撞空指针（task_SD 本体仍保留"对象没就绪就等"的双保险） */
-	if (xTaskCreate(  (TaskFunction_t )   task_SD,
+	if (MakeTask(  (TaskFunction_t )   task_SD,
                    (char *         )   "SD",
                    (uint32_t       )   TASK_SD_STACK_SIZE,
                    (void *         )   NULL,
@@ -446,7 +534,7 @@ void start_task(void *pvParameters)
 	 *     → ★★★ 【放最低业务优先级 ✗ 采集链【随时能抢占它】】✓✓
 	 *   ★★ 【闲着的时候睡 5 秒**✗
 	 *     【备份做完之后【就永久安静了】】✓✓ */
-	if (xTaskCreate(  (TaskFunction_t )   task_GOLDEN,
+	if (MakeTask(  (TaskFunction_t )   task_GOLDEN,
                    (char *         )   "GOLD",
                    (uint32_t       )   TASK_GOLDEN_STACK_SIZE,
                    (void *         )   NULL,
@@ -557,22 +645,39 @@ static void print_task_diagnostics(void)
 	UBaseType_t n, i;
 	uint32_t    total_run_time = 0;
 
-	/* ① 任务状态表：★ 用 vTaskListTasks(buf, len) 显式传长度。
-	 *    不要用 vTaskList(buf) 那个宏 —— 它传的是 configSTATS_BUFFER_MAX_LENGTH
-	 *    (=0xFFFF)，函数根本不知道缓冲区只有 512 字节，输出超了就是踩内存 */
-	vTaskListTasks(s_task_list_buf, sizeof(s_task_list_buf));
-	Serial_SendString("---- Task list ----\r\n");
-	/* ★ 用 SendString 直接发：Serial_Printf 的缓冲只有 200B，
-	 *   任务表比它长，会被 vsnprintf 截断（安全但内容不全） */
-	Serial_SendString(s_task_list_buf);
-
-	/* ② 栈水位：usStackHighWaterMark = 剩余余量（单位【字】），越小越危险 */
+	/* ★★★★ 2026-10-19 改（★ RAM 优化 R3 ✓）：
+	 *   ★ 原来调 `vTaskListTasks(s_task_list_buf, ...)` ✗
+	 *     · ★★ 它内部会 `pvPortMalloc(uxCurrentNumberOfTasks × sizeof(TaskStatus_t))`
+	 *       ⇒ **全工程最后一个还会碰堆的地方** ✓✓
+	 *   ★★ 现在直接用 `uxTaskGetSystemState()` ✗ 数组由【调用者提供】
+	 *     ⇒ 一次 malloc 都不需要 ✓
+	 *   ★★★ 于是 `pvPortMalloc` 彻底没人引用 ⇒ 链接器会把 `heap_4.o`
+	 *     （★ 含 12 KB 的 `ucHeap[]` + ~960 B 代码）**整体丢弃** ✓✓
+	 *   ⚠️ ★★★★ 【别】把 `configSUPPORT_DYNAMIC_ALLOCATION` 置 0 ✗
+	 *     因为 `heap_4.c` 开头有 `#error` 拦着 ✗ 而工程文件【不许改】✓
+	 *     ⇒ 保持 1、靠"没引用"让它自然消失 ✓ */
 	n = uxTaskGetSystemState(s_task_status, 12, &total_run_time);
-	Serial_SendString("---- Stack free (words) ----\r\n");
-	for (i = 0; i < n; i++)
+
+	Serial_Printf("---- Task table (%u) ----\r\n", (unsigned)n);
+	for (i = 0u; i < n; i++)
 	{
-		Serial_Printf("%-10s %u\r\n",
-		              s_task_status[i].pcTaskName,
+		const char *st;
+
+		switch (s_task_status[i].eCurrentState)
+		{
+		case eRunning:   st = "RUN"; break;
+		case eReady:     st = "RDY"; break;
+		case eBlocked:   st = "BLK"; break;
+		case eSuspended: st = "SUS"; break;
+		case eDeleted:   st = "DEL"; break;
+		default:         st = "INV"; break;
+		}
+
+		/* ★ 一行一个任务 ✗ `Serial_Printf` 的 200 B 缓冲够用 ✓
+		 *   （★ 老代码整表一次发才必须用 `Serial_SendString` ✓）*/
+		Serial_Printf("%-8s %s prio=%u stkfree=%u\r\n",
+		              s_task_status[i].pcTaskName, st,
+		              (unsigned)s_task_status[i].uxCurrentPriority,
 		              (unsigned)s_task_status[i].usStackHighWaterMark);
 	}
 }
@@ -606,7 +711,12 @@ void task_PROC(void *pvParameters)
 {
 	Record_t rec;
 	static uint32_t n = 0;
-	static uint8_t  diag_done = 0;	/* 诊断只打一次 */
+	static uint8_t  diag_done = 0;	/* ★ 诊断只打一次（★ R4 定容完已改回 ✓）
+	                                 *   ★★★ TEMP 期间改成过"每 20 秒"✗ 为了量出
+	                                 *     `S`/掉卡重挂载/RTC 校准这些【重路径】的水位 ✓✓
+	                                 *   ★★ 为什么不留着周期打印 ✗ 它跑在 `task_PROC`
+	                                 *     （prio 2）上 ✗ 8 行 ≈ **160 ms 阻塞**
+	                                 *     ⇒ 会拖慢采集链 ✓ 所以只留开机一次 ✓ */
 
 	Stat_t snap;
 	uint32_t notify_val = 0;
@@ -789,20 +899,26 @@ else
 			 *        ⇒ heapmin 预计还要降一点 ✓
 			 *     · 1KB 是【还能再分配几个小对象】的底线 ✓
 			 *   ★ 判据 ✗：heapmin ≥ 1024 且【整段长稳内不降】⇒ 通过 ✓✓ */
-			Serial_Printf("STAT(key) acq=%lu proc=%lu full=%lu qmax=%lu drop=%lu i2c=%u i2c_max=%u sd_err=%u sd_last=%u heap=%u heapmin=%u\r\n",
+			/* ★★ 2026-10-19 R3：`heap=` / `heapmin=` 两列【已删除】✓
+			 *   · 为什么 ✗ 它们调 `xPortGetFreeHeapSize()` ✗ 而那正是
+			 *     【最后一个把 heap_4.o 拉进链接的原因】✓
+			 *   · ★★★ 删掉它们 ⇒ `heap_4.o` 整体被丢弃 ⇒ **省 1 KB RAM + ~960 B 代码** ✓✓
+			 *   · ★ 想看"有没有人偷偷分配" ✗ 现在【不需要】了：
+			 *     全静态 ⇒ 分配不了（`pvPortMalloc` 根本不在镜像里）✓✓ */
+			Serial_Printf("STAT(key) acq=%lu proc=%lu full=%lu qmax=%lu drop=%lu i2c=%u i2c_max=%u sd_err=%u sd_last=%u\r\n",
 			          (unsigned long)snap.acq_count,
                       (unsigned long)snap.proc_count,
                       (unsigned long)snap.queue_full,
                       (unsigned long)snap.q_max_depth,
                       (unsigned long)s_drop,
                       g_i2c_us_last, g_i2c_us_max,
-                      (unsigned)g_sd_error, (unsigned)g_sd_last_err,
-                      (unsigned)xPortGetFreeHeapSize(),
-                      (unsigned)xPortGetMinimumEverFreeHeapSize());
+                      (unsigned)g_sd_error, (unsigned)g_sd_last_err);
 		}
 	}
 
 	/* 开机 3 秒后打一次诊断（只打一次）：任务状态表 + 栈水位 */
+	/* ★ 开机 3 秒后打一次诊断（任务状态表 + 每个任务的栈水位）✓
+	 *   ★★★ R4 定容就是靠它量的 ✗ 见上面注释 ✓ */
 	if (!diag_done && xTaskGetTickCount() > pdMS_TO_TICKS(3000))
 	{
 		diag_done = 1;
@@ -828,7 +944,11 @@ else
 		 *      （★ 2026-10-11 更新：文件名已从 LOGxxxx.CSV 改成 YYMMDDNN.CSV ✓）
 		 * ★★ heap / heapmin（2026-10-09 加）：判据看【heapmin】不是 heap ✗ ——
 		 *    heapmin 下降后不再回升 = 内存泄漏 ✗✓；完整说明见上面 STAT(key) 那段 ✓ */
-		Serial_Printf("STAT acq=%lu proc=%lu full=%lu qmax=%lu drop=%lu i2c=%u i2c_max=%u sd_err=%u sd_last=%u heap=%u heapmin=%u sdstk=%u\r\n",
+		/* ★★ 2026-10-19 R3：`heap=` / `heapmin=` 两列【已删除】✗
+		 *   理由同上（★ 它们是 `heap_4.o` 最后的两根引用绳 ✓）
+		 *   ★★ 现在 `STAT` 的 RAM 判据换成 `sdstk=`（SD 任务栈余量）
+		 *      ✗ 而且全静态之后【不可能有"运行期分配"这件事】✓ */
+		Serial_Printf("STAT acq=%lu proc=%lu full=%lu qmax=%lu drop=%lu i2c=%u i2c_max=%u sd_err=%u sd_last=%u sdstk=%u\r\n",
 		          (unsigned long)snap.acq_count,
                   (unsigned long)snap.proc_count,
                   (unsigned long)snap.queue_full,
@@ -836,8 +956,6 @@ else
                   (unsigned long)s_drop,
 				  g_i2c_us_last, g_i2c_us_max,
 				  (unsigned)g_sd_error, (unsigned)g_sd_last_err,
-				  (unsigned)xPortGetFreeHeapSize(),
-				  (unsigned)xPortGetMinimumEverFreeHeapSize(),
 				  (unsigned)uxTaskGetStackHighWaterMark(task_sd_handler));
 	}
 	
@@ -1940,6 +2058,12 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 	while(1){}
 }
 
+#if (configUSE_MALLOC_FAILED_HOOK == 1)
+/* ★★ 2026-10-19 R3：整个钩子【包在宏里】✗ `configUSE_MALLOC_FAILED_HOOK=0` 时它消失 ✓
+ *   ★ 为什么必须包 ✗ 不包的话它仍会引用 `xPortGetFreeHeapSize()` ✗
+ *     而 ARM 链接器【按 .o 段】丢弃（不是按函数）✗
+ *     ⇒ `freertos_demo.o` 被别处用到 ⇒ 这个函数【也会被保留】⇒ 堆仍然活着 ✗✗
+ *   ★★ 全静态之后【没有 malloc 可失败】⇒ 这个钩子本来就没意义 ✓ */
 void vApplicationMallocFailedHook(void)
 {
 	Serial_Printf("\r\n!!! MALLOC FAILED: free=%u, min_ever_free=%u !!!\r\n",
@@ -1948,6 +2072,7 @@ void vApplicationMallocFailedHook(void)
 	taskDISABLE_INTERRUPTS();
 	while(1){}
 }
+#endif /* configUSE_MALLOC_FAILED_HOOK */
 
 void vAssertCalled(const char *pcFile, unsigned long ulLine)
 {

@@ -46,16 +46,30 @@ extern uint32_t SystemCoreClock;   /* 在 system_stm32f10x.c 中定义，默认 
 /* 优先级数量（可用优先级 0 ~ configMAX_PRIORITIES-1）
  *   数值越大优先级越高；0 号优先级保留给空闲任务
  *   这个值越大，内核占用的 RAM 越多（每个优先级对应一条就绪链表） */
-#define configMAX_PRIORITIES                     (32)
+#define configMAX_PRIORITIES                     (8)   /* ★★★ 2026-10-19：32 → 8 ✗ 省 **384 B** ✓
+                                                       *  ★ 为什么能省 ✗ 内核给【每个优先级】都静态分配
+                                                       *    一条就绪链表 `List_t`（★ 开了 mini list item
+                                                       *    后 16 B/个）✗ 32 个 = 512 B ✗ 8 个 = 128 B ✓✓
+                                                       *  ★★ 为什么 8 够 ✗ 本工程只用到 prio 0/1/2/6
+                                                       *    ⇒ 上限 7 绰绰有余 ✓
+                                                       *  ★★★ 两个约束 ✗ ① 必须 > 最高任务优先级（ACQ=6 ✓）
+                                                       *    ② `configUSE_PORT_OPTIMISED_TASK_SELECTION`
+                                                       *       要求 ≤ 32 ✓ */
 
 /* 最小栈大小（单位：**字**，1 字 = 4 字节）
  *   128 字 = 512 字节；空闲任务就用这个大小
  *   ?? 单位是"字"不是"字节"，写小了会栈溢出 */
-#define configMINIMAL_STACK_SIZE                 ((unsigned short)128)
+#define configMINIMAL_STACK_SIZE                 ((unsigned short)64)   /* ★★ 2026-10-19 R4：128 → 64
+                                                                        *  ★ 实测 IDLE 最深只用 **19 字**
+                                                                        *    （水位 109/128 ✓）⇒ 64 有 237% 余量 ✓✓
+                                                                        *  ★★ 定时器任务已关（`configUSE_TIMERS=0`）
+                                                                        *    ⇒ 本宏【只影响空闲任务】✓ 省 256 B ✓ */
 
 /* 任务名的最大长度（含结尾的 '\0'）
  *   16 表示任务名最多 15 个字符，超长会被静默截断（不报错） */
-#define configMAX_TASK_NAME_LEN                  (16)
+#define configMAX_TASK_NAME_LEN                  (8)   /* ★★ 2026-10-19：16 → 8 ✗ 省 ~72 B ✓
+                                                       *  ★ TCB 里是【定长字符数组】✗ 少 8 B × 9 个任务 ✓
+                                                       *  ★★ 最长任务名 = "GOLDEN"（6 字符）⇒ 8 足够 ✓ */
 
 /* tick 计数变量用多少位
  *   0 = 32 位（推荐，溢出周期约 49.7 天）
@@ -72,17 +86,21 @@ extern uint32_t SystemCoreClock;   /* 在 system_stm32f10x.c 中定义，默认 
 #define configUSE_MUTEXES                        1
 
 /* 是否支持递归互斥量（同一个任务可以重复获取同一把锁而不死锁） */
-#define configUSE_RECURSIVE_MUTEXES              1
+#define configUSE_RECURSIVE_MUTEXES              0   /* ★ 2026-10-19：1 → 0 ✗ 本工程没用递归锁 ✓ */
 
 /* 是否支持计数型信号量（既能当"事件计数"，也能当"资源计数"） */
-#define configUSE_COUNTING_SEMAPHORES            1
+#define configUSE_COUNTING_SEMAPHORES            0   /* ★ 2026-10-19：1 → 0 ✗ 没用计数信号量 ✓ */
 
 /* 是否支持队列集（可以一次阻塞等待多个队列/信号量，实际项目用得少） */
-#define configUSE_QUEUE_SETS                     1
+#define configUSE_QUEUE_SETS                     0   /* ★ 2026-10-19：1 → 0 ✗ 没用队列集 ✓ */
 
 /* 队列注册表大小：可以给队列起名字登记，调试时能看到队列名
  *   0 = 关闭登记（省 RAM）；8 = 最多登记 8 个队列 */
-#define configQUEUE_REGISTRY_SIZE                8
+#define configQUEUE_REGISTRY_SIZE                0   /* ★ 2026-10-19：8 → 0 ✗ 省 32 B 的指针表 ✓
+                                                      *  ★ 本工程【零】`vQueueAddToRegistry` 调用
+                                                      *    ⇒ 注册表纯属白占 ✓
+                                                      *  ★★ 置 0 后【调试器里看不到队列名字】✗
+                                                      *    想看就临时改回 8 ✓ */
 
 /* 是否支持任务通知（Task Notification）
  *   比信号量更轻量、更快的任务间通信方式，每个任务自带一个 32 位通知值 */
@@ -90,22 +108,47 @@ extern uint32_t SystemCoreClock;   /* 在 system_stm32f10x.c 中定义，默认 
 
 /* ======================== 三、内存管理 ======================== */
 
-/* 是否允许"动态创建"任务/队列（TCB 和栈从 heap_4 的堆里分配） */
+/* ★★★★★ 2026-10-19：**全静态分配**（★ RAM 优化 R2 ✓）
+ *
+ *  ★ 为什么改 ✗（★ 实测数据 ✓）：
+ *    · 原来是"动态"✗ 所有 TCB / 栈 / 队列都从 12KB 堆里分配 ✓
+ *    · ★★ 而 `STAT` 行显示 `heapmin=2664`
+ *      ⇒ 峰值只用了 9,624 B ✗ **2,664 B 永远在空转**✓✓
+ *    · ★★★ 动态分配另有三个隐性代价 ✗ 块头开销 / 碎片 / "分配失败"这条路径 ✓
+ *  ★★★ 改法 ✗ 每个任务自带【栈数组 + TCB】✗ 队列/mutex 自带【控制块 + 存储】
+ *    ⇒ 全部进 .bss ✗ **有名字、可在 map 里逐项对账**✓✓
+ *  ★★★★ `configKERNEL_PROVIDED_STATIC_MEMORY = 1` ✗
+ *    让【内核自己】提供空闲任务的 TCB + 栈 ✗ 本工程就不必再实现
+ *    `vApplicationGetIdleTaskMemory()` ✓（★ 少一段样板代码 ✓）
+ *  ⚠️ 定时器任务的回调【不需要】✗ 因为 `configUSE_TIMERS = 0` ✓ */
+#define configSUPPORT_STATIC_ALLOCATION          1
+#define configKERNEL_PROVIDED_STATIC_MEMORY      1
+
+/* 是否允许"动态创建"（★ 2026-10-19 仍留 1 ✗ 只有 `vTaskListTasks` 内部要用 ✓）
+ *  · ★ 它要 `uxCurrentNumberOfTasks × sizeof(TaskStatus_t)` ≈ **252 B** ✓
+ *  · ★★ 所以堆只需要 1KB ✗ 从 12KB 砍到 1KB ⇒ **省 11,264 B** ✓✓
+ *  · ★★★ 下一步（R3）把 `vTaskListTasks` 换成静态的 `uxTaskGetSystemState`
+ *    ⇒ 这个堆也能彻底删掉（★ 再省 1KB + heap_4 的 ~960 B 代码 ✓）*/
 #define configSUPPORT_DYNAMIC_ALLOCATION         1
 
-/* 是否允许"静态创建"（TCB 和栈由用户自己定义数组提供，不经过堆）
- *   0 = 关闭
- *   1 = 打开后【必须】实现两个回调，否则链接报 undefined symbol：
- *         vApplicationGetIdleTaskMemory()   给空闲任务提供内存
- *         vApplicationGetTimerTaskMemory()  给定时器任务提供内存（configUSE_TIMERS=1 时） */
-#define configSUPPORT_STATIC_ALLOCATION          0
-
-/* FreeRTOS 自己管理的堆大小（字节）—— 即 heap_4.c 里那个静态大数组
- *   动态创建的 TCB / 栈 / 队列内存都从这里分配
- *   C8T6 只有 20KB RAM，这里的值经 RAM 总账核算（执行表第八节）：
- *   7 个任务栈(约 6.7KB) + TCB(约 0.7KB) + 队列(约 0.5KB) —— 10KB 时开机只剩约 2.3KB，
- *   会让"运行期最低水位 >2KB"这条验收必挂，故 2026-10-05 按计划提到 12KB。 */
-#define configTOTAL_HEAP_SIZE                    ((size_t)(12*1024))
+/* FreeRTOS 自己管理的堆大小（字节）—— ★★★ 2026-10-19 R3：缩到**最小**
+ *
+ *  ★★ 为什么【不能干脆删掉 `heap_4.c`】**✗✓（★ 实测撞了三堵墙 ✓）：
+ *    · ① `configSUPPORT_DYNAMIC_ALLOCATION = 0` ✗
+ *         会让 `heap_4.c` 里的 `#error` 直接编译失败 ✓
+ *    · ② 把 `heap_4.c` 从工程移除 ✗ **工程文件（.uvprojx）是铁律不许改** ✓
+ *    · ③ 就算把【本工程所有】`xPortGetFreeHeapSize` 之类都删干净 ✗
+ *         `heap_4.o` 仍被【内核自己】拉着：
+ *           `queue.o(i.vQueueDelete)`        → `vPortFree`
+ *           `event_groups.o(i.xEventGroupDelete)` → `vPortFree`
+ *           `event_groups.o(i.xEventGroupCreate)` → `pvPortMalloc`
+ *         ⇒ 那是【库文件的删除路径】，不是你调用它 ✓✓
+ *  ★★★ 所以取折中 ✗ 把数组缩到 **64 B**（★ 够 `prvHeapInit` 建一个块 ✓）：
+ *    · 实际上【没有任何调用者】⇒ 这 64 B 就是"名义上的堆" ✓
+ *    · ★★ 收益 ✗ 从 1 KB 降到 64 B ⇒ **省 960 B** ✓✓
+ *  ★★★★ 真正的"零堆"要等 ✗ 允许改 `.uvprojx`（去掉 `heap_4.c` 并关动态分配）
+ *    那一天把本宏删掉即可 ✓（★ 现在这 64 B 是"制度成本"，不是技术必需 ✓）*/
+#define configTOTAL_HEAP_SIZE                    ((size_t)(64))
 
 /* ======================== 四、钩子函数（内核回调） ======================== */
 
@@ -135,7 +178,11 @@ extern uint32_t SystemCoreClock;   /* 在 system_stm32f10x.c 中定义，默认 
 #define configCHECK_FOR_STACK_OVERFLOW           2
 
 /* 堆分配失败钩子：1 = 分配失败时调用 vApplicationMallocFailedHook() 便于定位 */
-#define configUSE_MALLOC_FAILED_HOOK             1
+#define configUSE_MALLOC_FAILED_HOOK             0   /* ★★ 2026-10-19 R3：1 → 0 ✗
+                                                      *  ★ 全静态之后【没有 malloc 可失败】✓
+                                                      *  ★★ 而且这个钩子会调
+                                                      *     `xPortGetFreeHeapSize()` ✗
+                                                      *     正好是把 heap_4.o 拉进链接的原因之一 ✓✓ */
 
 /* ======================== 五、统计与调试（学习阶段全关，省 RAM） ======================== */
 

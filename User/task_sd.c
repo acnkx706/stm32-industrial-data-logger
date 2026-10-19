@@ -194,6 +194,15 @@ typedef struct {
 static QueueHandle_t      s_xQueueSdPtr  = NULL;    /* 工作队列：PROC → task_SD，传 {指针,长度} */
 static QueueHandle_t      s_xQueueFree   = NULL;    /* 空闲队列：缓冲指针在两条队列间循环流转 */
 
+/* ★★★ 2026-10-19 加：两条队列的【静态存储】（★ RAM 优化 R2 ✓）
+ *   ★ 原来走 `xQueueCreate` ⇒ 从 12KB 堆里分配 ✗ 现在改成 .bss 里的有名对象 ✓
+ *   ★★ 存储缓冲用 `uint32_t` 数组 ⇒ 天然 4 字节对齐 ✓
+ *     （★ 实测 FreeRTOS 的 `xQueueGenericCreateStatic` 没有 8 字节对齐断言 ✓）*/
+static StaticQueue_t s_qsd_cb;
+static uint32_t      s_qsd_storage[(2u * sizeof(SdMsg_t) + 3u) / 4u];
+static StaticQueue_t s_qfree_cb;
+static uint32_t      s_qfree_storage[(2u * sizeof(uint8_t *) + 3u) / 4u];
+
 /*============================================================================
  *  task_sd_Init：建交接用的内核对象
  *  ★ 必须在【调度器启动前】调（放 freertos_demo() 里，见 README 集成步骤）：
@@ -214,8 +223,10 @@ void task_sd_Init(void)
 	 *   空闲队列 --SD_BufAcquire--> PROC 填写 --SD_LogEnqueue--> 工作队列
 	 *   --> task_SD 写卡 --写完归还--> 空闲队列
 	 * 一块缓冲任一时刻只在一个人手里 —— 这就是乒乓交接的全部安全性来源 */
-	s_xQueueSdPtr = xQueueCreate(2, sizeof(SdMsg_t));
-	s_xQueueFree  = xQueueCreate(2, sizeof(uint8_t *));
+	s_xQueueSdPtr = xQueueCreateStatic(2, sizeof(SdMsg_t),
+	                                   (uint8_t *)s_qsd_storage, &s_qsd_cb);    /* ★ 静态 ✓ */
+	s_xQueueFree  = xQueueCreateStatic(2, sizeof(uint8_t *),
+	                                   (uint8_t *)s_qfree_storage, &s_qfree_cb); /* ★ 静态 ✓ */
 
 	if ((s_xQueueSdPtr == NULL) || (s_xQueueFree == NULL))
 	{
