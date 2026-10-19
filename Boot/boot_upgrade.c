@@ -82,7 +82,7 @@ static int8_t Up_HexVal(char c)
 /* ★★★★ CRC-16/KERMIT【增量】更新 ✗✓
  *
  *  ★ 为什么【要"增量"版**✗：
- *    · ★ 最终 CRC 是【同一个值**✗ 但【不能在最后"把 56KB 读一遍再算"】✓
+ *    · ★ 最终 CRC 是【同一个值**✗ 但【不能在最后"把 **112KB** 读一遍再算"】✓
  *    · ★★ 【边收边算**✗ → 【收完的那一刻 CRC 已经好了】✓✓
  *
  *  ★★ 算法【和 App 的 `Hardware\Crc16.c` 【一字不差的契约】】✗✓
@@ -392,7 +392,7 @@ static void Up_HandleData(uint16_t n)
 	/* ★★★ 块号不对 ✗ → 【回 `N<期望号>`】✗✓
 	 *   ★ 为什么【必须有这个**✗：★【只有整体 CRC ✗ 发现丢块要等到【最后】】✓
 	 *   · ★★ 而【丢一块之后【后面的字节【全都错位】】✗
-	 *     → 【最后一定 FAIL ✗ 但【56KB 已经白传了】】✓✓ */
+	 *     → 【最后一定 FAIL ✗ 但【112KB 已经白传了】】✓✓ */
 	if (seq != s_seq)
 	{
 		Up_SendN(s_seq);
@@ -667,7 +667,7 @@ void BootUpgrade_Run(void)
 
 	/* ★★★★ 开工前【先验契约**✗✓（★ 理由见 boot_upgrade.h ✓）
 	 *   ★★ 【对不上就【绝对不许开始收固件】】✗✓
-	 *     → 【否则【收完 56KB 才在最后一步 FAIL ✗ 白折腾】✓✓ */
+	 *     → 【否则【收完 112KB 才在最后一步 FAIL ✗ 白折腾】✓✓ */
 	if (BootUpgrade_SelfTest() == 0u)
 	{
 		Serial_SendString("BOOT: CRC SELFTEST FAILED -> refusing to upgrade\r\n");
