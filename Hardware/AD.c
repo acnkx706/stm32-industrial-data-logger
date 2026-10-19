@@ -153,8 +153,42 @@ uint16_t AD_ReadVrefint(void)
 	{
 		ADC_ClearFlag(ADC1, ADC_FLAG_JEOC);
 		v = ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_1);
-		return v;
+	}
+	else
+	{
+		v = 0u;                                       /* ★ 0 = 读取失败（不是"VDD=无穷大" ✓）*/
 	}
 
-	return 0;                                             /* ★ 0 = 读取失败（不是"VDD=无穷大" ✗）*/
+	/* ★★★★★ 2026-10-19 加（★ 实测抓到的数据污染 ✗ 见下 ✓）：
+	 *   把【常规组 + DMA】重新对齐 ✓ —— ★ 两条出口【都走这里】✓
+	 *
+	 *  ★ 实测现象（★ 3 份抓包全部可复现 ✓）：
+	 *    · CSV 的 `light` 与 `vbat` 两列【会成对互换】✗✓
+	 *      正常 ✗ `light<~2400> vbat<0>`（★ 光敏有值 ✗ 电压电路没接 ⇒ 0 ✓）
+	 *      异常 ✗ `light<0>      vbat<~2400>`（★ 恰好把两个数对调了 ✓✓）
+	 *    · ★★ 只在【卡重试风暴期间】来回翻转 ✗ 恢复后可能【停在错的相位】✓
+	 *      （★ 灯光不可能 0.5 秒内自己开关 ⇒ 【不是物理量变化】✓）
+	 *    · ★★★ 而 `AD_Value[]` 全工程【没有任何软件写它】✗ 只有 DMA 写 ✓
+	 *      ⇒ 相位漂在【ADC / DMA 一侧】✗
+	 *      而本函数是【SD 驱动唯一会碰 ADC 的地方】✓✓
+	 *      （★ `SD_SPI.c` 的 711/766/814/862/867 都在调它 ✓）
+	 *
+	 *  ★ 机理 ✗：常规组是「2 通道扫描 + 连续转换 + DMA 循环（2 个半字）」✓
+	 *    注入转换插进来时 ✗ 只要【丢掉或增多一次 DMA 传输】✗
+	 *    循环写指针就【永久错开一格】⇒ `AD_Value[0]/[1]` 从此对调 ✓✓
+	 *
+	 *  ★★★ 做法 ✗：读完注入值之后【把常规组停一次 ✗ 计数据器复位 ✗ 再启动】✓
+	 *    ⇒ 相位【每次都重新对齐】✗ 不再有机会漂 ✓
+	 *  ★★★★ 为什么这样做是安全的 ✗：本工程是"软件启动 + 连续"✗
+	 *    重新 `ADC_SoftwareStartConvCmd` 之后它会【照旧一直跑】✓
+	 *    不需要别的初始化 ✗ 也不会丢校准（★ 校准只在复位后需要 ✓）✓✓ */
+	ADC_Cmd(ADC1, DISABLE);
+	DMA_Cmd(DMA1_Channel1, DISABLE);
+	DMA_SetCurrDataCounter(DMA1_Channel1, 2u);
+	DMA_ClearFlag(DMA1_FLAG_GL1 | DMA1_FLAG_TC1 | DMA1_FLAG_HT1 | DMA1_FLAG_TE1);
+	DMA_Cmd(DMA1_Channel1, ENABLE);
+	ADC_Cmd(ADC1, ENABLE);
+	ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+
+	return v;
 }

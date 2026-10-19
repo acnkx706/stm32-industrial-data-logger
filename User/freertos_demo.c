@@ -1,7 +1,8 @@
 /**
   ******************************************************************************
   * @file    freertos_demo.c
-  * @brief   FreeRTOS 静态方式创建与删除任务
+  * @brief   FreeRTOS **动态**方式创建任务（★ 全部 `xTaskCreate` ✗ 栈/TCB 走 heap_4 ✓）
+  *         ★★ 原写"静态方式"✗ 与实际不符 ✓（★ 改于 2026-10-19 ✓）
   
   ******************************************************************************
   */
@@ -32,12 +33,18 @@
  *  数据记录仪 —— 应用层（任务总装）
  *      数据流： task_ACQ --Record_t--> [xQueueRec] --> task_PROC
  *              --拼CSV行+乒乓缓冲(SD_BufAcquire/SD_LogEnqueue)--> task_SD --> FatFs --> SD 卡
- *      任务表： ACQ 6/256/100ms   PROC 2/256/队列   KEY 2/128/20ms   DISP 1/256/200ms   SD 1/256/队列
+ *      任务表（★ 2026-10-19 按代码【一个个核过】✓）：
+ *              ACQ 6/256/100ms   PROC 2/256/队列   KEY 2/128/20ms
+ *              DISP 1/256/200ms  SENSOR 1/128/队列 GOLDEN 1/256/后台
+ *              SD 1/384/队列 （★ 384 字 = 2026-10-19 修正后的值 ✗ 见 `task_sd.h` ✓）
+ *          ★ 共 **7 个**（+ START 建完自删 + IDLE 系统自带 ✓）
+ *          ★★ 原表【漏了 SENSOR 与 GOLDEN】✗ 且 SD 的栈写成 256 ✓
  *  ★ 每个【为什么】（优先级/栈大小/快照为何要进临界区/踩过哪些坑）都在：
  *      stm32\学习笔记\30-项目设计说明-为什么这么写.md
  *============================================================================*/
 /******************************************************************************
- *  任务配置（静态方式：句柄 + 栈数组 + TCB 三样都要自己定义）
+ *  任务配置（★ **动态**方式 ✗ 栈与 TCB 都由 `xTaskCreate` 从 heap_4 里分配 ✓
+ *            ★★ 原写"静态方式：句柄 + 栈数组 + TCB 三样都要自己定义"✗ 已过期 ✓）
  ******************************************************************************/
 
 /* start_task：装配工 —— 建完其它任务就自删（理由见 30 号文档 §一） */
@@ -56,7 +63,7 @@ TaskHandle_t    task_acq_handler;
 void task_ACQ(void *pvParameters);
 
 /* task_PROC：出队 → 拼 CSV 行 → 填乒乓缓冲交 task_SD（Y8+⑤ 改造）
- * ★ 仍是【唯一】串口打印者；栈 256 字的依据是 Serial_Printf 调用链 352 字节 */
+ * ★ 仍是【唯一】串口打印者；栈 **384 字**的依据是 Serial_Printf 调用链 352 字节 */
 /* TASK_PROC 任务配置：出队+拼批落卡+串口回显*/
 #define TASK_PROC_PRIO              2
 #define TASK_PROC_STACK_SIZE        256
@@ -99,7 +106,7 @@ void task_DISP(void *pvParameters);
 #define OLED_BLANK_MS               30000u
 
 /* task_SD：SD 卡落盘任务（乒乓缓冲的接收方，task_sd.c 实现本体）
- * ★ 优先级/栈大小用 task_sd.h 的定版宏（1 / 256 字），别在这里手抄数字 ——
+ * ★ 优先级/栈大小用 task_sd.h 的定版宏（1 / **384 字**），别在这里手抄数字 ——
  *   两处漂移是事故温床（改了宏忘了改这里，或反之） */
 TaskHandle_t    task_sd_handler;
 void task_SD(void *pvParameters);
@@ -115,7 +122,7 @@ void task_sensor(void *pvParameters);
 /* ★★★★ task_GOLDEN：金副本后台备份（★ 2026-10-14 加 ✓ 设计见 `golden.h`）
  *   ★ 优先级 1 ✗ 最低业务级 ✓
  *     （★ 纯后台活 ✗ 而且软件 SPI 是【忙等】✗ 采集链必须能随时抢占它 ✓）
- *   ★★ 栈 256 字 ✗ 够用
+ *   ★★ 栈 **384 字 = 1536 B** ✗ 够用（★ 实测水位 `sdstk` 剩 76~84 字 ✓
  *     （★ 只见一个 64B 头结构 + `Serial_Printf` 调用链 ✓
  *       ★★ 页数据【直接从内部 Flash 指过去 ✗ 不要 RAM 缓冲】✓）✓ */
 #define TASK_GOLDEN_PRIO            1
@@ -139,9 +146,17 @@ typedef struct {
 	uint16_t humi;      /* ×10 %RH（DHT22；未接时约定 0xFFFF）*/
     uint16_t light;        /* 光敏：PB13 是数字量，只能判亮/暗，不是 ADC */
 	uint16_t vbat; 
-	uint16_t crc;       /* ★ CRC-16/KERMIT，算的是【CSV 前 15 列文本】而不是本结构体 ✓
-     *   —— 2026-10-18 修正：原"现在恒 0"【早已过期】✗
-     *   ★★ 口径见 `Crc16.h` 顶部那段"修正说明"（原文写过一份错的示例 ✓）*/
+	/* ★★★★★ 2026-10-19：**CRC-32 方案已废弃 ✗ 退回 CRC-16** ✓
+	 *   ★ 为什么废弃 ✗（★ 用户拍板 ✓）：
+	 *     · 硬件 CRC **不省 RAM**（一样 0 静态 ✓）✗ 却**增加难度** ✓
+	 *       （★ 要按 32 位字喂变长数据 + 补齐规则 ✗ 算法非标准
+	 *         ⇒ **PC 侧不能用 `zlib.crc32()`** ✗✓）
+	 *     · ★★ 而收益只有"16 位漏检率 1/65536 ⇒ 38,440 行垃圾里
+	 *       期望约 0.6 行误判通过"✗ 实际可忽略 ✓
+	 *     · ★ 代价却是【每行 +5 字节】✗（20 万行 ⇒ +1 MB ✓）
+	 *   ⇒ ★ 结论：**性价比不划算 ✗ 维持 CRC-16/KERMIT** ✓✓
+	 *   ★★ 已回滚 ✗：`Crc32_Calc()` 也一并删除（★ 不留死代码 ✓）*/
+	uint16_t crc;       /* ★ CRC-16/KERMIT，算的是【CSV 前 15 列文本】而不是本结构体 ✓ */
 } Record_t;
 
 /* 尺寸断言：布局一变就【编译期】报错（不占 Flash/RAM） */
@@ -410,7 +425,7 @@ void start_task(void *pvParameters)
 	}
 
 	/* ★ R1 集成（第 6 课）：task_SD 落盘任务 —— prio/栈取 task_sd.h 定版值
-	 *   （1/256字=1KB）。prio 1 与 sensor 同级：SD 的慢（busy 最坏 250ms）
+	 *   （1 / **384 字 = 1.5KB**）。prio 1 与 sensor 同级：SD 的慢（busy 最坏 250ms）
 	 *   被隔离在最低优先级，ACQ→PROC 采集链永远先跑（task_sd.h 顶注释）。
 	 *   建任务前 task_sd_Init() 已在 freertos_demo() 里建好队列，收缓冲
 	 *   不会撞空指针（task_SD 本体仍保留"对象没就绪就等"的双保险） */
@@ -600,7 +615,7 @@ void task_PROC(void *pvParameters)
 /* 超时 500ms 而不是 portMAX_DELAY：否则暂停时 KEY2 的通知永远轮不到看 */
 if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 {
-	char row[160];      /* CSV 一行最坏 123 字节：4×10 位(uint32 最坏值) + 8×6
+	char row[160];      /* CSV 一行最坏 **124 字节**：4×10 位(uint32 最坏值) + 8×6
 	                       ("−32768") + 4×5 ("65535") + 15 个逗号；160 留足余量 */
 	int  rowlen;
 
@@ -639,10 +654,13 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 	                  (unsigned)rec.humi, (unsigned)rec.light,
 	                  (unsigned)rec.vbat);
 
-	/* ★ 对【上面这段文本】算 CRC ✓（覆盖的正是"卡上那一行的前 15 列"✓）*/
+	/* ★ 对【上面这段文本】算 CRC ✓（覆盖的正是"卡上那一行的前 15 列"✓）
+	 *   ★★ 2026-10-19 ✗：**CRC-32 方案已废弃 ⇒ 退回 CRC-16/KERMIT** ✓
+	 *     · 理由见 `Record_t` 里那段注释 ✓（硬件不省 RAM ✗ 软件收益太小 ✓）*/
 	rec.crc = Crc16_Kermit((const uint8_t *)row, (uint16_t)rowlen);
 
-	/* ★ 再把 crc 作为第 16 列追加 ✓（串口回显也跟着用它 ✓）*/
+	/* ★ 再把 crc 作为第 16 列追加 ✓（串口回显也跟着用它 ✓）
+	 *   ★ 5 位十进制 ✓（16 位最大值 65535 ✓）*/
 	rowlen += sprintf(row + rowlen, ",%u", (unsigned)rec.crc);
 
 	/* ---- 第②步：保证手里有缓冲（数据落卡 > 一切，串口回显排后面）----
@@ -810,7 +828,7 @@ else
 		 *      （★ 2026-10-11 更新：文件名已从 LOGxxxx.CSV 改成 YYMMDDNN.CSV ✓）
 		 * ★★ heap / heapmin（2026-10-09 加）：判据看【heapmin】不是 heap ✗ ——
 		 *    heapmin 下降后不再回升 = 内存泄漏 ✗✓；完整说明见上面 STAT(key) 那段 ✓ */
-		Serial_Printf("STAT acq=%lu proc=%lu full=%lu qmax=%lu drop=%lu i2c=%u i2c_max=%u sd_err=%u sd_last=%u heap=%u heapmin=%u\r\n",
+		Serial_Printf("STAT acq=%lu proc=%lu full=%lu qmax=%lu drop=%lu i2c=%u i2c_max=%u sd_err=%u sd_last=%u heap=%u heapmin=%u sdstk=%u\r\n",
 		          (unsigned long)snap.acq_count,
                   (unsigned long)snap.proc_count,
                   (unsigned long)snap.queue_full,
@@ -819,7 +837,8 @@ else
 				  g_i2c_us_last, g_i2c_us_max,
 				  (unsigned)g_sd_error, (unsigned)g_sd_last_err,
 				  (unsigned)xPortGetFreeHeapSize(),
-				  (unsigned)xPortGetMinimumEverFreeHeapSize());
+				  (unsigned)xPortGetMinimumEverFreeHeapSize(),
+				  (unsigned)uxTaskGetStackHighWaterMark(task_sd_handler));
 	}
 	
     }
@@ -1000,6 +1019,34 @@ void task_KEY(void *pvParameters)
  *      （★ 而且会成为"第二份 OLED 实现"✗ 两份迟早不一致 ✓）*/
 static void Ui_Msg(const char *l1, const char *l2, const char *l3, const char *l4)
 {
+	/* ★★★★★ 2026-10-19 加（★ 审计 A2 ✗ 黑屏下 `U`/`R`/`S` 零反馈 ✓）：
+	 *   ★ 现象 ✗：屏在 30 秒后已经熄灭（★ `0xAE` + 电荷泵关 ✓）
+	 *     · 这时从串口发 `U` / `R` / `S` ✗ 解析【照旧在跑】✓
+	 *     · ★★ 但本函数【只是往 GDDRAM 写字】✗
+	 *       ⇒ 【面板熄着 ✗ 写进去也看不见】✓✓
+	 *     · ★★★ 而 `U` 的时序【等不起】✗：
+	 *         `Ui_Msg()` → `printf` → `Golden_SaveCurrent()`（2~3 秒）
+	 *         → `NVIC_SystemReset()` ✓
+	 *       ⇒ 【根本轮不到下一帧去点亮它】✓✓
+	 *     · ★★★★ 更要命 ✗：Bootloader【没有 OLED 驱动】✗
+	 *       它只能靠"面板上【留着的那一帧】"✓
+	 *       而那一帧【是熄灭的】⇒ 【升级全程黑屏 ✗ 用户零反馈】✓✓
+	 *       （★ 而这恰恰是【最不能断电】的窗口 ✓）
+	 *   ★ 修法 ✗：画之前【自己先把面板点亮】✓
+	 *     · 不能靠黑屏状态机的"下一帧边沿"✗ 上面说了轮不到 ✓
+	 *     · ★★ `task_DISP` 是 OLED 的【唯一所有者】✗
+	 *       而本函数【只被 task_DISP 里的命令处理调用】✓ 不越权 ✓
+	 *     · ★★★ 这里【不碰】那两个 `static` 状态变量 ✗
+	 *       （★ 它们是 `task_DISP` 的私有 static ✗ 这里够不着 ✓）
+	 *       而是【顺手续期 idle 计时】✗
+	 *       ⇒ 下一帧状态机看到 `idle_ms ≈ 0` ✗ 自己就会走"唤醒边沿"✓
+	 *         把 `s_blanked` / `g_oled_blanked` 一并归位 ✓✓
+	 *       （★ `U` 没有下一帧 ✗ 但那时已经复位 ✗ 无所谓 ✓）
+	 *   ★ 幂等性 ✗：已经亮着时再发一遍 `OLED_DisplayOn()` ✓
+	 *     = 多两条 I2C 写 ✗ 无害 ✓（★ 只在发命令这一刻 ✓）*/
+	g_ui_act_tick = (uint32_t)xTaskGetTickCount();
+	OLED_DisplayOn();
+
 	OLED_Clear();                               /* ★ 先清 ✗ 免残影 ✓ */
 	OLED_ShowString(1, 1, (char *)l1);          /* ★ 每行都是 16 字符 ✓ */
 	OLED_ShowString(2, 1, (char *)l2);
@@ -1013,6 +1060,20 @@ static void App_RequestUpgrade(uint8_t force)
 
 	/* ★ 等串口把话【发完】✗ 再往下走 ✓ */
 	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) { }
+
+	/* ★★★★ 2026-10-19 加（★ 审计 A2 的另一半 ✓）：
+	 *   ★ 为什么【必须在存备份之前】先画一屏 ✗：
+	 *     · 下面 `Golden_SaveCurrent()` 要【2~3 秒】✗
+	 *       而那条"STEP 2/2"的 `Ui_Msg()` 【在它后面】才执行 ✓
+	 *     · ★★ 屏【早就黑透了】✗
+	 *       ⇒ 这 2~3 秒【仍然是全黑 ✗ 用户看到"发了 U 一点反应都没有"】✓✓
+	 *     · ★★★ 所以这里补一屏"第 1 步：正在存备份"✓
+	 *       （★ 命名与下面的 `STEP 2/2` 对齐 ✗ 不另起一套 ✓）
+	 *   ★ 代价 ✗：`U` 会连着看到两屏（各 2~3 秒）✗ 不闪 ✓ 正是想要的 ✓ */
+	Ui_Msg("UPGRADING       ",
+	       "STEP 1/2 BACKUP ",
+	       "DO NOT POWER OFF",
+	       "PLEASE WAIT ... ");
 
 	/*==========================================================================
 	 *  ★★★★ 【升级之前 ✗ 先把【当前这一版】存成备份】✗✓（2026-10-14 加 ✓）
@@ -1462,8 +1523,14 @@ void task_DISP(void *pvParameters)
 				s_blanked   = 1u;
 				g_oled_blanked = 1u;               /* ★ 告诉 task_KEY：第一下只唤醒 ✓ */
 				s_need_full = 1u;                  /* ★ 恢复时要重画 ✓ */
+				/* ★★★ 2026-10-19 修（★ 审计 A3 ✓）：
+				 *   · 原来这里打的是【阈值常量 `OLED_BLANK_MS`】✗
+				 *     ⇒ 每次都打 `30000` ✗【量不到"实际闲了多久"】✓✓
+				 *   · ★★ 而低功耗实验【恰恰要看这个数】✗
+				 *     打常量 = 【把判据自己污染掉】✓
+				 *   · ★ 现在打【真实的 `idle_ms`】✓ */
 				Serial_Printf("OLED: blank (%lu ms idle)\r\n",
-				              (unsigned long)OLED_BLANK_MS);
+				              (unsigned long)idle_ms);
 			}
 			else if ((s_blank == 0u) && (s_blanked != 0u))
 			{

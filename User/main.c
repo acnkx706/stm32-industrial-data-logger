@@ -8,7 +8,7 @@
   *    freertos_demo.c → 所有 FreeRTOS 相关代码
   *
   *  请注意：原来写在 main.c 里的任务函数、定时器中断、xTaskCreate 都要
-  *          挪到 freertos_demo.c 里去（静态方式实现）
+  *          挪到 freertos_demo.c 里去（★ **动态**方式实现 ✗ 见该文件头注释 ✓）
   ******************************************************************************
   */
 #include "stm32f10x.h"                  /* Device header */
@@ -133,7 +133,7 @@ static void BMP280_Probe(void)
  *      · 它是【该 .o 的编译时间】✗ 增量编译时【不更新】✓
  *      · 本项目已经在 RTC 初值上【踩过这个坑】✓（净偏 22h35m 那次）
  *    ⇒ ★ 宁可人手改 ✗ 也不要一个"看起来自动、其实会骗人"的版本号 ✓ */
-#define APP_VER_STR   "APP: ver 15 (2026-10-19 CALIB-TO-GOLD; cleanup)"
+#define APP_VER_STR   "APP: ver 29 (2026-10-19 PROBE-OFF+DOCS; Boot B2)"
 int main(void)
 {int16_t oax, oay, oaz, ogx, ogy, ogz;
 /* ---------- 第一批：先把"能显示/能通信"的立起来（诊断能力优先） ---------- */
