@@ -39,21 +39,105 @@
 #define RTC_TRUST_DR        BKP_DR5
 
 /* LSE 起振检查（★ 与 RTC 逻辑分开验 ✓ 一次只动一个变量 ✓）*/
+/* ★ 前向声明（★ 降级路径在下面用到了定义在【更后面】的两个函数 ✓
+ *   AC5 会把没声明的当"外部函数"✗ 而它们是 static ⇒ 链接报 L6218E ✓）*/
+static void MyRTC_CompileTime(RTC_DateTime_t *dt);
+
+/*==============================================================================
+ *  ★★★★★ 2026-10-20 重写：**LSE 三次重试 + 不行就降级 LSI**（★ 别再一枪打死 ✓）
+ *
+ *  ★ 为什么必须改 ✗（这次的现场教训 ✓）：
+ *    · 旧版：只试 **一次**、等 3 秒 ⇒ 不起就 `return RTC_ERR_NO_LSE` ✓
+ *    · ★★ 后果：RTC 计数器 = 0、`BKP_DR1` 魔数不写
+ *      ⇒ `MyRTC_IsConfigured()` = 0 ⇒ **`T<unix>` 直接被拒**（`TIME BAD`）✓✓
+ *      ⇒ 连"手动对时"这条退路都被堵死 ⇒ **时间永远 0** ✓✓✓
+ *    · ★ 而"3.3V 稍微低一点/纹波大一点"就可能让 32768 晶振起不来
+ *      （LSE 是微功耗小信号振荡器 ✗ 对电源最敏感 ✓）
+ *
+ *  ★★★ 新的三段策略 ✗：
+ *    ① 试 3 次（每次先 `LSE_OFF` 再 `LSE_ON`，间隔 50ms）
+ *       ★ 边缘晶振常常第二次就起振（第一次失败会留下残余电荷 ✓）
+ *    ② 都不行 ⇒ **降级到 LSI**（内部 ~40kHz）
+ *       ⇒ 至少时间能走、`T` 能对时、`CLK:` 能看出漂多少 ✓
+ *    ③ ★ 降级时**大声说**：`!!! RTC on LSI: time WILL DRIFT !!!`
+ *       （★ 绝不静默降级 ✗ 那等于假装时间是对的 ✓✓）
+ *
+ *  ★★★ LSI 的代价（★ 说清楚 ✗ 别粉饰 ✓）：
+ *    · LSI 出厂容差就有 **±50%**（30~60kHz）✗ 温漂更大 ✓
+ *    · 实测：一天可能差 **几分钟到几十分钟** ✓
+ *    · ⇒ 只适合"能记就行"✗ 要当证据用必须修回 LSE ✓
+ *============================================================================*/
 static uint8_t MyRTC_CheckLSE(void)
 {
 	uint32_t t;
+	uint8_t  attempt;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
 	PWR_BackupAccessCmd(ENABLE);                 /* ★ 备份域解锁 ✓ */
 
-	RCC_LSEConfig(RCC_LSE_ON);
-
-	for (t = 0u; t < 3000u; t++)                 /* ★ 最多等 ~3 秒（不死等 ✗）*/
+	/* ★ 三次尝试 −− 每次 1.5 秒 ⇒ 最坏 4.5 秒（★ 开机多等这点时间值得 ✓）*/
+	for (attempt = 0u; attempt < 3u; attempt++)
 	{
-		if (RCC_GetFlagStatus(RCC_FLAG_LSERDY) != RESET) { return RTC_OK; }
+		RCC_LSEConfig(RCC_LSE_OFF);
+		DWT_Delay_ms(50u);
+		RCC_LSEConfig(RCC_LSE_ON);
+
+		for (t = 0u; t < 1500u; t++)
+		{
+			if (RCC_GetFlagStatus(RCC_FLAG_LSERDY) != RESET) { return RTC_OK; }
+			DWT_Delay_ms(1u);
+		}
+	}
+	return RTC_ERR_NO_LSE;                       /* ★ 三次都不行 ⇒ 降级 ✓ */
+}
+
+/* ★★★★★ 2026-10-20 新增：**用 LSI 把 RTC 跑起来**（降级路径 ✓）
+ *   ★ 关键 ✗：RTCSEL 只能在【备份域复位之后】改 ✓
+ *     ⇒ 先 `RCC_BackupResetCmd(ENABLE/DISABLE)` ✓
+ *     （★ 代价：RTC 计数器清 0、BKP 寄存器也清 ✗ 反正现在也是 0 ✓）*/
+static uint8_t MyRTC_UseLSI(void)
+{
+	uint32_t t;
+	RTC_DateTime_t ct;
+	uint32_t ts;
+
+	/* ① 开 LSI 并等它稳 ✓ */
+	RCC_LSICmd(ENABLE);
+	for (t = 0u; t < 1000u; t++)
+	{
+		if (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) != RESET) { break; }
 		DWT_Delay_ms(1u);
 	}
-	return RTC_ERR_NO_LSE;                       /* ★ 超时：LSE 没起振 ✗ */
+	if (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET) { return 0u; }
+
+	/* ② 备份域复位 ⇒ 才能改 RTCSEL ✓ */
+	RCC_BackupResetCmd(ENABLE);
+	RCC_BackupResetCmd(DISABLE);
+
+	/* ③ 选 LSI 作为 RTC 时钟源 ✓ */
+	RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI);
+	RCC_RTCCLKCmd(ENABLE);
+	RTC_WaitForSynchro();
+
+	/* ④ 分频：LSI 典型 40kHz ⇒ 40000/40000 = 1Hz ✓ */
+	RTC_WaitForLastTask();
+	RTC_EnterConfigMode();
+	RTC_SetPrescaler(39999u);
+	RTC_WaitForLastTask();
+	RTC_ExitConfigMode();
+
+	/* ⑤ 先塞个编译时刻（★ 至少不是 1970 ✓ 之后可以用 `T` 校 ✓）*/
+	MyRTC_CompileTime(&ct);
+	ts = MyRTC_YmdToUnix(ct.year, ct.month, ct.day, ct.hour, ct.minute, ct.second);
+	RTC_SetCounter(ts);
+	RTC_WaitForLastTask();
+
+	/* ⑥ 打标记 ⇒ `IsConfigured()` 变 1 ⇒ **`T` 命令能用了** ✓✓ */
+	BKP_WriteBackupRegister(RTC_BKP_DR, RTC_BKP_MAGIC);
+
+	Serial_Printf("!!! RTC on LSI: time WILL DRIFT (minutes/day) !!!\r\n");
+	Serial_Printf("!!! RTC: check LSE hardware (32.768k crystal / VBAT / 3.3V ripple) !!!\r\n");
+	return 1u;
 }
 
 /* 解析 __DATE__ / __TIME__ → 年月日时分秒
@@ -153,7 +237,11 @@ uint8_t MyRTC_Init(void)
 {
 	if (MyRTC_CheckLSE() != RTC_OK)
 	{
-		return RTC_ERR_NO_LSE;                   /* ★ 时钟源不成立，其他都别做 ✓ */
+		/* ★★★ 2026-10-20：起不来【不再直接放弃】✗ 先切 LSI 让时间能走 ✓
+		 *   ★★ 理由：`rtc=0` 是"完全不可用"（CSV 时间戳全废、`T` 还被拒）
+		 *     而"LSI 会飘"是"能用但要校" ✓✓ 后者远好于前者 ✓ */
+		if (MyRTC_UseLSI() != 0u) { return RTC_OK; }
+		return RTC_ERR_NO_LSE;                   /* LSI 也不行 ⇒ 只能报错 ✓ */
 	}
 
 	RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);      /* ★ RTC 时钟源 = LSE ✓ */

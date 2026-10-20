@@ -29,6 +29,7 @@
 #include "BMP280.h"
 #include "MyRTC.h"  
 #include "buzz.h"                  /* ★ 蜂鸣器服务（PB12 ✓ 低电平触发 ✓）*/
+#include "HC_SR04.h"               /* ★★★ 2026-10-20：超声波（PB5=TRIG / PB6=ECHO ✓）*/
 #include "W25Q64.h"                /* ★★ W25Q64 8MB SPI Flash
                                     *   ★★★ 引脚（2026-10-17 从 `W25Q64.c:31~39` 核出的真值）✗
                                     *     SCK=PA8 / MISO=PA11 / MOSI=PA12 / CS=PB13 ✓
@@ -133,7 +134,7 @@ static void BMP280_Probe(void)
  *      · 它是【该 .o 的编译时间】✗ 增量编译时【不更新】✓
  *      · 本项目已经在 RTC 初值上【踩过这个坑】✓（净偏 22h35m 那次）
  *    ⇒ ★ 宁可人手改 ✗ 也不要一个"看起来自动、其实会骗人"的版本号 ✓ */
-#define APP_VER_STR   "APP: ver 33 (2026-10-20 RAM-R4: stacks by measurement)"
+#define APP_VER_STR   "APP: ver 37 (2026-10-20 RTC: LSE retry + LSI fallback)"
 int main(void)
 {int16_t oax, oay, oaz, ogx, ogy, ogz;
 /* ---------- 第一批：先把"能显示/能通信"的立起来（诊断能力优先） ---------- */
@@ -412,6 +413,11 @@ int main(void)
 			Serial_Printf("DHT22: READ FAILED (check PB15 wiring / module pull-up)\r\n");
 		}
 	}
+
+	/* ★★★ 2026-10-20：超声波（PB5=TRIG / PB6=ECHO ✓）
+	 *   ★ 放在这里：和其它传感器初始化挨着 ⇒ 一眼看出"板上有哪些传感器"✓
+	 *   ★★ 它只配两个引脚 + TIM4 ✗ 不采样、不发脉冲 ✓（采样在 task_sensor 里 ✓）*/
+	HC_SR04_Init();
 
 #if (TEST_DS18B20)
 	Serial_Printf("---- DS18B20 test (PB14) ----\r\n");
