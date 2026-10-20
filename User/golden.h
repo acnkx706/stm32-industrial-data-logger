@@ -163,12 +163,15 @@
  *    · ★★★ 满了【环形覆盖最旧的】✗ 不再"满了就停"✓
  *      （★ 旧行为：开机 21 分钟满 ⇒ 之后 8 小时全丢 ✗✗）
  *
- *  ★★ v1 策略（★ 简单优先 ✓）：
- *    · **满了就停**（不覆盖旧项）⇒ 不丢已缓存的数据 ✓
+ *  ★★ v1 策略（★ 早已改成环形覆盖 ✗ 这一节 2026-10-20 更正 ✓）：
+ *    · ~~满了就停~~ ⇒ **现在是"满了丢最旧的"**（★ 保最近的 ✓ 记在 `rsv` 里 ✓）
  *    · 全部回写完成后【清零指针】⇒ 下次断卡从头写（写前按扇区擦）✓
  *  ★ 回写顺序：调用者【先 Peek、写卡成功后再 Pop】✗ 保证不丢 ✓
+ *  ★★ 2026-10-20 G5：指针【不再是一个 4 KB 页】✗ 改成 A/B 两个扇区的**追加日志** ✓
+ *    · 擦除率从"每批 2 次"降到"每 256 条 1 次"✓
+ *    · 掉电最多丢 1 批（★ 原来的 45 ms 擦除窗口会丢 76 分钟 ✓）
  *============================================================================*/
-uint8_t  DropCache_Init(void);                              /* 上电读两个头（无 W25 返回 0）*/
+uint8_t  DropCache_Init(void);                              /* 上电扫两条指针日志（无 W25 返回 0）*/
 uint8_t  DropCache_PutBatch(const uint8_t *p, uint16_t len);/* 存一批（512B）✓ 1=成功 */
 uint8_t  DropCache_PeekBatch(uint8_t *dst, uint16_t *len);  /* 读最早一批（不推进）✓ */
 void     DropCache_PopBatch(void);                          /* 回写成功后才推进 ✓ */
@@ -177,6 +180,10 @@ uint16_t DropCache_PendingBatches(void);                    /* 还有几批没�
  *   · 不动 ⇒ 缓存没满 ✓
  *   · ★★ 在涨 ⇒ 【缓存满 ✗ 正在丢最旧的数据】✓✓ */
 uint16_t DropCache_OverflowCount(void);
+/* ★★★★★ 2026-10-20 加（G5 的证据 ✓）：指针日志扇区擦除次数（★ 上电后累计 ✓）
+ *   · 断卡跑几分钟 ⇒ 应该只涨 0~1 ✓（★ 按秒涨 = 没走日志路径 ✓）*/
+uint16_t DropCache_HdrErases(void);
+uint16_t DropCache_EvtHdrErases(void);
 uint8_t  DropCache_PutEvent(const char *line);              /* 存一条事件行 ✓ */
 uint8_t  DropCache_PeekEvent(char *dst, uint16_t sz);       /* 读最早一条（不推进）✓ */
 void     DropCache_PopEvent(void);

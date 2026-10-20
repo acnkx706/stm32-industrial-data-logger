@@ -329,13 +329,17 @@ static uint8_t Golden_WriteAll(uint8_t slow)
  *
  *  ★ W25 完整内存图（★ 改地址前必须对着它看 ✓）：
  *      0x000000   4 KB   金副本头（GOLDEN_ADDR_HDR）
- *      0x001000  ~60 KB  金副本镜像（GOLDEN_ADDR_IMG ✗ 64KB 块 ✓）
+ *      0x001000 112 KB   金副本镜像（GOLDEN_ADDR_IMG ✗ 到 0x1D000 止 ✓）
  *      0x020000   4 KB   金副本元数据（GOLDEN_ADDR_META）
- *      0x030000   4 KB   ★ 缓存：数据指针页
- *      0x031000  ───     ★ 缓存：数据槽（★ 本次扩到 0x7A1000 ✓）
- *      0x7A1000   4 KB   ★ 缓存：事件指针页（★ 从 0x240000 挪来 ✓）
- *      0x7A2000 240 KB   ★ 缓存：事件槽
- *      0x7DE000 128 KB   余量
+ *      0x021000   4 KB   ★ 缓存：数据指针日志 A（DC_DATA_HDR_A ✓）
+ *      0x022000   4 KB   ★ 缓存：数据指针日志 B（DC_DATA_HDR_B ✓）
+ *      0x030000   4 KB   （★ 旧数据指针页 ✗ 2026-10-20 G5 起【不再读写】✓）
+ *      0x031000 7.43 MB  ★ 缓存：数据槽（★ 7,616 × 1024B ✗ 到 0x7A1000 ✓）
+ *      0x7A1000   4 KB   （★ 旧事件指针页 ✗ 2026-10-20 G5 起【不再读写】✓）
+ *      0x7A2000 240 KB   ★ 缓存：事件槽（★ 960 × 256B ✓）
+ *      0x7DE000   4 KB   ★ 缓存：事件指针日志 A（DC_EVT_HDR_A ✓）
+ *      0x7DF000   4 KB   ★ 缓存：事件指针日志 B（DC_EVT_HDR_B ✓）
+ *      0x7E0000 124 KB   余量
  *      0x7FF000   4 KB   自检扇区（★ W25_SELFTEST_ADDR ✗ 绝不许碰 ✓）
  *
  *  ★★ 为什么事件区要挪到高位 ✗：数据区要吃掉中间那 5.5 MB 空闲 ✓
@@ -356,8 +360,43 @@ static uint8_t Golden_WriteAll(uint8_t slow)
  *    · ★ 但事件区换了地址 ⇒ 旧事件区里没回写的诊断行会【被新数据覆盖】✗
  *      （★ 只影响 `# LOST` 这类诊断行 ✗ 不影响记录数据 ✓）
  *============================================================================*/
-#define DC_DATA_HDR    0x030000u        /* 指针页（独占一个 4KB 扇区）*/
-#define DC_DATA_BASE   0x031000u        /* ★ 扇区对齐 ✗ 免得和指针页互相擦 ✓ */
+/*==============================================================================
+ *  ★★★★★ 2026-10-20 G5：**指针页 → 指针日志（A/B 乒乓）**
+ *
+ *  ★★ 原来的做法（已废弃 ✗ 但必须记下为什么 ✓）：
+ *     `Dc_SaveHdr()` = `W25Q64_EraseSector(0x030000)` + 写回 16 B ✓
+ *     · 每存一批（`Dc_Put`）擦一次 ✗ 每取走一批（`Dc_Pop`）再擦一次 ✓
+ *     · = **为了 16 字节，擦掉 4,096 字节**（写放大 256×）✓
+ *
+ *  ★★★ 两笔账（★ 这才是要改的理由 ✓）：
+ *    ① **寿命** ✗ 断卡时 1.67 批/秒 ⇒ 数据路径 **3.3 次擦/秒**
+ *       ✗ 再叠加事件路径（`Loss_Flush` 每轮一条 `# LOST` ⇒ 再擦一次）✓
+ *       W25Q64 每扇区 **10 万次**擦除 ⇒ 断卡 **1~3 小时**就把 0x030000 写穿 ✓✓
+ *    ② **掉电窗口** ✗ `先擦后写` 之间要 **45~400 ms**（扇区擦除 typ 45 ms ✓）
+ *       ⇒ 这 45 ms 里掉电 = 【唯一一份指针没了】⇒ 开机指针归零
+ *       ⇒ **7,616 批（≈76 分钟）缓存被静默作废** ✓✓✓（★ 比寿命更要命 ✓）
+ *
+ *  ★★★★ 现在的做法（★ FlashDB 的思路 ✓）：
+ *    · 指针改成【追加写】✗ 一条记录 16 B ✗ 一个 4 KB 扇区装 **256 条** ✓
+ *    · 两个扇区 **A/B 乒乓** ✗ A 写满 256 条 ⇒ 擦 B ⇒ 从 B 第 0 条继续 ✓
+ *    · 记录里带 **`seq`（单调递增）** ⇒ 开机扫 A/B，取 **seq 最大且 CRC 对**的 ✓
+ *    · ⇒ 擦除率 = **1/256**（断卡 10 万次擦除 ≈ 20 天连轴 ✓）
+ *      ✗ 掉电最多丢 **1 批**（上一条记录还在扇区里 ✓ 读得回来 ✓）
+ *    · ⇒ 擦除延时也从"每批 45 ms 占着 W25 锁"变成"每 256 批一次"✓
+ *
+ *  ★ 为什么不学 FlashDB TSDB 的"不存指针、开机扫槽头重建"：
+ *    · 那要在 7.43 MB 里按扇区读 **1,904 个扇区头** ✗ 开机多花约 0.2 s ✓
+ *    · ★ 而本工程的指针只有 `wr`/`rd` 两个 16 位数 ✗ 日志方案已经够省 ✓
+ *      ⇒ 留作"真零堆"那一轮再评估 ✓
+ *
+ *  ★★ 升级代价（★ 必须说清楚 ✓）：
+ *    · `DC_MAGIC_D` 升 `DCD4` → **`DCD5`** ✗ 旧指针页【直接当不存在】✓
+ *      ⇒ 升级那一刻缓存里还没回写的批【会丢】✗ 所以**升级前要确认 `pending=0`** ✓
+ *    · ★ 旧的两个指针页（0x030000 / 0x7A1000）从此【不再读写】✗ 也不要挪作他用 ✓
+ *============================================================================*/
+#define DC_DATA_HDR_A  0x021000u        /* ★ 数据指针日志 A（独占一个 4KB 扇区）✓ */
+#define DC_DATA_HDR_B  0x022000u        /* ★ 数据指针日志 B（★ A 满了擦它 ✓）*/
+#define DC_DATA_BASE   0x031000u        /* ★ 扇区对齐 ✗ 数据槽起点 ✓ */
 /* ★★ 槽必须 ≥ 512+4 ✗ 而且要【扇区整除】✓
  *   · 一批最多 512 B ⇒ 加 4 B 长度前缀 = 516 ✗ 512 槽装不下 ✓
  *   · ★ 选 1024（= 4 页 = 1/4 扇区）⇒ 【4 项一个扇区】✓ 擦除判断简单 ✓
@@ -375,18 +414,37 @@ static uint8_t Golden_WriteAll(uint8_t slow)
  *     （★ 取模基数变了 ✗ 旧指针必读错位 ✓ 这是 ver 17 的血泪 ✓）*/
 #define DC_DATA_SLOTS  7616u            /* ★ 正式值（★ 测试时曾临时用 32 ✓）*/
 #define DC_DATA_ITEM   1024u
-#define DC_EVT_HDR     0x7A1000u        /* ★ 从 0x240000 挪到高位 ✓ */
+#define DC_EVT_HDR_A   0x7DE000u        /* ★ 事件指针日志 A（★ 原 0x7A1000 已弃用 ✓）*/
+#define DC_EVT_HDR_B   0x7DF000u        /* ★ 事件指针日志 B ✓ */
 #define DC_EVT_BASE    0x7A2000u
 #define DC_EVT_SLOTS   960u             /* 960 × 256B = 240 KB ✓ */
 #define DC_EVT_ITEM    256u
 
-#define DC_MAGIC_D     0x44434434u      /* ★★★ 'DCD4'（★ 2026-10-19 定版：环已改回 7616 ✓）
+/* ★ 指针日志的几何（★ 数据区和事件区共用同一套 ✓）：
+ *   · 一条记录 = `sizeof(DcHdr_t)` = 16 B（★ 下面有编译期断言 ✓）
+ *   · 一个扇区 = 4,096 / 16 = **256 条** ✓
+ *   ★ 别乱改这两个数 ✗ 改了等于换了日志格式 ⇒ **必须同时升 magic** ✓
+ *     （★ 否则旧记录会被当成"CRC 对的新记录"读过来 ✓）*/
+#define DC_LOG_SEC_SZ  4096u
+#define DC_LOG_REC_SZ  16u
+/* ★★★ 2026-10-20 测试开关：**注入一条坏记录**（★ 正式版必须是 0 ✓）
+ *   · 打开时：若开机扫到的写游标在 [1, N) ⇒ 往下一格灌 16 个 0x00
+ *     ⇒ 之后那条记录永远 CRC 不对（★ 模拟"写这 16 B 时掉电" ✓）
+ *   · 用途：验证 `Dc_RecBlank()` 那条分支（★ 认出坏记录 ⇒ 换扇区 ✓）
+ *   · ★★ 为什么不做成"跟 N==8 绑"✗：N=8 时一个扇区 **7 秒就写满**
+ *     ⇒ 还没来得及复位就已经翻面、坏记录被盖过去 ✓
+ *     ⇒ 必须用**正式容量 256**（★ 窗口 ≈ 4 分钟 ✓）*/
+#define DC_LOG_INJECT_TEST 0u
+#define DC_LOG_N       256u            /* ★ = DC_LOG_SEC_SZ / DC_LOG_REC_SZ ✓ */
+
+#define DC_MAGIC_D     0x44434435u      /* ★★★ 'DCD6' **测试版专用**（★ 正式版是 DCD5 ✓）
                                           *
                                           *  ★ 为什么每次改槽数都要升一版 ✗：
                                           *    · 槽号是【取模算的】✗ 基数一变 ⇒ 旧指针读出来【全错位】✓
-                                          *    · ★★ 换 magic ⇒ `Dc_LoadHdr` 判不符
+                                          *    · ★★ 换 magic ⇒ `Dc_LogLoad` 扫不到旧记录
                                           *      ⇒ 【指针自动归零 ⇒ 缓存清空重来】✓✓
-                                          *    · ★★★ 本轮经历 ✗ DCD3（32 槽测试）→ **DCD4（正式 7616）** ✓
+                                          *    · ★★★ 2026-10-19：DCD3（32 槽测试）→ **DCD4（正式 7616）**
+                                          *    · ★★★ 2026-10-20：**DCD4 → DCD5**（G5：指针页 → 指针日志 ✓）
                                           *
                                           *  ★★★★ DCD1 → DCD2 那次的血泪（★ 留着当教材 ✓）：
                                           *    · ver 17 把【槽数从 2048 改成 7616】✗
@@ -399,19 +457,49 @@ static uint8_t Golden_WriteAll(uint8_t slow)
                                           *      （★ 长度前缀是垃圾 ⇒ `n > 512` ⇒ 判坏项 ✓）
                                           *  ★ 代价 ✗：旧缓存里那 2488 批【作废】
                                           *    （★ 反正它们本来就【读不出来】✗ 作废 = 止损 ✓）*/
-#define DC_MAGIC_E     0x45434531u      /* 'ECE1' */
+#define DC_MAGIC_E     0x45434532u      /* ★ 'ECE2'（★ 2026-10-20 G5：事件指针也改日志 ✓）*/
 
+/* ★★★ 指针记录（★ 一条 = 一个日志槽 ✓）
+ *   ★ 为什么加 `seq` ✗：A/B 两个扇区里【都有记录】时
+ *     · 只能靠"谁更新"判 ⇒ 必须有一个【单调递增】的数 ✓
+ *     · ★ 不能靠"记录在扇区里的位置"✗ 两个扇区的 pos 各自独立 ✓
+ *   ★ 为什么 seq 放第 2 个字段（★ 紧接 magic ✓）：
+ *     · 4 字节自然对齐 ⇒ 整个结构 = 4+4+2+2+2+2 = **16 B** ✗ 正好一条日志 ✓
+ *     · ★ 若按"magic, wr, rd, rsv, seq, crc"排 ⇒ 中间要插 2 B 填充 = 18 B
+ *       ⇒ 4 KB 装不下整数条 ⇒ 白浪费 ✓✓ */
 typedef struct {
 	uint32_t magic;
+	uint32_t seq;                   /* ★ 单调递增 ✗ 开机取最大 ✓ */
 	uint16_t wr;
 	uint16_t rd;
 	uint16_t rsv;
-	uint16_t crc;
+	uint16_t crc;                   /* ★ 覆盖上面 14 B（★ 算时先把自己清零 ✓）*/
 } DcHdr_t;
+
+/* ★★ 编译期断言（★ 比运行期断言好 ✗ 一字不花 ✓）：
+ *   结构一旦不再是 16 B ⇒ **直接编不过** ✗ 免得悄悄改了日志格式 ✓ */
+typedef char Dc_LogRecSizeOk[(sizeof(DcHdr_t) == DC_LOG_REC_SZ) ? 1 : -1];
+
+/* ★ 日志写游标（★ 每区一个 ✓）
+ *   · `pos` = 下一条写到第几条 ✗ 可以等于 256（★ 表示"该换扇区了"✓）
+ *   · `sec` = 0 用 A / 1 用 B ✓ */
+typedef struct {
+	uint16_t pos;
+	uint8_t  sec;
+	uint8_t  pad;
+} DcLog_t;
 
 static DcHdr_t s_dc_d;                  /* 数据批区 */
 static DcHdr_t s_dc_e;                  /* 事件行区 */
+static DcLog_t s_log_d;                 /* 数据区日志游标 */
+static DcLog_t s_log_e;                 /* 事件区日志游标 */
 static uint8_t s_dc_on = 0u;
+
+/* ★ 诊断用（★ 只在上电后累计 ✗ 掉电清零 ✓）：
+ *   · 它是"这次开机擦了几次指针扇区"✗ 直接证明 G5 改对了 ✓
+ *   · ★ 原来每存一批就 +2（Put 一次 + Pop 一次）✗ 现在每 256 批才 +1 ✓ */
+static uint16_t s_dc_hdr_erases = 0u;
+static uint16_t s_dc_evt_erases = 0u;
 
 static uint16_t Dc_HdrCrc(const DcHdr_t *h)
 {
@@ -456,32 +544,185 @@ static uint8_t Dc_SectorHasData(const DcHdr_t *h, uint16_t slots, uint16_t s0)
 
 static void Dc_HdrDefault(DcHdr_t *h, uint32_t magic)
 {
-	h->magic = magic; h->wr = 0u; h->rd = 0u; h->rsv = 0u;
+	h->magic = magic; h->seq = 0u; h->wr = 0u; h->rd = 0u; h->rsv = 0u;
 	h->crc   = Dc_HdrCrc(h);
 }
 
-/* 读头：magic / CRC / 合理性（待回写数 ≤ 槽数）任一不对 ⇒ 【重置指针】✓
- *   ★ 重置 = 当作"缓存为空"✗ 不会去读垃圾 ✓（宁可少救，不要读出乱码 ✓）*/
-static void Dc_LoadHdr(DcHdr_t *h, uint32_t addr, uint32_t magic, uint16_t slots)
+/* ★★★★★ 读一条指针记录（★ 三道关：读得回 / magic 对 / CRC 对 / 数据合理 ✓）
+ *   ★ 为什么 CRC 要盖住 `seq` ✗：seq 是"谁更新"的唯一依据
+ *     · 若 seq 不受 CRC 保护 ⇒ 一个坏字节就能让**旧记录被当成新的**
+ *       ⇒ `rd`/`wr` 倒退 ⇒ **重复回写**（轻）或**跳过待回写数据**（重）✓✓
+ *   ★★ 2026-10-20 改：**无论有效与否都把读到的 16 B 交出去** ✓
+ *     · 因为调用方还要判"这条是**空**（0xFF）还是**坏**（写过但 CRC 不对）"
+ *     · ★★★ 这两种情况的处置**完全不同**（见 `Dc_LogLoad` 的注释 ✓）
+ *   ★ 返回 1 = 这条有效 ✓ / 0 = 无效 ✓ */
+static uint8_t Dc_LogRead(uint32_t addr, DcHdr_t *out, uint32_t magic, uint16_t slots)
 {
-	if (W25Q64_ReadData(addr, (uint8_t *)h, (uint32_t)sizeof(DcHdr_t)) == 0u)
+	if (W25Q64_ReadData(addr, (uint8_t *)out, DC_LOG_REC_SZ) == 0u)
+	{
+		/* ★ 读失败 ⇒ 填成"非空"（0x00）✗ 让调用方当成【坏记录】处理 ✓
+		 *   （★ 宁可少用半扇区 ✗ 也不要在读不到的地方原地写 ✓）*/
+		uint16_t i;
+		for (i = 0u; i < DC_LOG_REC_SZ; i++) { ((uint8_t *)out)[i] = 0x00u; }
+		return 0u;
+	}
+	if ((out->magic != magic) || (out->crc != Dc_HdrCrc(out))) { return 0u; }
+	if ((uint16_t)(out->wr - out->rd) > slots)                { return 0u; }
+	return 1u;
+}
+
+/* ★ 一条记录是不是"空的"（★ 全 0xFF = 擦除态 ✓）
+ *   ★ 为什么必须区分"空"和"坏"✗ —— 这就是这一轮的**第二号坑** ✓：
+ *     · **空** ⇒ 只是写到这儿为止 ✗ 接着往后写就行 ✓
+ *     · **坏** ⇒ 那 16 B 里已经有"0 位"了 ✗★★ NOR 只能把 1 写成 0，
+ *        **不能把 0 写回 1** ✓ ⇒ 在同一位置重写，新数据被旧 0 位"与"掉
+ *        ⇒ 这条记录**永远 CRC 不对** ⇒ 每次开机都从这一格重来
+ *        ⇒ **缓存从此永久失效**（★ 而且一条错误打印都没有 ✓✓✓）
+ *   ★ 什么时候会产生"坏"记录 ✗：掉电正好落在**写那 16 B 的 0.7 ms 里** ✓
+ *     （★ W25 页编程 typ 0.7 ms / max 3 ms ✓）
+ *   ⇒ ★★ 处置：**换扇区**（擦另一个，从它的第 0 条继续）✓
+ *      · 代价 = 这一扇区剩下的格子不要了（≤ 255 条 ✗ 一辈子可能只遇一次 ✓）
+ *      · ★ 收益 = 缓存**不会**静默死掉 ✓✓ */
+static uint8_t Dc_RecBlank(const DcHdr_t *t)
+{
+	const uint8_t *p = (const uint8_t *)t;
+	uint16_t i;
+
+	for (i = 0u; i < DC_LOG_REC_SZ; i++)
+	{
+		if (p[i] != 0xFFu) { return 0u; }
+	}
+	return 1u;
+}
+
+/* ★★★★★ 开机：扫 A/B 两个扇区，重建指针 + 写游标（★ 取代旧的 `Dc_LoadHdr` ✓）
+ *
+ *  ★★ 为什么"扫到第一条无效的就停"✗：
+ *    · 记录是**从第 0 条连续往后追加**的 ✗ 中间不会有空洞 ✓
+ *      （★ 换扇区时是"擦干净→从 0 写"✗ 从不回填 ✓）
+ *    · ⇒ 一条无效 = 这个扇区到此为止 ✓（★ 最多读 512 次 ✗ 通常 2~3 次 ✓）
+ *
+ *  ★★★★ 停下来的那一条要分两种（★ 2026-10-20 加 ✗ 这是关键的一步 ✓）：
+ *    · **空（0xFF）** ⇒ 正常到底 ✗ 下一条就写在这儿 ✓
+ *    · **坏（写过但 CRC 不对）** ⇒ 【绝不能原地重写】（★ 见 `Dc_RecBlank` 注释）
+ *      ⇒ 记下"这个扇区已被写坏"✗ 游标直接推到 256 ⇒ 下一次保存**换扇区** ✓✓
+ *
+ *  ★★ 找不到任何有效记录怎么办 ✗：
+ *    · 当"缓存为空"✗ 并**把 A 擦干净**⇒ 从第一条开始追加 ✓
+ *    · ★ 这一擦【只为满足"写前必是 0xFF"】✗ 不是每次都擦 ✓
+ *    · ★★ 什么时候会走到这里：① 全新片子 ② 刚升 magic（★ 本次 DCD4→DCD5 ✓）
+ *      ③ 两个扇区都被写坏（★ 极不可能 ✓）
+ *
+ *  ★★★ 完整性的边界（★ 说清楚 ✗ 别夸大 ✓）：
+ *    · 掉电最多丢【最后一条】记录 ⇒ 最多重搬 1 批（Pop）或漏 1 批（Put）✓
+ *    · ★ 再也不会出现"擦扇区中途掉电 ⇒ 76 分钟缓存全废"✓✓ */
+static void Dc_LogLoad(DcHdr_t *h, uint32_t sec_a, uint32_t sec_b,
+                       uint32_t magic, uint16_t slots, DcLog_t *log)
+{
+	DcHdr_t  t;
+	uint8_t  found    = 0u;
+	uint8_t  best_sec = 0u;
+	uint16_t best_pos = 0u;
+	uint8_t  bad[2];                    /* ★ 每个扇区"停下来的那一条是坏的吗"✓ */
+	uint8_t  s;
+	uint16_t p;
+
+	log->sec = 0u;
+	log->pos = 0u;
+	bad[0]   = 0u;
+	bad[1]   = 0u;
+
+	for (s = 0u; s < 2u; s++)
+	{
+		uint32_t sec = (s == 0u) ? sec_a : sec_b;
+
+		for (p = 0u; p < DC_LOG_N; p++)
+		{
+			if (Dc_LogRead(sec + ((uint32_t)p * DC_LOG_REC_SZ), &t, magic, slots) == 0u)
+			{
+				/* ★ 不是空 ⇒ 这条被写坏过 ⇒ 这个扇区不能再原地往后写 ✓ */
+				if (Dc_RecBlank(&t) == 0u) { bad[s] = 1u; }
+				break;
+			}
+			if ((found == 0u) || (t.seq >= h->seq))
+			{
+				*h        = t;          /* ★ seq 更大 ⇒ 这条更新 ✓ */
+				found     = 1u;
+				best_sec  = s;
+				best_pos  = (uint16_t)(p + 1u);   /* ★ 下一条写在它后面 ✓ */
+			}
+		}
+	}
+
+	if (found == 0u)
 	{
 		Dc_HdrDefault(h, magic);
+		if (W25Q64_EraseSector(sec_a) != 0u)
+		{
+			if (magic == DC_MAGIC_D) { s_dc_hdr_erases++; }
+			else                     { s_dc_evt_erases++; }
+		}
+		log->sec = 0u;
+		log->pos = 0u;
 		return;
 	}
-	if ((h->magic != magic) || (h->crc != Dc_HdrCrc(h)) ||
-	    ((uint16_t)(h->wr - h->rd) > slots))
+
+	log->sec = best_sec;
+
+	/* ★★★ 停在"坏记录"上 ⇒ 游标推到 256（★ 下一次保存就换扇区 ✓）
+	 *   ★ 为什么不是"擦本扇区"✗：本扇区里躺着**最新的那份指针**
+	 *     ⇒ 一擦就把 `wr`/`rd` 丢了 ✓✓ */
+	if (bad[best_sec] != 0u)
 	{
-		Dc_HdrDefault(h, magic);
+		log->pos = (uint16_t)DC_LOG_N;
+	}
+	else
+	{
+		log->pos = best_pos;
 	}
 }
 
-static uint8_t Dc_SaveHdr(DcHdr_t *h, uint32_t hdr_addr)
+/* ★★★★★ 存一条指针记录（★ 追加写 ✗ 满了才擦另一个扇区 ✓）
+ *
+ *  ★★ 顺序【故意】是"先擦另一个、再往当前写"✗：
+ *    · 当前扇区里躺着**最新的那份指针** ✗ 全程不动它 ✓
+ *    · 擦的是**另一个**（它的记录全都更旧）⇒ 擦掉不影响正确性 ✓
+ *    · ★★★ 于是任何时刻**至少有一个扇区持有一份完整可用的指针** ✓✓
+ *      （★ 这就是"45 ms 掉电窗口"被消灭的原因 ✓）
+ *
+ *  ★★ 失败语义（★ 必须和 `Dc_Put` / `Dc_Pop` 的"回滚"配合 ✓）：
+ *    · 没写住 ⇒ 返回 0 ✗ `seq` 回退（**写进去的才算数** ✓）
+ *    · `Dc_Put` 见 0 ⇒ `h->wr--` ✓（★ 那批数据成了孤儿槽 ✗ 会被下次覆盖 ✓）
+ *    · `Dc_Pop` 见 0 ⇒ 不理 ✓（★ 指针没前进 ⇒ 最多重搬一次 ✓ 不丢 ✓）*/
+static uint8_t Dc_LogSave(DcHdr_t *h, uint32_t sec_a, uint32_t sec_b, DcLog_t *log)
 {
+	uint32_t sec;
+	uint32_t other;
+
+	if (log->pos >= (uint16_t)DC_LOG_N)         /* ★ 本扇区 256 条写满 ⇒ 换边 ✓ */
+	{
+		other = (log->sec == 0u) ? sec_b : sec_a;
+		if (W25Q64_EraseSector(other) == 0u) { return 0u; }
+		if (h->magic == DC_MAGIC_D) { s_dc_hdr_erases++; }
+		else                        { s_dc_evt_erases++; }
+		log->sec = (uint8_t)(log->sec ^ 1u);
+		log->pos = 0u;
+	}
+
+	sec = (log->sec == 0u) ? sec_a : sec_b;
+
+	h->seq = (uint32_t)(h->seq + 1u);
 	h->crc = Dc_HdrCrc(h);
-	/* ★ 先擦再写 ✗ NOR 不能"原地改"✓ 一块 4KB 扇区只放这 16 字节 ✓ */
-	if (W25Q64_EraseSector(hdr_addr) == 0u) { return 0u; }
-	return W25Q64_WriteData(hdr_addr, (const uint8_t *)h, (uint32_t)sizeof(DcHdr_t));
+
+	if (W25Q64_WriteData(sec + ((uint32_t)log->pos * DC_LOG_REC_SZ),
+	                     (const uint8_t *)h, DC_LOG_REC_SZ) == 0u)
+	{
+		h->seq = (uint32_t)(h->seq - 1u);       /* ★ 没写住 ⇒ 序号回退 ✓ */
+		return 0u;
+	}
+
+	log->pos = (uint16_t)(log->pos + 1u);
+	return 1u;
 }
 
 /* 写一项 ✗ 返回 1=成功 / 0=写失败 ✓
@@ -491,7 +732,8 @@ static uint8_t Dc_SaveHdr(DcHdr_t *h, uint32_t hdr_addr)
  *  ★ `len_prefix` = 1 ⇒ 先写 4 字节【实际长度】再写数据 ✓
  *    ★★ 为什么必须带长度 ✗：槽是固定 1024 B ✗ 而一批可能只有 400 B ✓
  *      不留长度的话，回写时【把槽里残留的旧字节一起写进 CSV】✓✓ */
-static uint8_t Dc_Put(uint32_t hdr_addr, uint32_t base, uint16_t slots, uint16_t item,
+static uint8_t Dc_Put(uint32_t sec_a, uint32_t sec_b, DcLog_t *log,
+                      uint32_t base, uint16_t slots, uint16_t item,
                       DcHdr_t *h, const uint8_t *src, uint16_t len, uint8_t len_prefix)
 {
 	uint16_t idx;
@@ -514,7 +756,7 @@ static uint8_t Dc_Put(uint32_t hdr_addr, uint32_t base, uint16_t slots, uint16_t
 	 *  ★★★ 溢出计数 ✗：借头里的 `rsv` 字段累加 ✓
 	 *    （★ 16 位 ✗ 溢出会回绕 ✓ 只当"有没有发生过"看 ✓）
 	 *  ★ 注意 ✗：这里【只改内存里的 rd】✗
-	 *    真正的落盘在下面 `Dc_SaveHdr` 一次完成 ✓（★ 减少一次擦写 ✓）*/
+	 *    真正的落盘在下面 `Dc_LogSave` 一次完成 ✓（★ 只追加 16 B ✗ 不擦扇区 ✓）*/
 	if ((uint16_t)(h->wr - h->rd) >= slots)
 	{
 		h->rd++;
@@ -581,7 +823,7 @@ static uint8_t Dc_Put(uint32_t hdr_addr, uint32_t base, uint16_t slots, uint16_t
 	}
 
 	h->wr++;
-	if (Dc_SaveHdr(h, hdr_addr) == 0u) { h->wr--; return 0u; }   /* ★ 指针没存住 ⇒ 回退 ✓ */
+	if (Dc_LogSave(h, sec_a, sec_b, log) == 0u) { h->wr--; return 0u; }   /* ★ 指针没存住 ⇒ 回退 ✓ */
 	return 1u;
 }
 
@@ -594,7 +836,7 @@ static uint8_t Dc_Peek(uint32_t base, uint16_t slots, uint16_t item,
 	return W25Q64_ReadData(base + ((uint32_t)idx * (uint32_t)item), dst, (uint32_t)item);
 }
 
-static void Dc_Pop(uint32_t hdr_addr, DcHdr_t *h)
+static void Dc_Pop(uint32_t sec_a, uint32_t sec_b, DcLog_t *log, DcHdr_t *h)
 {
 	if (h->wr == h->rd) { return; }
 	h->rd++;
@@ -603,7 +845,7 @@ static void Dc_Pop(uint32_t hdr_addr, DcHdr_t *h)
 		h->wr = 0u;
 		h->rd = 0u;
 	}
-	(void)Dc_SaveHdr(h, hdr_addr);      /* ★ 指针没存住 ⇒ 最多重搬一次 ✓ 不会丢 ✓ */
+	(void)Dc_LogSave(h, sec_a, sec_b, log);  /* ★ 指针没存住 ⇒ 最多重搬一次 ✓ 不会丢 ✓ */
 }
 
 /* ★ 运行时入口都要拿锁 ✗ 但【调度器没起来之前不能拿】✓ */
@@ -622,9 +864,50 @@ uint8_t DropCache_Init(void)
 		s_dc_on = 0u;
 		return 0u;
 	}
-	Dc_LoadHdr(&s_dc_d, DC_DATA_HDR, DC_MAGIC_D, (uint16_t)DC_DATA_SLOTS);
-	Dc_LoadHdr(&s_dc_e, DC_EVT_HDR,  DC_MAGIC_E, (uint16_t)DC_EVT_SLOTS);
+	/* ★★ 2026-10-20 G5：指针改成【日志 + A/B 乒乓】✗ 开机扫两条日志取最新 ✓ */
+	Dc_LogLoad(&s_dc_d, DC_DATA_HDR_A, DC_DATA_HDR_B, DC_MAGIC_D,
+	           (uint16_t)DC_DATA_SLOTS, &s_log_d);
+	Dc_LogLoad(&s_dc_e, DC_EVT_HDR_A, DC_EVT_HDR_B, DC_MAGIC_E,
+	           (uint16_t)DC_EVT_SLOTS, &s_log_e);
 	s_dc_on = 1u;
+
+	/* ★★★★★ 2026-10-20 **测试版专用**（★ 正式版 `DC_LOG_N == 256` ⇒ 这段整段不参与编译 ✓）
+	 *   ★ 目的：人为造一条"坏记录"✗ 验证 `Dc_RecBlank()` 那条分支 ✓
+	 *   · 触发条件：**游标在 [1, N)** —— ★ 必须 ≥1 ✗ 因为 pos==0 时前面
+	 *     【没有任何有效记录】✗ 灌坏它等于把整个指针清空 ✓
+	 *   · 动作：往"下一条要写的位置"灌 16 个 0x00
+	 *     ⇒ 下一次保存写在那儿 ⇒ 数据被 0x00【与】掉 ⇒ **CRC 必然不对** ✓
+	 *   · ★★ 期望：再复位一次 ⇒ `DROP: log d=256/<sec>`（★ 检测到坏记录 ✓）
+	 *     再一次保存 ⇒ 擦另一个扇区、翻面、`hdrer` +1 ✓✓ */
+#if (DC_LOG_INJECT_TEST == 1u)
+	if ((s_log_d.pos >= 1u) && (s_log_d.pos < (uint16_t)DC_LOG_N))
+	{
+		uint8_t  junk[DC_LOG_REC_SZ];
+		uint16_t i;
+
+		for (i = 0u; i < DC_LOG_REC_SZ; i++) { junk[i] = 0x00u; }
+		(void)W25Q64_WriteData(((s_log_d.sec == 0u) ? DC_DATA_HDR_A : DC_DATA_HDR_B) +
+		                       ((uint32_t)s_log_d.pos * DC_LOG_REC_SZ),
+		                       junk, DC_LOG_REC_SZ);
+		Serial_Printf("DROP: TEST injected a CORRUPT record at %c[%u]\r\n",
+		              (s_log_d.sec == 0u) ? 'A' : 'B', (unsigned)s_log_d.pos);
+	}
+#endif
+
+	/* ★★★★★ 2026-10-20 加：**开机把日志游标打出来**（★ G5 的验收观测点 ✓）
+	 *   ★ 为什么必须打 ✗：日志方案的"连续性"是**看不见的** ✓
+	 *     · `d(pos,sec)` = 数据区下一条写在哪 ✗ 掉电重启后应该【接着原来的位置】✓
+	 *     · `pos` 从 0 一路涨到 256 ⇒ 换扇区 ⇒ **回到 0 且 sec 翻面** ✓✓
+	 *   ★★ 判据 ✗：
+	 *     · 每次重启 `pos` 都在涨（不是 0）⇒ 【指针真的从日志里读回来了】✓
+	 *     · 断电前 `pos=17` 上电后 `pos=17` ⇒ 【没丢也没重】✓✓
+	 *     · ★ 若每次都是 `pos=0 sec=0` ⇒ 说明**扫描没认出来**（magic/CRC 不对）✓
+	 *       ⇒ 那缓存就是"每次开机清空" ✗ 必须回头看 ✓ */
+	Serial_Printf("DROP: log d=%u/%u e=%u/%u  pending=%u/%u\r\n",
+	              (unsigned)s_log_d.pos, (unsigned)s_log_d.sec,
+	              (unsigned)s_log_e.pos, (unsigned)s_log_e.sec,
+	              (unsigned)(uint16_t)(s_dc_d.wr - s_dc_d.rd),
+	              (unsigned)(uint16_t)(s_dc_e.wr - s_dc_e.rd));
 	return 1u;
 }
 
@@ -632,8 +915,8 @@ uint8_t DropCache_PutBatch(const uint8_t *p, uint16_t len)
 {
 	uint8_t r;
 	if (Dc_Lock() == 0u) { return 0u; }
-	r = Dc_Put(DC_DATA_HDR, DC_DATA_BASE, (uint16_t)DC_DATA_SLOTS,
-	           (uint16_t)DC_DATA_ITEM, &s_dc_d, p, len, 1u);
+	r = Dc_Put(DC_DATA_HDR_A, DC_DATA_HDR_B, &s_log_d, DC_DATA_BASE,
+	           (uint16_t)DC_DATA_SLOTS, (uint16_t)DC_DATA_ITEM, &s_dc_d, p, len, 1u);
 	xSemaphoreGive(s_w25_lock);
 	return r;
 }
@@ -673,7 +956,7 @@ uint8_t DropCache_PeekBatch(uint8_t *dst, uint16_t *len)
 void DropCache_PopBatch(void)
 {
 	if (Dc_Lock() == 0u) { return; }
-	Dc_Pop(DC_DATA_HDR, &s_dc_d);
+	Dc_Pop(DC_DATA_HDR_A, DC_DATA_HDR_B, &s_log_d, &s_dc_d);
 	xSemaphoreGive(s_w25_lock);
 }
 
@@ -696,6 +979,22 @@ uint16_t DropCache_OverflowCount(void)
 	return (s_dc_on != 0u) ? s_dc_d.rsv : 0u;
 }
 
+/* ★★★★★ 2026-10-20 加（★ G5 的"证据"✓）：指针日志扇区【擦了几次】✓
+ *   · 改前 ✗ 每存一批擦一次 + 每取一批再擦一次（断卡 ≈ **3.3 次/秒**）
+ *   · 改后 ✗ 每 **256 条**记录才擦一次
+ *   ⇒ 掉卡跑几分钟，`hdrer` 应该只涨 **0~1** ✓
+ *     （★ 若它按秒在涨 ⇒ 说明没走到日志路径 ✗ 立刻回头看 ✓✓）
+ *   ★ 只在上电后累计 ✗ 重启清零 ✓（★ 当"本次开机擦了几次"读 ✓）*/
+uint16_t DropCache_HdrErases(void)
+{
+	return s_dc_hdr_erases;
+}
+
+uint16_t DropCache_EvtHdrErases(void)
+{
+	return s_dc_evt_erases;
+}
+
 uint8_t DropCache_PutEvent(const char *line)
 {
 	uint8_t  r;
@@ -712,8 +1011,9 @@ uint8_t DropCache_PutEvent(const char *line)
 	for (i = (uint16_t)(i + 1u); i < (uint16_t)DC_EVT_ITEM; i++) { buf[i] = 0u; }
 
 	if (Dc_Lock() == 0u) { return 0u; }
-	r = Dc_Put(DC_EVT_HDR, DC_EVT_BASE, (uint16_t)DC_EVT_SLOTS,
-	           (uint16_t)DC_EVT_ITEM, &s_dc_e, buf, (uint16_t)DC_EVT_ITEM, 0u);
+	r = Dc_Put(DC_EVT_HDR_A, DC_EVT_HDR_B, &s_log_e, DC_EVT_BASE,
+	           (uint16_t)DC_EVT_SLOTS, (uint16_t)DC_EVT_ITEM, &s_dc_e, buf,
+	           (uint16_t)DC_EVT_ITEM, 0u);
 	xSemaphoreGive(s_w25_lock);
 	return r;
 }
@@ -741,7 +1041,7 @@ uint8_t DropCache_PeekEvent(char *dst, uint16_t sz)
 void DropCache_PopEvent(void)
 {
 	if (Dc_Lock() == 0u) { return; }
-	Dc_Pop(DC_EVT_HDR, &s_dc_e);
+	Dc_Pop(DC_EVT_HDR_A, DC_EVT_HDR_B, &s_log_e, &s_dc_e);
 	xSemaphoreGive(s_w25_lock);
 }
 

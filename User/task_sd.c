@@ -1450,13 +1450,22 @@ static uint16_t Sd_DrainToCache(void)
 		 *       而真存进缓存的只有 **8 批** ✓✓ 差 8 倍 ✗ 判据会被带偏 ✓
 		 *   · ★★★ 现在 ✗ `stored` 累计 `Sd_DsPush()` 的返回值
 		 *     = 【真存进缓存的批数】✓
-		 *     并把 RAM 里还攒着几条也报出来（`ram=`）✓✓ */
-		Serial_Printf("SD: drained %u batch (stored %u, ram=%u recs) pending=%u ovr=%u\r\n",
+		 *     并把 RAM 里还攒着几条也报出来（`ram=`）✓✓
+		 *
+		 * ★★★★★ 2026-10-20 再改（★ G5 的证据 ✓）：加 `hdrer=` / `evter=` ✓
+		 *   · 指针日志扇区【擦了几次】（★ 上电后累计 ✓）
+		 *   · ★ 改前：每存/取一批各擦一次 ⇒ 掉卡 ≈ **3.3 次/秒** ✓
+		 *   · ★★ 改后：每 256 条记录才擦一次 ⇒ 掉卡几分钟**只涨 0~1** ✓✓
+		 *   ⇒ ★ 这两个数【按秒在涨】= 没走日志路径 ✗ 立刻回头看 ✓
+		 *     （★ 专门留的观测点 ✗ 不用接调试器 ✓）*/
+		Serial_Printf("SD: drained %u batch (stored %u, ram=%u recs) pending=%u ovr=%u hdrer=%u evter=%u\r\n",
 		              (unsigned)n,
 		              (unsigned)stored,
 		              (unsigned)s_ds_lines,
 		              (unsigned)DropCache_PendingBatches(),
-		              (unsigned)DropCache_OverflowCount());
+		              (unsigned)DropCache_OverflowCount(),
+		              (unsigned)DropCache_HdrErases(),
+		              (unsigned)DropCache_EvtHdrErases());
 	}
 	return n;
 }
