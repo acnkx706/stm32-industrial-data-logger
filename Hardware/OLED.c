@@ -21,8 +21,44 @@
  *     · ★★ 而它开头还写着"注释同步更新 ✓"✗ 是一句**假背书** ✓✓
  *       （★ 58 号审计 §2.2 点名的就是这个例子 ✗
  *         ⇒ 以后【别再写"已同步"这种话】✗ 要写就写具体数字 ✓）*/
-#define OLED_W_SDA(x)   GPIO_WriteBit(GPIOB, GPIO_Pin_9, (BitAction)(x))
-#define OLED_W_SCL(x)   do { GPIO_WriteBit(GPIOB, GPIO_Pin_8, (BitAction)(x)); DWT_Delay_us(1); } while (0)
+/* ★★★★★ 2026-10-20 换脚：OLED 从 **PB8/PB9 → PB10/PB7**
+ *   ★ 起因：打样板把 OLED 座子的 **VCC / GND 打反了** ✗ 那个座子不能再用
+ *     ⇒ 改成从"空闲脚排针"飞线：屏的 SCL → ④、SDA → ⑧ ✓
+ *
+ *  ★★ 为什么是 PB10 / PB7（★ 8 个空闲脚里筛出来的 ✓）：
+ *    · **PC14 / PC15 绝对不能用** ✗ 它们是 **LSE 32.768 kHz 晶振脚**
+ *      而本工程 RTC 的时钟源就是 LSE（`MyRTC.c`：`RCC_LSEConfig(RCC_LSE_ON)` +
+ *      `RCC_RTCCLKSource_LSE`）⇒ 抢走这俩 ⇒ **RTC 停摆、时间一上电归零** ✓✓
+ *    · **PC13** 能用但最弱 ✗ 手册规定 PC13/14/15 **最大 3 mA、速度 ≤ 2 MHz** ✓
+ *    · **PB3（JTDO）/ PB4（NJTRST）/ PA15（JTDI）** 是 JTAG 脚
+ *      ⇒ 要用它们必须 `GPIO_Remap_SWJ_JTAGDisable`（★ 多一处和调试器相关的风险 ✓）
+ *    · ⇒ 挑 **PB10 / PB7**：**都是普通 IO** ✗ 一行 remap 都不用 ✓✓
+ *
+ *  ★★★ 代价（★ 说清楚，别装作没有 ✓）：
+ *    · **PB10 原来留给 P-MOS 断电重挂**（SD 掉卡的终极解法）
+ *      ⇒ 现在被 OLED 占了 ✗ P-MOS 改用 **PA15**（或 PC13）
+ *      ★ P-MOS 只要一个"慢速开关"信号 ✗ 不需要定时器/复用功能
+ *        ⇒ 挪到 PA15 完全够用 ✓（★ 但 PA15 是 JTDI ⇒ 那时要关 JTAG ✓）
+ *
+ *  ★★★★ 从 PB8/PB9 换到别处**必须整文件同步**（★ 这就是抽成宏的理由 ✓）：
+ *    · 原来 `GPIO_Pin_8` / `GPIO_Pin_9` **硬写在本文件 16 处**
+ *      （含 9 时钟总线恢复、读 ACK 那两处最容易漏 ✓）
+ *      ⇒ 换脚要改 16 行 ✗ 漏一处就是"屏不亮"✓✓
+ *    · 现在换脚只改下面**两行** ✓
+ *    · ★ 另外注意：**PB7 是 I2C1_SDA 的复用脚**（PB6=SCL）
+ *      ⇒ 以后若想用硬件 I2C，得换 **PB6/PB7** 那一对 ✓ 不是问题 ✓
+ *
+ *  ★★★★★ 硬件要求（★ 换脚后必须自己保证 ✓）：
+ *    · SCL/SDA **各一根 4.7k 上拉到 3.3V** ✗ 软件 I2C 是开漏
+ *      ⇒ 【没有上拉就没有高电平 ⇒ 屏永远不应答】✓✓
+ *      （★ 原来 OLED 座子上自带的上拉，飞线后要确认还在 ✓）
+ *    · 接法：排针 **④ = SCL（PB10）**、**⑧ = SDA（PB7）** ✓
+ *    · ★ 两根【别对调】✗ 对调后屏不响应 ✗ 但不会烧东西 ✓ */
+#define OLED_PIN_SCL    GPIO_Pin_10     /* ★ = 排针 ④（PB10）✓ */
+#define OLED_PIN_SDA    GPIO_Pin_7      /* ★ = 排针 ⑧（PB7）✓ */
+
+#define OLED_W_SDA(x)   GPIO_WriteBit(GPIOB, OLED_PIN_SDA, (BitAction)(x))
+#define OLED_W_SCL(x)   do { GPIO_WriteBit(GPIOB, OLED_PIN_SCL, (BitAction)(x)); DWT_Delay_us(1); } while (0)
 /*==============================================================================
  *  ★★★★ I2C 总线恢复（9 个时钟）—— 2026-10-14 加 ✓
  *
@@ -54,21 +90,21 @@ static void OLED_BusRecover(void)
 	/* ① SCL 配成开漏输出 ✗ SDA 先【放开成上拉输入】✗ 只由我们驱动 SCL ✓ */
 	g.GPIO_Speed = GPIO_Speed_50MHz;
 	g.GPIO_Mode  = GPIO_Mode_Out_OD;
-	g.GPIO_Pin   = GPIO_Pin_8;
+	g.GPIO_Pin   = OLED_PIN_SCL;
 	GPIO_Init(GPIOB, &g);
 
 	g.GPIO_Mode  = GPIO_Mode_IPU;
-	g.GPIO_Pin   = GPIO_Pin_9;
+	g.GPIO_Pin   = OLED_PIN_SDA;
 	GPIO_Init(GPIOB, &g);
 
-	GPIO_WriteBit(GPIOB, GPIO_Pin_8, Bit_SET);     /* SCL 先高高地放着 ✓ */
+	GPIO_WriteBit(GPIOB, OLED_PIN_SCL, Bit_SET);     /* SCL 先高高地放着 ✓ */
 
 	/* ② ★★ 打 9 个时钟（★ 直接用 GPIO ✗ 不走 I2C 协议 ✓）*/
 	for (i = 0u; i < 9u; i++)
 	{
-		GPIO_WriteBit(GPIOB, GPIO_Pin_8, Bit_RESET);
+		GPIO_WriteBit(GPIOB, OLED_PIN_SCL, Bit_RESET);
 		DWT_Delay_us(2);                           /* ★ 慢一点 ✗ 让从机跟得上 ✓ */
-		GPIO_WriteBit(GPIOB, GPIO_Pin_8, Bit_SET);
+		GPIO_WriteBit(GPIOB, OLED_PIN_SCL, Bit_SET);
 		DWT_Delay_us(2);
 	}
 
@@ -76,32 +112,38 @@ static void OLED_BusRecover(void)
 	 *    （★ 这会让所有从机把状态机复位到"空闲"✓）*/
 	g.GPIO_Mode  = GPIO_Mode_Out_OD;
 	g.GPIO_Speed = GPIO_Speed_50MHz;
-	g.GPIO_Pin   = GPIO_Pin_9;
+	g.GPIO_Pin   = OLED_PIN_SDA;
 	GPIO_Init(GPIOB, &g);                          /* SDA 变回输出 ✓ */
 
-	GPIO_WriteBit(GPIOB, GPIO_Pin_9, Bit_RESET);   /* SDA = 0 ✓ */
+	GPIO_WriteBit(GPIOB, OLED_PIN_SDA, Bit_RESET);   /* SDA = 0 ✓ */
 	DWT_Delay_us(2);
-	GPIO_WriteBit(GPIOB, GPIO_Pin_8, Bit_SET);     /* SCL = 1 ✓ */
+	GPIO_WriteBit(GPIOB, OLED_PIN_SCL, Bit_SET);     /* SCL = 1 ✓ */
 	DWT_Delay_us(2);
-	GPIO_WriteBit(GPIOB, GPIO_Pin_9, Bit_SET);     /* SDA 0 → 1 = Stop ✓ */
+	GPIO_WriteBit(GPIOB, OLED_PIN_SDA, Bit_SET);     /* SDA 0 → 1 = Stop ✓ */
 	DWT_Delay_us(2);
 
 	/* ④ 恢复成"开漏、都拉高"的空闲态 ✓ */
-	GPIO_WriteBit(GPIOB, GPIO_Pin_8, Bit_SET);
-	GPIO_WriteBit(GPIOB, GPIO_Pin_9, Bit_SET);
+	GPIO_WriteBit(GPIOB, OLED_PIN_SCL, Bit_SET);
+	GPIO_WriteBit(GPIOB, OLED_PIN_SDA, Bit_SET);
 }
 
 /*引脚初始化*/
 void OLED_I2C_Init(void)
 {
+	/* ★ 2026-10-20：现在用的是 **PB10 / PB7** ✗ 都是普通 IO
+	 *   ⇒ 【不需要关 JTAG】✓（曾经为 PB3/PB4 加过 remap，已随之撤掉 ✓）
+	 *   ★ 若将来又换回 PB3/PB4/PA15 ✗ 这里必须补：
+	 *       RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	 *       GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+	 *     （★ 只关 JTAG ✗ 千万别用 SWJ_Disable ⇒ 连 SWD 一起关 ⇒ 再也下载不进去 ✓✓）*/
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 	
 	GPIO_InitTypeDef GPIO_InitStructure;
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+	GPIO_InitStructure.GPIO_Pin = OLED_PIN_SCL;
  	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Pin = OLED_PIN_SDA;
  	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 	OLED_W_SCL(1);
@@ -555,7 +597,7 @@ static uint8_t OLED_WaitAck(void)
 	OLED_W_SDA(1);                                     /* ★ 放开 SDA（开漏写 1 = 松手 ✓）*/
 	OLED_W_SCL(1);                                     /* ★ 第 9 个时钟（宏里含 2µs ✓）*/
 	DWT_Delay_us(2);                                   /* ★ 再留一点采样稳定时间 ✓ */
-	ack = (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_9) == 0) ? 1u : 0u;   /* ★ 直接读 ✓ */
+	ack = (GPIO_ReadInputDataBit(GPIOB, OLED_PIN_SDA) == 0) ? 1u : 0u;   /* ★ 直接读 ✓ */
 	OLED_W_SCL(0);
 	return ack;
 }

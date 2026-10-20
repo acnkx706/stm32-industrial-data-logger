@@ -24,6 +24,7 @@
 #include "DHT22.h"                 /* ★ DHT22 温湿度（PB15 ✓ 模块自带 10k 上拉 ✓）*/
 #include "buzz.h"                  /* ★ 蜂鸣器服务（PB12 ✓ 低电平触发 ✓）*/
 #include "BMP280.h"                /* ★ BMP280 气压（与 MPU6050 共用 PA2/PA3 软件 I2C ✓）*/
+#include "HC_SR04.h"               /* ★★★ 2026-10-20：超声波测距（PB5=TRIG / PB6=ECHO ✓）*/
 #include "task_sd.h"                    /* ★ R1 集成：SD 交接接口/乒乓缓冲/task_SD 本体 */
 #include "golden.h"                /* ★★★★ 金副本（版本备份/回退 ✓ 2026-10-14 加 ✓）*/
 #include "MyRTC.h" 
@@ -128,9 +129,17 @@ void task_SD(void *pvParameters);
 
 /* task_SENSOR：DS18B20 温度，1 秒一拍
  * ★ 位操作协议 → 放最低优先级，且与 ACQ 的 100ms 网格【错开相位】（30 号 §16.2）
- * ★ 栈 128 字够：只做位操作 + 一次赋值，【不打印】 */
+ * ★ 栈 128 字够：只做位操作 + 一次赋值，【不打印】
+ *
+ * ★★★★ 2026-10-20 改成 **320 字**（★ 血的教训 ✗ 一定要看 ✓）：
+ *   · 加超声波之后这里要 `Serial_Printf("SONAR: ...")` 带 **3 个 %u**
+ *   · ★ `printf` 家族是**栈上大户** ✗ 一次要 100~150 B ✓
+ *   · 实测（R4 的方法）：128 字时 `sensor stkfree=5` ⇒ **只剩 20 字节**
+ *     ⇒ 跑一会儿就【栈溢出 ⇒ 任务静默死亡】
+ *       （★ 现象：`SONAR:` 只打了几行就再也不打 ✗ 别的任务全都正常 ✓✓）
+ *   · ★ 现在 320 字（1.28 KB）⇒ 留 2 倍余量 ✓（RAM 从 5,360 → 4,592 B ✓ 够）*/
 #define TASK_SENSOR_PRIO            1
-#define TASK_SENSOR_STACK_SIZE      128
+#define TASK_SENSOR_STACK_SIZE      320
 TaskHandle_t    task_sensor_handler;
 void task_sensor(void *pvParameters);
 
@@ -2042,6 +2051,55 @@ void task_sensor(void *pvParameters)
 			else
 			{
 				g_humi_x10 = 0xFFFF;            /* ★ 无效 → 0xFFFF（"未接"约定 ✓）*/
+			}
+		}
+
+		/*========================================================================
+		 *  ★★★★ 2026-10-20 加：HC-SR04 超声波测距（★ 非阻塞写法 ✓）
+		 *
+		 *  ★ 三步走（★ 见 `HC_SR04.h` 的说明 ✓）：
+		 *    ① `Start()` 只发 12µs 触发脉冲 ✗ 立刻返回 ✓
+		 *    ② 每 1ms 查一次 ✗ 最长等 **45ms**（4 米回波只要 25ms ✓）
+		 *    ③ `Poll()` 回 1 = 成功（mm）✗ 回 2 = 超时/无回波 ✓
+		 *
+		 *  ★★ 为什么敢在这个任务里"等"这 25ms ✗：
+		 *    · 本任务优先级 **1**（最低的非空闲任务 ✓）
+		 *    · 等的时候用的是 `vTaskDelay(1)` ✗ **CPU 让给别人** ✓
+		 *    ⇒ ACQ(6)/PROC(2)/SD/KEY/DISP 全都照跑 ✓✓
+		 *
+		 *  ★★★ 结果【只打串口】✗ 暂不进 CSV ✓：
+		 *    · 进 CSV 要改 **16 列契约 + 行 CRC 锚点 0x2189** ✗
+		 *    · 那是【单独一轮】的活（要同步改 `check_csv_crc.py` ✓）
+		 *    ⇒ 先把"能测、测得准"这件事做完 ✓✓
+		 *========================================================================*/
+		{
+			uint16_t mm = 0u;
+			uint8_t  sr = 0u;
+			uint8_t  n;
+
+			HC_SR04_Start();
+			for (n = 0u; n < 45u; n++)
+			{
+				sr = HC_SR04_Poll(&mm);
+				if (sr != 0u) { break; }
+				vTaskDelay(pdMS_TO_TICKS(1));
+			}
+
+			if (sr == 1u)
+			{
+				Serial_Printf("SONAR: %u mm (pulse %u us, edges %u)\r\n",
+				              (unsigned)mm, (unsigned)HC_SR04_LastPulseUs(),
+				              (unsigned)HC_SR04_EdgeCount());
+			}
+			else
+			{
+				/* ★ 无回波是**正常结果**（前面没东西 / 太远 / 吸音材料 ✓）
+				 *   ★★ 但 `edges` 一直为 0 就**不是**正常结果 ✗
+				 *     ⇒ 那是"线上一根边沿都没有" ⇒ 查供电/接线 ✓✓ */
+				Serial_Printf("SONAR: no echo (pulse %u us, edges %u, echo=%u)\r\n",
+				              (unsigned)HC_SR04_LastPulseUs(),
+				              (unsigned)HC_SR04_EdgeCount(),
+				              (unsigned)HC_SR04_EchoLevel());
 			}
 		}
 
