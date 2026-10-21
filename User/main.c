@@ -134,7 +134,7 @@ static void BMP280_Probe(void)
  *      · 它是【该 .o 的编译时间】✗ 增量编译时【不更新】✓
  *      · 本项目已经在 RTC 初值上【踩过这个坑】✓（净偏 22h35m 那次）
  *    ⇒ ★ 宁可人手改 ✗ 也不要一个"看起来自动、其实会骗人"的版本号 ✓ */
-#define APP_VER_STR   "APP: ver 40 (2026-10-21 RTC: timeouts + backup reset retry)"
+#define APP_VER_STR   "APP: ver 43 (2026-10-21 wire probe restores pins)"
 int main(void)
 {int16_t oax, oay, oaz, ogx, ogy, ogz;
 /* ---------- 第一批：先把"能显示/能通信"的立起来（诊断能力优先） ---------- */
@@ -418,6 +418,94 @@ int main(void)
 	 *   ★ 放在这里：和其它传感器初始化挨着 ⇒ 一眼看出"板上有哪些传感器"✓
 	 *   ★★ 它只配两个引脚 + TIM4 ✗ 不采样、不发脉冲 ✓（采样在 task_sensor 里 ✓）*/
 	HC_SR04_Init();
+
+	/*========================================================================
+	 *  ★★★★ 2026-10-21 加：**1-wire 线路体检**（★ 换板后两个温度传感器全失效 ✓）
+	 *
+	 *  ★ 背景 ✗：`DS18B20.h` 写明"**不接外部上拉**，靠 MCU 内部 ~40k 造上拉" ✓
+	 *    （★ 旧板杜邦线短 ⇒ 够用；新板走线长 + 排针 ⇒ 很可能拉不起来 ✓✓）
+	 *
+	 *  ★★ 怎么量 ✗：把 PB14/PB15 配成 **浮空输入**
+	 *     （★ 不能用内部上拉 ✗ 一用就把"有没有外部上拉"这件事糊掉了 ✓）
+	 *    · 8 次采样全是 1 ⇒ **有外部上拉** ✓（最理想）
+	 *    · 全是 0     ⇒ 线被拉死 / 对地短路 ✓
+	 *    · 乱跳       ⇒ **没有外部上拉** ✗ 长线上必然读不稳 ✓✓
+	 *
+	 *  ★★★ 再看 DS18B20 的 presence 脉宽（★ 最硬的证据 ✓）：
+	 *    · 60~240 us ⇒ 芯片在应答 ✓
+	 *    · 0         ⇒ 没人应答（没接 / 没供电 / 线断 ✓）
+	 *    · 65535     ⇒ 线一直被拉低 ✓
+	 *========================================================================*/
+	{
+		GPIO_InitTypeDef g;
+		uint8_t i;
+		uint8_t n14 = 0u;      /* 浮空读 */
+		uint8_t n15 = 0u;
+		uint8_t p14 = 0u;      /* ★ 内部上拉再读一次（★ 用来区分"没上拉"和"被拉低"✓）*/
+		uint8_t p15 = 0u;
+
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+		g.GPIO_Speed = GPIO_Speed_50MHz;
+		g.GPIO_Pin   = GPIO_Pin_14 | GPIO_Pin_15;
+
+		/* ① 浮空输入：★ 只有"外部有上拉"才会读到 1 ✓ */
+		g.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+		GPIO_Init(GPIOB, &g);
+		DWT_Delay_us(200u);
+
+		for (i = 0u; i < 8u; i++)
+		{
+			if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_14) != 0u) { n14++; }
+			if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_15) != 0u) { n15++; }
+			DWT_Delay_us(100u);
+		}
+
+		/* ② 内部上拉再读：★ 这是"区分两种失败"的关键 ✓
+		 *   · 浮空 0/8 + 内部上拉 8/8 ⇒ 线**只是悬空**（没外部上拉）
+		 *     ⇒ 加 4.7k/10k 到 3.3V 就好 ✓
+		 *   · 浮空 0/8 + 内部上拉 0/8 ⇒ 线被**硬拉低**
+		 *     （焊锡桥 / 对地短路 / 模块把线钳住 / 引脚损坏）
+		 *     ⇒ 加电阻没用 ✗ 必须先找出为什么是低 ✓✓ */
+		g.GPIO_Mode = GPIO_Mode_IPU;
+		GPIO_Init(GPIOB, &g);
+		DWT_Delay_us(200u);
+
+		for (i = 0u; i < 8u; i++)
+		{
+			if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_14) != 0u) { p14++; }
+			if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_15) != 0u) { p15++; }
+			DWT_Delay_us(100u);
+		}
+
+		Serial_Printf("WIRE: PB14 float %u/8 ipu %u/8 | PB15 float %u/8 ipu %u/8\r\n",
+		              (unsigned)n14, (unsigned)p14, (unsigned)n15, (unsigned)p15);
+		if (((n14 + n15) == 0u) && ((p14 + p15) == 0u))
+		{
+			Serial_Printf("WIRE: => lines held LOW even with pull-up: SHORT or module clamping. "
+			              "Check B14/B15..GND and module DATA wiring.\r\n");
+		}
+		else if (((n14 + n15) == 0u) && ((p14 + p15) != 0u))
+		{
+			Serial_Printf("WIRE: => lines are FLOATING (no external pull-up). "
+			              "Add 4.7k (B14) / 10k (B15) to 3V3.\r\n");
+		}
+		Serial_Printf("WIRE: DS18B20 presence = %u us (60..240=ok 0=no ack 65535=stuck low)\r\n",
+		              (unsigned)DS18B20_MeasurePresence());
+
+		/* ★★★★★ 2026-10-21：**体检完必须把引脚还给驱动** ✗✓
+		 *   ★ 为什么 ✗（★ 这是我自己踩的坑 ✓）：
+		 *     · `DHT22_Read()` 里【不重配引脚模式】✗ 只做
+		 *       `DHT_PullLow()` / `DHT_Release()` = `GPIO_ResetBits` / `GPIO_SetBits` ✓
+		 *     · 而上面这个探针把 PB15 改成了【输入】（还要读电平）✗
+		 *       ⇒ 驱动的位写【完全没有波形输出】⇒ 启动信号发不出去
+		 *       ⇒ 永远 `humi=65535` ✓✓✓
+		 *   ★★ 现象特征（★ 值得记 ✓）：
+		 *     · **开机自检好、任务里坏** —— 因为自检跑在探针【之前】✓
+		 *     · DS18B20 反而不受影响 ✗ 它的驱动【每次读都自己重配 IPU/Out_PP】✓✓
+		 *   ★★★ 教训：**任何"临时改引脚状态"的探针，退出前都要还原** ✓
+		 *     （★ 最省事的还原方式 = 直接调驱动的 Init ✓ 一行搞定 ✓）*/
+		DHT22_Init();
+	}
 
 #if (TEST_DS18B20)
 	Serial_Printf("---- DS18B20 test (PB14) ----\r\n");
