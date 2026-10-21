@@ -185,11 +185,26 @@ typedef struct {
 	 *     · ★ 代价却是【每行 +5 字节】✗（20 万行 ⇒ +1 MB ✓）
 	 *   ⇒ ★ 结论：**性价比不划算 ✗ 维持 CRC-16/KERMIT** ✓✓
 	 *   ★★ 已回滚 ✗：`Crc32_Calc()` 也一并删除（★ 不留死代码 ✓）*/
-	uint16_t crc;       /* ★ CRC-16/KERMIT，算的是【CSV 前 15 列文本】而不是本结构体 ✓ */
+	/* ★★★★ 2026-10-20 新增第 16 列：**超声波距离（mm）** ✓
+	 *   · 值 = `HC_SR04` 测得并换算后的毫米数 ✓
+	 *   · ★ **0 = 无回波 / 还没测到**（合法距离最小 20mm ✗ 不会和 0 混 ✓）
+	 *   · ★★ 为什么放在 `crc` 前面 ✗：CRC 算的是"最后一个逗号之前的全部文本"
+	 *     ⇒ 塞在 `crc` 之前 ⇒ **自动被 CRC 覆盖** ✓ 不用改 PC 侧校验器 ✓✓ */
+	uint16_t sonar;
+	uint16_t crc;       /* ★ CRC-16/KERMIT，算的是【CSV 前 16 列文本】而不是本结构体 ✓ */
 } Record_t;
 
-/* 尺寸断言：布局一变就【编译期】报错（不占 Flash/RAM） */
-typedef char assert_record_size[( sizeof(Record_t) == 40 ) ? 1 : -1];
+/* 尺寸断言：布局一变就【编译期】报错（不占 Flash/RAM）
+ * ★★★ 2026-10-20：40 → **44**（加 `sonar` 2 字节 ✓）
+ *   ★★ 为什么不是 42 ✗（★ 这个"多了 2 字节"的账要会算 ✓）：
+ *     · 结构体里有 `uint32_t` ⇒ **对齐要求 4 字节** ✓
+ *     · 加 2 字节后 = 42 ✗ 但要【补齐到 4 的倍数】⇒ **44** ✓✓
+ *     ⇒ 所以"加一个 uint16 字段"的真实代价是 **4 字节**（队列 8 项 ⇒ 32 B ✓）
+ *   ★ 这个断言**救了一次** ✗ 加字段时立刻在这里炸出来 ✓
+ *     ⇒ 提醒你【队列 item 大小、静态存储数组全都跟着变了】✓✓
+ *   ★ 记录只在 RAM 里走（队列 + 拼行）✗ **不落盘** ✓
+ *     （★ 落盘的是文本行 ✗ 所以改结构体不影响卡上的历史格式 ✓✓）*/
+typedef char assert_record_size[( sizeof(Record_t) == 44 ) ? 1 : -1];
 
 
 /* 队列长度：8 是初值、不是设计值 —— 阶段2 写完 SD 卡后按实测 QMAX 重新定容
@@ -265,6 +280,13 @@ volatile uint16_t g_i2c_us_max  = 0;
 static SemaphoreHandle_t s_i2c_lock = NULL;
 
 /* DS18B20 温度 ×100 °C（例 2400 = 24.00C）；读失败 = DS18B20_INVALID(-32768) */
+/* ★★★★ 2026-10-20 加：超声波距离（mm ✗ 0 = 无回波 ✓）
+ *   · 写者：`task_sensor`（每秒测一次 ✓）
+ *   · 读者：`task_ACQ`（拼进 Record_t ✓）
+ *   ★ 为什么用 volatile ✗：跨任务共享 ✗ 而且 16 位在 CM3 上原子 ✓
+ *     （★ 但仍要 volatile 防止编译器把它缓存进寄存器 ✓）*/
+volatile uint16_t g_sonar_mm = 0u;
+
 volatile int16_t g_temp_x100 = DS18B20_INVALID;
 
 /* ★★ BMP280 气压 ×10 Pa —— 契约单位（`30` 号 §15.2 ✓，1013.25hPa = 1013250 ✓）
@@ -621,6 +643,7 @@ void task_ACQ(void *pvParameters)//100ms定时器
 	                                            *  ★ 当前接的是【板子 5V 排针】= USB 的 5V ✗
 	                                            *     预期原始值 ≈ 2068 ✓（= 5.0V ✓）
 	                                            *     ★ 注意：5V 和 VDDA(3.3V) 不同源 → 能测出变化 ✓✓ */
+	 rec.sonar     = g_sonar_mm;               /* ★ 2026-10-20：超声波 mm ✓（0 = 无回波 ✓）*/
 	 rec.crc       = 0;
 		
 	
@@ -764,14 +787,15 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 	 *     · 与最后一个逗号之后的十进制值比较 ✓
 	 *   ★ 此处 row 里【还没有 \r\n】✓（\r\n 是后面拷进缓冲时才加的 ✓）
 	 *     —— 正合契约 ✓ 不需要额外处理 ✓ */
-	rowlen = sprintf(row, "%lu,%lu,%lu,%lu,%d,%d,%d,%d,%d,%d,%d,%d,%u,%u,%u",
+	/* ★ 2026-10-20：**前 16 列**（末尾加了 `sonar` ✗ 见 `Record_t` ✓）*/
+	rowlen = sprintf(row, "%lu,%lu,%lu,%lu,%d,%d,%d,%d,%d,%d,%d,%d,%u,%u,%u,%u",
 	                  (unsigned long)rec.seq,  (unsigned long)rec.tick,
 	                  (unsigned long)rec.press,(unsigned long)rec.rtc,
 	                  rec.ax, rec.ay, rec.az,
 	                  rec.gx, rec.gy, rec.gz,
 	                  rec.temp_ds, rec.temp_chip,
 	                  (unsigned)rec.humi, (unsigned)rec.light,
-	                  (unsigned)rec.vbat);
+	                  (unsigned)rec.vbat, (unsigned)rec.sonar);
 
 	/* ★ 对【上面这段文本】算 CRC ✓（覆盖的正是"卡上那一行的前 15 列"✓）
 	 *   ★★ 2026-10-19 ✗：**CRC-32 方案已废弃 ⇒ 退回 CRC-16/KERMIT** ✓
@@ -2087,6 +2111,7 @@ void task_sensor(void *pvParameters)
 
 			if (sr == 1u)
 			{
+				g_sonar_mm = mm;                 /* ★ 进 CSV 的值（task_ACQ 取 ✓）*/
 				Serial_Printf("SONAR: %u mm (pulse %u us, edges %u)\r\n",
 				              (unsigned)mm, (unsigned)HC_SR04_LastPulseUs(),
 				              (unsigned)HC_SR04_EdgeCount());
@@ -2096,6 +2121,7 @@ void task_sensor(void *pvParameters)
 				/* ★ 无回波是**正常结果**（前面没东西 / 太远 / 吸音材料 ✓）
 				 *   ★★ 但 `edges` 一直为 0 就**不是**正常结果 ✗
 				 *     ⇒ 那是"线上一根边沿都没有" ⇒ 查供电/接线 ✓✓ */
+				g_sonar_mm = 0u;                 /* ★ CSV 约定：0 = 无回波 ✓ */
 				Serial_Printf("SONAR: no echo (pulse %u us, edges %u, echo=%u)\r\n",
 				              (unsigned)HC_SR04_LastPulseUs(),
 				              (unsigned)HC_SR04_EdgeCount(),

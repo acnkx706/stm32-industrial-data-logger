@@ -134,7 +134,7 @@ static void BMP280_Probe(void)
  *      · 它是【该 .o 的编译时间】✗ 增量编译时【不更新】✓
  *      · 本项目已经在 RTC 初值上【踩过这个坑】✓（净偏 22h35m 那次）
  *    ⇒ ★ 宁可人手改 ✗ 也不要一个"看起来自动、其实会骗人"的版本号 ✓ */
-#define APP_VER_STR   "APP: ver 37 (2026-10-20 RTC: LSE retry + LSI fallback)"
+#define APP_VER_STR   "APP: ver 39 (2026-10-21 RTC waits with timeout)"
 int main(void)
 {int16_t oax, oay, oaz, ogx, ogy, ogz;
 /* ---------- 第一批：先把"能显示/能通信"的立起来（诊断能力优先） ---------- */

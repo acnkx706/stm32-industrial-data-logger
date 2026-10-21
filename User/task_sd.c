@@ -462,7 +462,7 @@ static FRESULT SD_AppendEvidence(const char *src,
 		/* ★ 新文件 → 先写标准表头 ✓（★ 用户要求 ✓）
 		 *   ★★ 必须和主文件那份【一字不差】✗（★ 契约 ✓ 30 号 §15.2 ✓）*/
 		static const char hdr[] =
-		    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc\r\n";
+		    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,crc\r\n";
 		fr = f_write(&ef, hdr, (UINT)(sizeof(hdr) - 1u), &bw);
 		if (fr != FR_OK) { (void)f_close(&ef); return fr; }
 	}
@@ -545,7 +545,7 @@ static FRESULT SD_AppendEventLine(const char *line)
 	if (f_size(&ef) == 0u)
 	{
 		static const char hdr[] =
-		    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc\r\n";
+		    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,crc\r\n";
 		fr = f_write(&ef, hdr, (UINT)(sizeof(hdr) - 1u), &bw);
 		if (fr != FR_OK) { (void)f_close(&ef); return fr; }
 	}
@@ -1039,7 +1039,7 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
 			 * 列名与 30 号 §15.2 的字段表一一对应（16 列 / 40 字节记录）。
 			 * ★ PROC 落地时若改列序或列名，必须同步改这一行，否则 PC 端解析全错。 */
 			static const char csv_hdr[] =
-			    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,crc\r\n";
+			    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,crc\r\n";
 			UINT hbw = 0;
 
 			fr = f_write(&s_log_file, csv_hdr, (UINT)(sizeof(csv_hdr) - 1u), &hbw);
