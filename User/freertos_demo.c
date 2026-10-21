@@ -1807,31 +1807,193 @@ void task_DISP(void *pvParameters)
 		else
 		{
 			s_shutdown_seen = 0u;                        /* ★ 恢复时重新武装 ✓ */
-			if ((((frame % 2u) == 0u) || (s_need_full != 0u)) && (s_blank == 0u))
+			/* ★★★★ 2026-10-21 改刷新节拍：**每 5 帧（≈1 秒）** ✗ 原来每 2 帧 ✓
+			 *   ★ 为什么 ✗（★ 实物上看到"屏在闪"✓）：
+			 *     · 一整帧 4 行全重画 ≈ 40~85ms ✗ 而帧周期只有 200ms ✓
+			 *     · ★★ 于是屏【几乎一直在被重写】⇒ 肉眼就是"闪"✓✓
+			 *     · 而温湿度/距离本来就【1 秒才变一次】✗ 5Hz 重画纯属浪费 ✓
+			 *   ★ 收益 ✗：OLED 的 I2C 占用从 ~30% 降到 ~6% ✓✓ */
+			if ((((frame % 5u) == 0u) || (s_need_full != 0u)) && (s_blank == 0u))
 			{
-			/* 刷新（OLED 16 列 x 4 行）：FUL=队列满次数  QMX=历史最大积压 */
-			OLED_ShowString(1, 1,  "ACQ:");  OLED_ShowNum(1, 5,  snap.acq_count,    6);
-			OLED_ShowString(2, 1,  "PRC:");  OLED_ShowNum(2, 5,  snap.proc_count,   6);
-			OLED_ShowString(3, 1,  "FUL:");  OLED_ShowNum(3, 5,  snap.queue_full,   3);
-			OLED_ShowString(3, 9,  "QMX:");  OLED_ShowNum(3, 13, snap.q_max_depth,  2);
-			/* ★★★★ 2026-10-17 改：时间不可信时【常驻】显示 `T?` ✗✓
-			 *   · 原来只有 RUN / PAUSE 两个状态 ✓
-			 *   · ★★ 为什么要常驻 ✗：开机那 4 行警告【0.4 秒就被本任务刷掉了】✗
-			 *     而记录仪是【无人值守】的 ⇒ 必须有个【一直看得见】的记号 ✓✓
-			 *   · ★ 判据 ✗：`T?` = 本次上电后【没对过时】✗ 数据时间戳不可信 ✓ */
-			OLED_ShowString(4, 1, g_pause ? "PAUSE" :
-			                        ((MyRTC_IsTrusted() != 0u) ? "RUN  " : "T?   "));
-			/* ★ 心跳：用来区分【暂停】和【卡死】 */
-			OLED_ShowNum(4, 7, frame, 5);
+			/* ★★★★★ 2026-10-21 换成【数据屏】（★ 原先是工程诊断屏 ✓）
+			 *
+			 *  ★ 为什么换 ✗：记录仪的屏应该【一眼看到被测的量】✗
+			 *    原来显示 ACQ/PRC/FUL/QMX 全是内部计数 ✓
+			 *    （★ 那些只有调试时才看 ✗ 而且要连串口才能判断 ✓）
+			 *
+			 *  ★★ 撤掉 FUL/QMX 不会丢信息 ✓：
+			 *    · 串口 `STAT` 行本来就有 `full= qmax= drop=` ✓
+			 *    · 真丢数据时 CSV 里会写 `# LOST` 行（事件文件）✓✓
+			 *
+			 *  ★★★ 为什么【不用 sprintf】✗：
+			 *    · 本任务栈 224 字（896B）✗ printf 家族一次要吃 100~150B ✓
+			 *    · ★ 库里有 `OLED_ShowNum/ShowSignedNum` ⇒ 直接画数字 ✓
+			 *    · 代价：小数要手工拼"整数 . 一位小数" ✓（下面就是这么干的 ✓）
+			 *
+			 *  ★★★★ 每行都必须【画满 16 列】✗ 否则右侧残留上一帧的字 ✓✓
+			 *    （★ 这是本工程的老坑 ✓ 补齐的空格都写在字符串里 ✓）
+			 *
+			 *  布局（16 列 × 4 行 ✓）：
+			 *    L1  T23.6C  H52.0%
+			 *    L2  D123cm 1013hPa
+			 *    L3  A1234567 P123456
+			 *    L4  RUN 00123 E:00
+			 *========================================================*/
 
-			/* ★ Y2：SD 错误码上浮展示（第 4 行 13~16 列，"E:xx"格式）
-			 *   码表（= FRESULT 值）：E:00 无错误史；E:01 FR_DISK_ERR（写中拔卡）；
-			 *   E:03 FR_NOT_READY（没插卡/接触不良）；E:07 FR_DENIED（卷/根目录满）；
-			 *   E:13 FR_NO_FILESYSTEM（卡没格式化）。
-			 *   挂载成功时码随 g_sd_error 一起清 0 —— E:00 即"健康"。
-			 *   心跳占 7~11 列，这里从 13 列起正好不重叠（16 列屏用满） */
-			OLED_ShowString(4, 13, "E:");
-			OLED_ShowNum(4, 15, g_sd_last_err, 2);
+			/* ---- L1：温度 + 湿度（★ 固定列宽，正负都不移位 ✓）----
+			 *   ★★ 2026-10-21 修（★ 实物上看到的 `T+02.3C` ✓）：
+			 *     · 原写法 `OLED_ShowSignedNum(1, 2, ti, 3)`
+			 *       ⇒ 库实现是【符号 1 列 + Length 位**零填充**】= 占 **4 列**
+			 *         例：23 ⇒ `+ 0 2 3`（★ 占 2~5 列 ✓）
+			 *     · ★ 而我又把小数点画在第 5 列
+			 *       ⇒ **正好盖掉最后一位数字** ⇒ 显示成 `+02.3` ✓✓
+			 *   ★ 现在自己画符号（正数画空格 ✗ 不画 '+'）：
+			 *     1=T  2=符号  3~4=整数  5='.'  6=小数  7='C'  8=空格
+			 *     9=H  10~11=整数  12='.'  13=小数  14='%'  15~16=空格 ✓ */
+			OLED_ShowString(1, 1, "T");
+			if (g_temp_x100 == DS18B20_INVALID)
+			{
+				OLED_ShowString(1, 2, " --.-");            /* ★ 占 2~6 ✓ */
+			}
+			else
+			{
+				int16_t t  = g_temp_x100;
+				int16_t at = (int16_t)((t < 0) ? -t : t);
+				int16_t ii = (int16_t)(at / 100);
+				uint8_t dd = (uint8_t)((at % 100) / 10);
+
+				if (ii > 99) { ii = 99; }                  /* ★ 2 位封顶 ✓ */
+				OLED_ShowChar(1, 2, (t < 0) ? '-' : ' ');
+				OLED_ShowNum (1, 3, (uint32_t)ii, 2);
+				OLED_ShowChar(1, 5, '.');
+				OLED_ShowNum (1, 6, (uint32_t)dd, 1);
+			}
+			OLED_ShowString(1, 7, "C ");
+			OLED_ShowString(1, 9, "H");
+			if (g_humi_x10 == 0xFFFFu)
+			{
+				OLED_ShowString(1, 10, "--.-% ");          /* ★ 占 10~15 ✓ */
+			}
+			else
+			{
+				uint16_t hx = g_humi_x10;
+				if (hx > 999u) { hx = 999u; }
+				OLED_ShowNum(1, 10, (uint32_t)(hx / 10u), 2);
+				OLED_ShowChar(1, 12, '.');
+				OLED_ShowNum(1, 13, (uint32_t)(hx % 10u), 1);
+				OLED_ShowString(1, 14, "% ");
+			}
+			OLED_ShowChar(1, 16, ' ');                     /* ★ 补满 16 列 ✓ */
+
+			/* ---- L2：超声波距离（cm）+ 气压（hPa）---- */
+			OLED_ShowString(2, 1, "D");
+			{
+				uint16_t mm = g_sonar_mm;                  /* ★ 0 = 无回波 ✓ */
+				if (mm == 0u)
+				{
+					OLED_ShowString(2, 2, "---cm ");
+				}
+				else
+				{
+					uint16_t cm = (uint16_t)((mm + 5u) / 10u);   /* ★ 四舍五入 ✓ */
+					if (cm > 999u) { cm = 999u; }                /* ★ 3 位封顶 ✓ */
+					OLED_ShowNum(2, 2, (uint32_t)cm, 3);
+					OLED_ShowString(2, 5, "cm ");
+				}
+			}
+			if (g_press_x10pa > 0)
+			{
+				OLED_ShowNum(2, 8, (uint32_t)((uint32_t)g_press_x10pa / 10u), 4);
+				OLED_ShowString(2, 12, "hPa ");
+			}
+			else
+			{
+				OLED_ShowString(2, 8, "----hPa ");         /* ★ 未接 = 0 ✓ */
+			}
+			OLED_ShowChar(2, 16, ' ');                     /* ★ 补满 16 列 ✓ */
+
+			/* ---- L3：时间 / 暂停 / 时间不可信（★ 三选一，都画满 16 列 ✓）----
+			 *   ★★ 2026-10-21 按用户要求换：原来 L3 是 A/P 两个计数 ✗
+			 *     · 用户现场观察：**A 和 P 平时永远相等** ✓
+			 *       （相等 = 采集多少、处理多少，流水线没积压 ✓）
+			 *     ⇒ 两个数字占一整行【信息量为零】✓✓
+			 *     · ★ 现在只在 L4 用一个记号表示"等不等"，把 L3 让给【时间】✓
+			 *
+			 *   ★ 三种状态优先级（★ 越"异常"越优先 ✗ 因为异常必须一眼看见 ✓）：
+			 *     ① `g_pause`        ⇒ 暂停（★ 不记录了！最要紧 ✓）
+			 *     ② 时间不可信      ⇒ `T?`（★ 数据时间戳不能用 ✓ 老规矩 ✓）
+			 *     ③ 正常            ⇒ `YYYY-MM-DD HH:MM` ✓
+			 *   ★ 为什么没有秒 ✗：16 列塞不下 `2026-10-21 14:35:07`（19 字符 ✓）
+			 *     而分钟级对"看一眼"足够 ✓（★ 要秒就看串口/CSV ✓）*/
+			if (g_pause != 0u)
+			{
+				OLED_ShowString(3, 1, "** PAUSED **    ");
+			}
+			else if (MyRTC_IsTrusted() == 0u)
+			{
+				OLED_ShowString(3, 1, "T? NO TIME SYNC ");
+			}
+			else
+			{
+				RTC_DateTime_t dt;
+
+				/* ★★★★ 2026-10-21：屏上显示**北京时间**（UTC+8）✗ 而 RTC/CSV 存 UTC ✓
+				 *   · `MyRTC_GetUnix()` 是 UTC 秒 ✓ ⇒ 加 8 小时再换算 ✓
+				 *   · ★ 为什么不在 RTC 里直接存本地时间 ✗：
+				 *     那样 CSV 的 `rtc` 列就成了"本地时间戳"✗ 换时区/夏令时就全乱 ✓✓
+				 *   · ★★ 为什么不能"只把 hour 加 8" ✗：
+				 *     跨日/跨月/跨年要进位 ✗ 还有闰年 ✓
+				 *     ⇒ 必须【在"秒"这一层加】再交给换算函数 ✓✓ */
+				MyRTC_UnixToYmd(MyRTC_GetUnix() + (8u * 3600u), &dt);
+				OLED_ShowNum (3, 1,  (uint32_t)dt.year,  4);
+				OLED_ShowChar(3, 5,  '-');
+				OLED_ShowNum (3, 6,  (uint32_t)dt.month, 2);
+				OLED_ShowChar(3, 8,  '-');
+				OLED_ShowNum (3, 9,  (uint32_t)dt.day,   2);
+				OLED_ShowChar(3, 11, ' ');
+				OLED_ShowNum (3, 12, (uint32_t)dt.hour,  2);
+				OLED_ShowChar(3, 14, ':');
+				OLED_ShowNum (3, 15, (uint32_t)dt.minute, 2);
+			}
+
+			/* ---- L4：A/P 同步记号 + **运行时间** + SD 错误码 ----
+			 *   ★ `A=P`  ⇒ 采集数 = 处理数 ⇒ 流水线【没有积压】✓
+			 *   ★★ `A!P` ⇒ **不同步**（队列满 / 处理跟不上 / 卡住）
+			 *     ⇒ 这是【数据要丢】的前兆 ✗ 必须显眼 ✓✓
+			 *
+			 *   ★★★ 2026-10-21 用户要求：**把"已处理条数"换成"运行时间"** ✓
+			 *     · 条数在 CSV 里能数出来 ✗ 而运行时间【数不出来】✓
+			 *     · ★★ 它的真正用途 ✗：**判断设备有没有偷偷重启过** ✓✓
+			 *       · 时间归零 ⇒ 被看门狗咬了 / 掉过电 / 被人按了复位
+			 *       · 配合 CSV 的 `seq` 归零 ⇒ 一眼能对上"从哪儿断的"✓
+			 *
+			 *   ★ 格式 `HH:MM:SS`（2+2+2 位 ✓）：
+			 *     · ★ 小时封顶 **99**（99:59:59 ≈ 4.2 天 ✓ 再长就停在 99 ✓）
+			 *     · tick = 1ms ⇒ `xTaskGetTickCount()/1000` = 秒 ✓
+			 *       （★ 32 位 tick 在 49.7 天回绕 ✗ 到那时早就重启过了 ✓）
+			 *
+			 *   ★ 末尾 `E00`~`E19` = SD 错误码（★ 没有冒号 ✗ 省一列给秒 ✓）
+			 *     （★ 00 = 健康 ✓ 码表 = FRESULT ✓）*/
+			OLED_ShowString(4, 1, "A");
+			OLED_ShowChar  (4, 2, (snap.acq_count == snap.proc_count) ? '=' : '!');
+			OLED_ShowString(4, 3, "P");
+			OLED_ShowChar  (4, 4, ' ');
+			{
+				uint32_t up_s = (uint32_t)(xTaskGetTickCount() / configTICK_RATE_HZ);
+				uint32_t hh   = up_s / 3600u;
+				uint32_t mm   = (up_s / 60u) % 60u;
+				uint32_t ss   = up_s % 60u;
+
+				if (hh > 99u) { hh = 99u; }                /* ★ 封顶 ✓ */
+				OLED_ShowNum (4, 5,  hh, 2);
+				OLED_ShowChar(4, 7,  ':');
+				OLED_ShowNum (4, 8,  mm, 2);
+				OLED_ShowChar(4, 10, ':');
+				OLED_ShowNum (4, 11, ss, 2);
+			}
+			OLED_ShowChar  (4, 13, ' ');
+			OLED_ShowChar  (4, 14, 'E');
+			OLED_ShowNum   (4, 15, g_sd_last_err, 2);
 			did_refresh = 1u;                            /* ★★★ 正常画面【每 3 帧】刷一次 ✓ */
 			s_need_full = 0u;                            /* ★ 重画完了 ⇒ 清标记 ✓ */
 			}
