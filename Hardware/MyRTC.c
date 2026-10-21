@@ -44,6 +44,52 @@
 static void MyRTC_CompileTime(RTC_DateTime_t *dt);
 
 /*==============================================================================
+ *  ★★★★★ 2026-10-21：**带超时的 RTC 等待**（★ 治"开机卡死在 RTC 上" ✓）
+ *
+ *  ★ 为什么必须自己写 ✗（★ 这是标准库的坑 ✓）：
+ *    · 库里的 `RTC_WaitForSynchro()` 就是
+ *        `RTC->CRL &= ~RSF;  while ((RTC->CRL & RSF) == RESET) { }`
+ *      ⇒ **没有任何超时** ✓✓
+ *    · `RTC_WaitForLastTask()` 同理（等 RTOFF ✓）
+ *    · ★★ 一旦 RSF 不来 ⇒ **整台机器永久卡死**
+ *      （★ 连一行错误都打不出来 ⇒ 现场只能看到"打印到某一行就不动了"✓✓✓）
+ *
+ *  ★★★ 什么时候 RSF 不来 ✗（2026-10-21 实测踩到 ✓）：
+ *    · 刚装上 CR2032 备份电池 ⇒ 备份域供电状态变了
+ *    · 或 LSE 没真正起振 / LSI 没使能 / 备份域复位后 RTC 时钟还没恢复
+ *    ⇒ 现象：开机打印到 `W25Q64: pins ...` 就**再也不动** ✓
+ *      （★ 那一行后面紧接着就是 `MyRTC_Init()` ✓）
+ *
+ *  ★★★★ 新策略 ✗：**等不到就返回失败** ✗ 让上层打一行错、继续往下跑 ✓✓
+ *    （★ "时间不准" 远比 "整机卡死" 好；而且不做这一步，
+ *      连用 `T` 对时的机会都没有 ✓）
+ *============================================================================*/
+static uint8_t MyRTC_WaitSync(uint32_t ms)
+{
+	uint32_t t;
+
+	RTC->CRL &= (uint16_t)~RTC_FLAG_RSF;
+	for (t = 0u; t < ms; t++)
+	{
+		if ((RTC->CRL & RTC_FLAG_RSF) != RESET) { return 1u; }
+		DWT_Delay_ms(1u);
+	}
+	return 0u;                                   /* ★ 超时 ⇒ 时钟源没在跑 ✓ */
+}
+
+static uint8_t MyRTC_WaitLastTask(uint32_t ms)
+{
+	uint32_t t;
+
+	for (t = 0u; t < ms; t++)
+	{
+		if ((RTC->CRL & RTC_FLAG_RTOFF) != RESET) { return 1u; }
+		DWT_Delay_ms(1u);
+	}
+	return 0u;
+}
+
+/*==============================================================================
  *  ★★★★★ 2026-10-20 重写：**LSE 三次重试 + 不行就降级 LSI**（★ 别再一枪打死 ✓）
  *
  *  ★ 为什么必须改 ✗（这次的现场教训 ✓）：
@@ -117,20 +163,26 @@ static uint8_t MyRTC_UseLSI(void)
 	/* ③ 选 LSI 作为 RTC 时钟源 ✓ */
 	RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI);
 	RCC_RTCCLKCmd(ENABLE);
-	RTC_WaitForSynchro();
+
+	/* ★★★ 2026-10-21：**必须用带超时的版本** ✗ 否则 RSF 不来就永久卡死 ✓✓ */
+	if (MyRTC_WaitSync(500u) == 0u)
+	{
+		Serial_Printf("!!! RTC: LSI sync TIMEOUT (RTC clock not running) !!!\r\n");
+		return 0u;
+	}
 
 	/* ④ 分频：LSI 典型 40kHz ⇒ 40000/40000 = 1Hz ✓ */
-	RTC_WaitForLastTask();
+	if (MyRTC_WaitLastTask(500u) == 0u) { return 0u; }
 	RTC_EnterConfigMode();
 	RTC_SetPrescaler(39999u);
-	RTC_WaitForLastTask();
+	RTC_WaitForLastTask();                       /* ★ 配置模式内：短等待 ✓ */
 	RTC_ExitConfigMode();
 
 	/* ⑤ 先塞个编译时刻（★ 至少不是 1970 ✓ 之后可以用 `T` 校 ✓）*/
 	MyRTC_CompileTime(&ct);
 	ts = MyRTC_YmdToUnix(ct.year, ct.month, ct.day, ct.hour, ct.minute, ct.second);
 	RTC_SetCounter(ts);
-	RTC_WaitForLastTask();
+	(void)MyRTC_WaitLastTask(500u);
 
 	/* ⑥ 打标记 ⇒ `IsConfigured()` 变 1 ⇒ **`T` 命令能用了** ✓✓ */
 	BKP_WriteBackupRegister(RTC_BKP_DR, RTC_BKP_MAGIC);
@@ -246,7 +298,30 @@ uint8_t MyRTC_Init(void)
 
 	RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);      /* ★ RTC 时钟源 = LSE ✓ */
 	RCC_RTCCLKCmd(ENABLE);                       /* 使能 RTC 时钟 ✓ */
-	RTC_WaitForSynchro();                        /* ★ 等 RTC 与 APB 同步 ✓ */
+
+	/* ★★★ 2026-10-21：带超时 ✗ 库版本会永久卡死 ✓（见 `MyRTC_WaitSync` 注释）*/
+	if (MyRTC_WaitSync(500u) == 0u)
+	{
+		/* ★★★★ 2026-10-21：**复位备份域再试一次** ✓
+		 *   ★ 为什么需要 ✗：`RTCSEL`（时钟源选择位）**只能在备份域复位之后写一次** ✓
+		 *     · 昨天走过 LSI 降级 ⇒ RTCSEL 锁成 LSI ✓
+		 *     · 今天想改回 LSE ⇒ `RCC_RTCCLKConfig(LSE)` **被硬件静默忽略** ✓✓
+		 *     · 而 LSI 若没使能 ⇒ RTC 无时钟 ⇒ **RSF 永不来** ✓✓✓
+		 *   ★★ 代价 ✗：备份域复位会清 BKP 寄存器（★ 魔数跟着清 ✗
+		 *     但下面立刻会重写 ✓）和 RTC 计数器（★ 时间重新用编译时刻 ✓）*/
+		Serial_Printf("RTC: LSE sync timeout -> backup domain reset + retry LSE\r\n");
+		RCC_BackupResetCmd(ENABLE);
+		RCC_BackupResetCmd(DISABLE);
+		RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);
+		RCC_RTCCLKCmd(ENABLE);
+
+		if (MyRTC_WaitSync(500u) == 0u)
+		{
+			Serial_Printf("!!! RTC: LSE sync TIMEOUT again -> trying LSI !!!\r\n");
+			if (MyRTC_UseLSI() != 0u) { return RTC_OK; }
+			return RTC_ERR_NO_LSE;               /* ★ 宁可报错，不要卡死 ✓ */
+		}
+	}
 
 	/* ★ 打诊断：BDCR 的原始值信息量最大 ✓
 	 *   bit0 LSEON / bit1 LSERDY / bit2 LSEBYP / bit8-9 RTCSEL / bit15 RTCEN ✓ */
@@ -265,13 +340,13 @@ uint8_t MyRTC_Init(void)
 		              (unsigned)ct.year, (unsigned)ct.month, (unsigned)ct.day,
 		              (unsigned)ct.hour, (unsigned)ct.minute, (unsigned)ct.second);
 
-		RTC_WaitForLastTask();
+		(void)MyRTC_WaitLastTask(500u);          /* ★ 带超时 ✓ 不再永久卡死 ✓ */
 		RTC_EnterConfigMode();                   /* ★ 进配置模式才能改分频 ✓ */
 		RTC_SetPrescaler(32767u);                /* ★ 32768/(32767+1) = 1 Hz ✓ */
 		RTC_WaitForLastTask();
 		RTC_ExitConfigMode();
 		RTC_SetCounter(ts);                      /* ★ 编译时刻 ✓ */
-		RTC_WaitForLastTask();
+		(void)MyRTC_WaitLastTask(500u);
 		BKP_WriteBackupRegister(RTC_BKP_DR, RTC_BKP_MAGIC);      /* ★ 打标记 ✓ */
 	}
 	else
@@ -344,7 +419,11 @@ void MyRTC_GetDateTime(RTC_DateTime_t *dt)
 void MyRTC_SetUnix(uint32_t ts)
 {
 	RTC_SetCounter(ts);
-	RTC_WaitForLastTask();          /* ★ 写完必须等 ✓ 否则 RTC 跨时钟域写入会静默丢失 ✗ */
+	RTC_WaitForLastTask();          /* ★ 写完必须等 ✓ 否则 RTC 跨时钟域写入会静默丢失 ✗
+	                                 *   ★ 2026-10-21：这一处保留库版本 ✓
+	                                 *     理由：进到这里的路径已经【成功同步过】
+	                                 *     （`MyRTC_WaitSync` 通过 ✓）⇒ RTOFF 必然会来 ✓
+	                                 *     ★ 而上面那些"同步/配置"的等待【都换成带超时的】✓✓ */
 
 	/* ★★★★★ 2026-10-17 加：标上"这个值是【人对过的】"✓
 	 *   ★ 为什么放在【写完计数器之后】✗：先置标记再写 ✗
