@@ -134,22 +134,49 @@ static void BMP280_Probe(void)
  *      · 它是【该 .o 的编译时间】✗ 增量编译时【不更新】✓
  *      · 本项目已经在 RTC 初值上【踩过这个坑】✓（净偏 22h35m 那次）
  *    ⇒ ★ 宁可人手改 ✗ 也不要一个"看起来自动、其实会骗人"的版本号 ✓ */
-#define APP_VER_STR   "APP: ver 48 (2026-10-21 UI: local time UTC+8)"
-int main(void)
-{int16_t oax, oay, oaz, ogx, ogy, ogz;
-/* ---------- 第一批：先把"能显示/能通信"的立起来（诊断能力优先） ---------- */
+#define APP_VER_STR   "APP: ver 49 (2026-10-22 main() split into 7 steps)"
+/*==============================================================================
+ *  ★★★★★ 2026-10-22 **main() 拆分**（★ 纯搬代码 ✗ 不改任何逻辑 ✓）
+ *
+ *  ★ 为什么拆 ✗：
+ *    · 原来 `main()` 是一根 **600 多行的直线** ✓
+ *    · ★★ 想找"RTC 是哪一步初始化的"得靠【滚屏找注释】✗
+ *    · ★★★ 而初始化是【有先后依赖】的（★ 串口要最先 ✗
+ *      因为后面每一步失败都要能打印出来 ✓）⇒ 这个顺序【本身就是设计】✗
+ *      埋在 600 行里就等于【没写】✓✓
+ *
+ *  ★★ 为什么【不新建 .c 文件】✗：
+ *    · 本工程铁律：**不动 `.uvprojx`**（新文件进不了编译 ✓）
+ *    · 而 `main.c` 里的 static 函数【完全够用】✓
+ *    ⇒ 零构建风险 ✓✓
+ *
+ *  ★★★ 拆分原则（★ 按用户要求 ✓）：
+ *    ① 一个函数 = 一个"子系统"（★ 名字即文档 ✓）
+ *    ② 函数名统一 `App_InitXxx()` ✗ 全部 static ✓
+ *    ③ ★ **注释跟着代码一起搬** ✗ 一个字都不删 ✓
+ *    ④ ★★ 每个函数【不返回值】：失败就在里面【打印 + 降级】✓
+ *       （★ 符合本工程"能跑就继续跑、但要说出来"的风格 ✓✓）
+ *
+ *  ★★★★ 调用顺序【不能乱】✗ 原因都写在 `main()` 里 ✓
+ *============================================================================*/
+
+/* ① 控制台：NVIC 分组 + 串口 + 版本横幅 + CRC 契约自检
+ *   ★ 必须是第一步 ✗ 否则后面任何一步失败都【打不出来】✓ */
+static void App_InitConsole(void)
+{
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 	Serial_Init();
 	Serial_Printf("=== boot ===\r\n");
-			/* ★★★★ 2026-10-14 加：版本字符串（★ 一眼看出跑的是哪一版 ✓）
+
+	/* ★★★★ 2026-10-14 加：版本字符串（★ 一眼看出跑的是哪一版 ✓）
 	 *   ★ 为什么现在才加 ✗：以前 App 只剩 536 字节 ✗ 加不起 ✓
 	 *   ★★ 现在有 112KB 了 ✗ 而"分不清版本"是今天最大的折腾来源 ✓✓
 	 *   ★★★ 附带好处：改这一行 = 【镜像 CRC 变了】✗
 	 *       → 正好用来测 `R` 回退（★ 备份里那份是旧 CRC ✓）✓✓
 	 *   ★ 换版本时只改这里的数字和日期 ✓ */
-	
 	Serial_Printf(APP_VER_STR "\r\n");
-		/* ★★★ 2026-10-14 加：两个 CRC 的契约自检（★ 上电打一行 ✓）
+
+	/* ★★★ 2026-10-14 加：两个 CRC 的契约自检（★ 上电打一行 ✓）
 	 *   ★ 为什么值得 ✗：CRC 变体看代码看不出来 ✗ 打出来才算数 ✓✓ */
 	{
 		static const uint8_t anchor[] = "123456789";
@@ -157,13 +184,21 @@ int main(void)
 		              (unsigned)Crc16_Kermit (anchor, 9u),
 		              (unsigned)Crc16_Xmodem(anchor, 9u));
 	}
+}
+
+/* ② 人机接口：AD / 屏 / 按键 / 光敏 / 蜂鸣器
+ *   ★ 为什么排在存储之前 ✗：这几样是【"看得见"的诊断能力】✓
+ *     万一后面 W25/SD 初始化卡住 ✗ 至少有屏和串口能显示进度 ✓ */
+static void App_InitUi(void)
+{
 	AD_TestVdd();
 	AD_Init();
-	OLED_SelfCheck(); 
+	OLED_SelfCheck();
 	OLED_Init();
-	
+
 	Key_Init();
 	LightSensor_Init();
+
 	/* ★★★★ 蜂鸣器（2026-10-13 加 ✓）
 	 *   ★ 为什么以前没有 ✗：★ 审查时发现【Buzz_* 从未被任何 .c 调用】✗✓
 	 *     → 【连 Buzz_Init 都没调 ✗ PB12 根本没配置成输出】✓
@@ -172,122 +207,92 @@ int main(void)
 	 *     · SD 故障 → 持续间歇响（★ 无人值守时唯一的"叫人"手段 ✓）
 	 *     · 按键反馈 → 短促一声 ✓✓ */
 	Buzz_Init();
-	
-	/*==========================================================================
-	 *  ★★★★ W25Q64（8MB SPI Flash）接线验证（★ 2026-10-14 加 ✓）
-	 *
-	 *  ★★ 为什么【开机就要探一次**✗✓：
-	 *    · ★ 它马上要承担【金副本 / 自动回滚】✗ 【是"救命"的那块存储】✓
-	 *    · ★★ 【"接线到底通不通"必须【开机一眼可见】】✗✓
-	 *      → 【不能等到【真要救砖的那一刻】才发现它没接上】✓✓
-	 *
-	 *  ★★★ 判据（★ 三条 ✗ 缺一不可 ✓）✗：
-	 *    · ★ `JEDEC = 0xEF4017` ✗ 【这只是第一条】✓
-	 *    · ★★ `selftest = 0` ✗ 【擦 + 写 + 读回比对】✓
-	 *      → 【这条才证明【写的方向（MOSI）】也通】✓✓
-	 *    ⚠️ ★★★★ 【只读 ID 就宣布"接线没问题"✗ 【是自欺欺人】】✓✓
-	 *      （★ 现象 ✗：ID 读得出来 ✗ 但一写就坏 ✗ 【能查一天】✓）
-	 *
-	 *  ★★★ 引脚 ✗：★ **SCK=PA8 ✗ MISO=PA11 ✗ MOSI=PA12 ✗ CS=PB13** ✓
-	 *    （★ 为什么不用 SPI1 / 为什么避开 PA15 ✗ 见 `W25Q64.h` 顶部 ✓）
-	 *    ⚠️ ★★ 【CS 占了 PB13**✗ 那是原来光敏 DO 的脚 ✓
-	 *      → 【本文件下面那行 `LIGHT DO` 打印【已经停掉】✓
-	 *        （★ 记录里的 `light` 字段【来自 PA1 ✗ 不受影响】✓）✓
-	 *========================================================================*/
+}
+
+/* ③ RTC：初始化 + 读回自检（★ 纯搬代码 ✗ 逻辑一字未改 ✓）
+ *   ★ 自检原理（不依赖任何外部设备 ✓）：
+ *     MyRTC_Init 用【编译时刻】设初值 ✓ → 立刻读回来再换算成年月日 ✓
+ *     → 两行应当基本一致（差几秒 = 编译到烧录的耗时 ✓）
+ *       差几小时 / 几年 ✗ = 换算算法错 ✓ */
+static void App_InitRtc(void)
+{
+	RTC_DateTime_t dt;
+
+	if (MyRTC_Init() != RTC_OK)
 	{
-		uint8_t  w25_ok  = W25Q64_Init();
-		uint32_t w25_jid = W25Q64_ReadJEDEC();
-
-		Serial_Printf("W25Q64: JEDEC = 0x%06X (expect 0xEF4017) -> %s\r\n",
-		              (unsigned)w25_jid, (w25_ok != 0u) ? "PRESENT" : "NOT FOUND");
-		Serial_Printf("W25Q64: pins SCK=PA8  MISO=PA11  MOSI=PA12  CS=PB13\r\n");
-
-#if W25Q64_SELFTEST
-		if (w25_ok != 0u)
-		{
-			uint8_t st = W25Q64_SelfTest();
-			Serial_Printf("W25Q64: selftest = %u (0=PASS 1=erase 2=write 3=read 4=mismatch)\r\n",
-			              (unsigned)st);
-		}
-#endif
+		Serial_Printf("!!! MyRTC_Init FAILED: LSE not ready !!!\r\n");
 	}
-
-		/* ★ RTC（阶段 3）—— 初始化 + 读回自检 ✓
-	 *   ★ 自检原理（不依赖任何外部设备 ✓）：
-	 *     MyRTC_Init 用【编译时刻】设初值 ✓ → 立刻读回来再换算成年月日 ✓
-	 *     → 两行应当基本一致（差几秒 = 编译到烧录的耗时 ✓）
-	 *       差几小时 / 几年 ✗ = 换算算法错 ✓ */
+	else
 	{
-		RTC_DateTime_t dt;
+		MyRTC_GetDateTime(&dt);
+		Serial_Printf("RTC now = %04u-%02u-%02u %02u:%02u:%02u   (unix=%lu)\r\n",
+		              (unsigned)dt.year, (unsigned)dt.month, (unsigned)dt.day,
+		              (unsigned)dt.hour, (unsigned)dt.minute, (unsigned)dt.second,
+		              (unsigned long)MyRTC_GetUnix());
 
-		if (MyRTC_Init() != RTC_OK)
+		/* ★★★★★ 2026-10-17 改：这一行原来是【骗人的自检】✗✓
+		 *   ★ 原来写的是 ✗
+		 *     「^^ must match 'set from compile time' above (within seconds)」
+		 *   ★★★★ 为什么它永远通过（★ 实测过一次 22 小时的错 ✗ 它照样 PASS ✓）✗
+		 *     · 【写进去】用 `MyRTC_YmdToUnix(__DATE__, __TIME__)`
+		 *     · 【读回来】用 `MyRTC_UnixToYmd(RTC_GetCounter())`
+		 *     · 这两个是【互为反函数】✗ 而且【同一套无时区换算】✓
+		 *     ⇒ 那个 32 位数【无论是什么意思】**✗ 两边都相等 ✓✓
+		 *     ⇒ ★ 它只证明了【计数器能往返】✗ 证明不了【时间对不对】✓✓
+		 *   ★★★ 这和 10-17 那个金副本 CRC bug 是【同一类】✗
+		 *     交接文档 §10.2 的教训原文：
+		 *     「自检和被检用同一套错逻辑 ⇒ 永远自洽 ⇒ 永远查不出来」✓✓
+		 *   ★★ 所以真正的校验【必须在 PC 端用外部参照做】✗
+		 *     ⇒ `time_sync.py` 的 `wait_ack()` 会断言【与 PC 差 ≤ 2 秒】✓✓ */
+		Serial_Printf("  ^^ NOTE: this self-check only proves the counter ROUND-TRIPS,\r\n");
+		Serial_Printf("         NOT that the time is correct. The real check is on the PC:\r\n");
+		Serial_Printf("         time_sync.py asserts |diff| <= 2 s against the PC clock.\r\n");
+
+		/* ★★★★★ 2026-10-17 加：时间【不可信】就当场喊出来 ✗✓
+		 *   判据 = `BKP_DR5`（★ 只有串口对时成功才会置它 ✓）
+		 *   ★★ 为什么必须上 OLED ✗：串口【不是随时有人看】✗
+		 *     而记录仪是【无人值守】的 ✓✓ */
+		if (MyRTC_IsTrusted() == 0u)
 		{
-			Serial_Printf("!!! MyRTC_Init FAILED: LSE not ready !!!\r\n");
-		}
-		else
-		{
-			MyRTC_GetDateTime(&dt);
-			Serial_Printf("RTC now = %04u-%02u-%02u %02u:%02u:%02u   (unix=%lu)\r\n",
-			              (unsigned)dt.year, (unsigned)dt.month, (unsigned)dt.day,
-			              (unsigned)dt.hour, (unsigned)dt.minute, (unsigned)dt.second,
-			              (unsigned long)MyRTC_GetUnix());
+			Serial_Printf("\r\n");
+			Serial_Printf("********************************************************************\r\n");
+			Serial_Printf("*** RTC: TIME NOT TRUSTED !!!  (BKP_DR5 has no magic)\r\n");
+			Serial_Printf("*** cause: no VBAT -> on every power-up the RTC is set from\r\n");
+			Serial_Printf("***        MyRTC.c's compile time -- an OLD .o stamp\r\n");
+			Serial_Printf("***        (measured 8h35m stale) -- and it is used as UTC\r\n");
+			Serial_Printf("***        => real error measured: 22h35m\r\n");
+			Serial_Printf("*** fix  : run time_sync.bat on the PC now (or send T<unix>)\r\n");
+			Serial_Printf("***        data written before that has WRONG timestamps\r\n");
+			Serial_Printf("********************************************************************\r\n");
+			Serial_Printf("\r\n");
 
-			/* ★★★★★ 2026-10-17 改：这一行原来是【骗人的自检】✗✓
-			 *   ★ 原来写的是 ✗
-			 *     「^^ must match 'set from compile time' above (within seconds)」
-			 *   ★★★★ 为什么它永远通过（★ 实测过一次 22 小时的错 ✗ 它照样 PASS ✓）✗
-			 *     · 【写进去】用 `MyRTC_YmdToUnix(__DATE__, __TIME__)`
-			 *     · 【读回来】用 `MyRTC_UnixToYmd(RTC_GetCounter())`
-			 *     · 这两个是【互为反函数】✗ 而且【同一套无时区换算】✓
-			 *     ⇒ 那个 32 位数【无论是什么意思】**✗ 两边都相等 ✓✓
-			 *     ⇒ ★ 它只证明了【计数器能往返】✗ 证明不了【时间对不对】✓✓
-			 *   ★★★ 这和 10-17 那个金副本 CRC bug 是【同一类】✗
-			 *     交接文档 §10.2 的教训原文：
-			 *     「自检和被检用同一套错逻辑 ⇒ 永远自洽 ⇒ 永远查不出来」✓✓
-			 *   ★★ 所以真正的校验【必须在 PC 端用外部参照做】✗
-			 *     ⇒ `time_sync.py` 的 `wait_ack()` 会断言【与 PC 差 ≤ 2 秒】✓✓ */
-			Serial_Printf("  ^^ NOTE: this self-check only proves the counter ROUND-TRIPS,\r\n");
-			Serial_Printf("         NOT that the time is correct. The real check is on the PC:\r\n");
-			Serial_Printf("         time_sync.py asserts |diff| <= 2 s against the PC clock.\r\n");
-
-			/* ★★★★★ 2026-10-17 加：时间【不可信】就当场喊出来 ✗✓
-			 *   判据 = `BKP_DR5`（★ 只有串口对时成功才会置它 ✓）
-			 *   ★★ 为什么必须上 OLED ✗：串口【不是随时有人看】✗
-			 *     而记录仪是【无人值守】的 ✓✓ */
-			if (MyRTC_IsTrusted() == 0u)
-			{
-				Serial_Printf("\r\n");
-				Serial_Printf("********************************************************************\r\n");
-				Serial_Printf("*** RTC: TIME NOT TRUSTED !!!  (BKP_DR5 has no magic)\r\n");
-				Serial_Printf("*** cause: no VBAT -> on every power-up the RTC is set from\r\n");
-				Serial_Printf("***        MyRTC.c's compile time -- an OLD .o stamp\r\n");
-				Serial_Printf("***        (measured 8h35m stale) -- and it is used as UTC\r\n");
-				Serial_Printf("***        => real error measured: 22h35m\r\n");
-				Serial_Printf("*** fix  : run time_sync.bat on the PC now (or send T<unix>)\r\n");
-				Serial_Printf("***        data written before that has WRONG timestamps\r\n");
-				Serial_Printf("********************************************************************\r\n");
-				Serial_Printf("\r\n");
-
-				/* ★ 屏上也留一条 ✗ 直到对时为止 ✓
-				 *   （★ 之后 task_DISP 会用 `T?` 常驻提示 ✓ 见 freertos_demo.c ✓）*/
-				OLED_Clear();
-				/* ★★★ 2026-10-17 修：每行【补空格到 16 列】✗✓
-				 *   本工程的规矩是"状态字定长防残影"✓
-				 *   ★★ 我第一版忘了补 ⇒ 【11~16 列会留上一屏的残影】✓
-				 *     （★ 实测现象：第 1 行末尾冒出 `ET!`
-				 *       第 2 行末尾冒出 `ync` —— 正是这两行的尾巴 ✓✓）
-				 *   ★★★ 但【只补空格还不够】✗：
-				 *     本任务正常画面的第 1 行【只写 1~10 列】✓
-				 *     ⇒ 11~16 列仍是这里写下的内容 ✓
-				 *     ⇒ 真正的修法是【接管屏幕的那一帧整屏清一次】✓✓
-				 *       （★ 见 freertos_demo.c 的 `frame == 1u` ✓）*/
-				OLED_ShowString(1, 1, " RTC NOT SET !  ");   /* 14 + 2 = 16 ✓ */
-				OLED_ShowString(2, 1, "RUN time_sync   ");   /* 13 + 3 = 16 ✓ */
-				OLED_ShowString(3, 1, "TIME IS WRONG   ");   /* 13 + 3 = 16 ✓ */
-				OLED_ShowString(4, 1, " on your PC !  ");    /* 14 + 2 = 16 ✓ */
-			}
+			/* ★ 屏上也留一条 ✗ 直到对时为止 ✓
+			 *   （★ 之后 task_DISP 会用 `T?` 常驻提示 ✓ 见 freertos_demo.c ✓）*/
+			OLED_Clear();
+			/* ★★★ 2026-10-17 修：每行【补空格到 16 列】✗✓
+			 *   本工程的规矩是"状态字定长防残影"✓
+			 *   ★★ 我第一版忘了补 ⇒ 【11~16 列会留上一屏的残影】✓
+			 *     （★ 实测现象：第 1 行末尾冒出 `ET!`
+			 *       第 2 行末尾冒出 `ync` —— 正是这两行的尾巴 ✓✓）
+			 *   ★★★ 但【只补空格还不够】✗：
+			 *     本任务正常画面的第 1 行【只写 1~10 列】✓
+			 *     ⇒ 11~16 列仍是这里写下的内容 ✓
+			 *     ⇒ 真正的修法是【接管屏幕的那一帧整屏清一次】✓✓
+			 *       （★ 见 freertos_demo.c 的 `frame == 1u` ✓）*/
+			OLED_ShowString(1, 1, " RTC NOT SET !  ");   /* 14 + 2 = 16 ✓ */
+			OLED_ShowString(2, 1, "RUN time_sync   ");   /* 13 + 3 = 16 ✓ */
+			OLED_ShowString(3, 1, "TIME IS WRONG   ");   /* 13 + 3 = 16 ✓ */
+			OLED_ShowString(4, 1, " on your PC !  ");    /* 14 + 2 = 16 ✓ */
 		}
 	}
+}
+
+/* ④ 传感器：MPU6050（姿态）+ BMP280（气压）
+ *   ★ 顺序不能换 ✗：MyI2C_Init() 是在 MPU6050_Init() 里调的 ✓
+ *     而 BMP280 也要用同一条软件 I2C（PA2/PA3）✓✓ */
+static void App_InitSensors(void)
+{
+	int16_t oax, oay, oaz, ogx, ogy, ogz;   /* ★ 校准偏移量（只在函数内用 ✓）*/
 
 	/* ---------- 第二批：传感器 ---------- */
 	MPU6050_Init();
@@ -388,7 +393,15 @@ int main(void)
 	 * ======================================================================================= */
 	#define TEST_DS18B20   TEST_DS18B20_ON      /* ★ 开关值见 ProbeConfig.h ✓ */
 	#define TEST_SD        TEST_SD_ON           /* ★ 开关值见 ProbeConfig.h ✓ */
+}
 
+/* ⑤ 1-wire 传感器 + 超声波（★ 它们都是"先配引脚再读"✗ 放一起看得清 ✓）
+ *   · DHT22（PB15，开漏 + 模块自带 10k 上拉）
+ *   · HC-SR04（PB5 触发 / PB6 回波）
+ *   · ★★ 末尾的"线路体检"会【临时改 PB14/PB15 的模式】✗
+ *     ⇒ 所以它必须在 DHT22 初始化【之后】、并且自己把引脚还回去 ✓✓ */
+static void App_InitWire(void)
+{
 	/* ★★ DHT22 初始化 + 开机自检读取（2026-10-11 加 ✓）
 	 *   · DHT22_Init 只调一次 ✗（配 PB15 为开漏 + 释放总线 ✓）
 	 *   · ★ 这里读一次是为了【开机就知道它在不在】✗ ——
@@ -507,6 +520,9 @@ int main(void)
 		DHT22_Init();
 	}
 
+	/* ★ DS18B20 单次读数自检（★ `TEST_DS18B20_ON` 默认 0 ✗ 排查时才开 ✓）
+	 *   ★ 为什么放在这里 ✗：它和 DHT22 是同一类"1-wire 引脚" ✓
+	 *     而上面刚做过线路体检 ⇒ 有问题时两段日志挨着看 ✓✓ */
 #if (TEST_DS18B20)
 	Serial_Printf("---- DS18B20 test (PB14) ----\r\n");
 	Serial_Printf("presence = %u (1=found)\r\n", DS18B20_Init());
@@ -578,8 +594,20 @@ int main(void)
 		}
 	}
 #endif
+}
 
-#if (TEST_SD)
+/* ⑥ SD 卡：初始化 + MBR 校验 + 硬件探针（★ 探针开关在 ProbeConfig.h ✓）
+ *   ★ 为什么整段包在 `#if` 里 ✗：探针会反复折腾卡（发 CMD0 / 翻时钟）✗
+ *     而它跑在 `SD_Init()` 【之前】⇒ 会把卡留在失步状态 ✓
+ *     ⇒ 正式跑记录时【探针全关】✓✓
+ *   ★★ 为什么条件写 `TEST_SD_ON` ✗：
+ *     原来 main() 里有一句 `#define TEST_SD TEST_SD_ON` ✗
+ *     ★ 宏是文本替换 ⇒ 代码搬到函数里之后那个 define 就不在作用域了 ✓
+ *     ⇒ `#if (TEST_SD)` 会被当成 **0** ⇒ 整段【静默失效】✓✓✓
+ *     （★ 这种"搬家把宏搬丢了"的坑，编译器【一声不响】✓）*/
+static void App_InitSd(void)
+{
+#if (TEST_SD_ON)          /* ★ 用 ProbeConfig.h 的宏 ✗ 不再依赖 main 里的 define ✓ */
 	{
 		static uint8_t s_sd_buf[512];      /* ★ 512B 必须 static：main 的栈装不下 */
 		SD_Result_t rr;
@@ -756,8 +784,88 @@ int main(void)
 		SD_FakeCardProbe();
 	}
 #endif
+}
 
-	
+/* ③ W25Q64（8MB SPI Flash）：接线验证（★ 它马上要承担金副本/回滚 ✓）
+ *   ★ 判据三条：`JEDEC=0xEF4017` + `selftest=0`（擦写读比对）✓
+ *   ★★ 只读 ID 就宣布"接线没问题"是【自欺欺人】✗ 写方向可能坏 ✓✓ */
+static void App_InitW25(void)
+{
+	/*==========================================================================
+	 *  ★★★★ W25Q64（8MB SPI Flash）接线验证（★ 2026-10-14 加 ✓）
+	 *
+	 *  ★★ 为什么【开机就要探一次**✗✓：
+	 *    · ★ 它马上要承担【金副本 / 自动回滚】✗ 【是"救命"的那块存储】✓
+	 *    · ★★ 【"接线到底通不通"必须【开机一眼可见】】✗✓
+	 *      → 【不能等到【真要救砖的那一刻】才发现它没接上】✓✓
+	 *
+	 *  ★★★ 判据（★ 三条 ✗ 缺一不可 ✓）✗：
+	 *    · ★ `JEDEC = 0xEF4017` ✗ 【这只是第一条】✓
+	 *    · ★★ `selftest = 0` ✗ 【擦 + 写 + 读回比对】✓
+	 *      → 【这条才证明【写的方向（MOSI）】也通】✓✓
+	 *    ⚠️ ★★★★ 【只读 ID 就宣布"接线没问题"✗ 【是自欺欺人】】✓✓
+	 *      （★ 现象 ✗：ID 读得出来 ✗ 但一写就坏 ✗ 【能查一天】✓）
+	 *
+	 *  ★★★ 引脚 ✗：★ **SCK=PA8 ✗ MISO=PA11 ✗ MOSI=PA12 ✗ CS=PB13** ✓
+	 *    （★ 为什么不用 SPI1 / 为什么避开 PA15 ✗ 见 `W25Q64.h` 顶部 ✓）
+	 *    ⚠️ ★★ 【CS 占了 PB13**✗ 那是原来光敏 DO 的脚 ✓
+	 *      → 【本文件下面那行 `LIGHT DO` 打印【已经停掉】✓
+	 *        （★ 记录里的 `light` 字段【来自 PA1 ✗ 不受影响】✓）✓
+	 *========================================================================*/
+	{
+		uint8_t  w25_ok  = W25Q64_Init();
+		uint32_t w25_jid = W25Q64_ReadJEDEC();
+
+		Serial_Printf("W25Q64: JEDEC = 0x%06X (expect 0xEF4017) -> %s\r\n",
+		              (unsigned)w25_jid, (w25_ok != 0u) ? "PRESENT" : "NOT FOUND");
+		Serial_Printf("W25Q64: pins SCK=PA8  MISO=PA11  MOSI=PA12  CS=PB13\r\n");
+
+#if W25Q64_SELFTEST
+		if (w25_ok != 0u)
+		{
+			uint8_t st = W25Q64_SelfTest();
+			Serial_Printf("W25Q64: selftest = %u (0=PASS 1=erase 2=write 3=read 4=mismatch)\r\n",
+			              (unsigned)st);
+		}
+#endif
+	}
+}
+
+int main(void)
+{
+/*==============================================================================
+ *  ★★★★★ 开机初始化：**七步，顺序不能乱**（★ 每一步的原因见对应函数 ✓）
+ *
+ *   ① App_InitConsole()  串口 + 版本 + CRC 契约自检
+ *        ★ 必须第一步 ✗ 后面任何一步失败都要【能打出来】✓
+ *   ② App_InitUi()       AD / 屏 / 按键 / 光敏 / 蜂鸣器
+ *        ★ 排在存储前 ✗ 它是"看得见"的诊断能力 ✓
+ *   ③ App_InitW25()      W25Q64 接线验证（金副本/回滚的地基）
+ *   ④ App_InitRtc()      RTC（LSE 三次重试 -> 备份域复位重试 -> LSI 降级）
+ *   ⑤ App_InitSensors()  MPU6050 + BMP280（共用 PA2/PA3 软件 I2C）
+ *   ⑥ App_InitWire()     DHT22 + 超声波 + 1-wire 线路体检
+ *   ⑦ App_InitSd()       SD 初始化 + MBR 校验（硬件探针默认关）
+ *
+ *  ★★ 为什么这个顺序是【设计】而不是随手排的 ✗：
+ *    · ②~⑦ 每一步失败都【只打印 + 降级】✗ 不 return ✓
+ *      ⇒ 一台设备缺个传感器也得照常记录 ✓（★ 这是记录仪的本分 ✓✓）
+ *    · ★ 而 ① 的串口如果不先起来 ✗ 上面那句就【没有地方打印】✓✓
+ *
+ *  ★★★ 最后才是看门狗 + 调度器 ✗：
+ *    · IWDG 一旦使能不能停 ✗ 而初始化可能耗好几秒（SD 的 ACMD41 重试）
+ *      ⇒ 早开 = 【初始化阶段自己复位】✓（★ 见下面那段注释 ✓）
+ *============================================================================*/
+	App_InitConsole();          /* ① 串口 + 版本 + CRC 自检 ✓ */
+	App_InitUi();               /* ② AD / 屏 / 按键 / 光敏 / 蜂鸣器 ✓ */
+
+	App_InitW25();              /* ③ W25Q64 接线验证（金副本/回滚的地基 ✓） */
+	App_InitRtc();              /* ④ RTC + 自检 + 时间可信度告警 ✓ */
+
+	App_InitSensors();          /* ⑤ MPU6050 + BMP280（共用软件 I2C ✓） */
+	App_InitWire();             /* ⑥ DHT22 + 超声波 + 线路体检 ✓ */
+	App_InitSd();               /* ⑦ SD 初始化 + MBR 校验（探针默认关 ✓） */
+
+
 	Serial_Printf("=== Init Done ===\r\n");
 
 	/* ★★★ 启动 IWDG 独立看门狗（2026-10-12 加 ✓ 阶段 3 最后一块）
