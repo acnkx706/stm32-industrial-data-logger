@@ -2048,6 +2048,15 @@ void task_DISP(void *pvParameters)
 			OLED_ShowChar  (4, 13, ' ');
 			OLED_ShowChar  (4, 14, 'E');
 			OLED_ShowNum   (4, 15, g_sd_last_err, 2);
+			/* ★ 2026-11-03 加：卡满时说人话
+			 *   原来看 E:07 现场没人知道是"卡满了"，不会有人去换卡。
+			 *   覆盖第 1、2 行（数据行让位），把最要紧的两句留在屏上；
+			 *   第 4 行的 A=P 运行时间和 E:07 仍然保留，方便对照。*/
+			if (g_sd_full != 0u)
+			{
+				OLED_ShowString(1, 1, "  CARD FULL !   ");
+				OLED_ShowString(2, 1, " REPLACE CARD   ");
+			}
 			did_refresh = 1u;                            /* ★ 正常画面每 3 帧刷一次*/
 			s_need_full = 0u;                            /* ★ 重画完了 ⇒ 清标记*/
 			}

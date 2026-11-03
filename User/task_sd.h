@@ -102,6 +102,12 @@ extern volatile uint8_t g_sd_error;
  *   volatile：task_SD 写、DISP 只读，跨任务可见性由它保证 */
 extern volatile uint8_t g_sd_last_err;
 
+/* ★ 2026-11-03 加：卡【已经满了】（不是插拔 / 坏卡）
+ *   · 判据：挂载时 99 个名字全部 FR_DENIED（卷满 / 根目录满）
+ *   · 用途：屏上把 E:07 翻译成人话 CARD FULL / REPLACE CARD
+ *   · 一挂载成功就清 0（换卡 / 腾出空间后自动恢复）*/
+extern volatile uint8_t g_sd_full;
+
 /*============================================================================
  *  ★ 安全关机握手（2026-10-13 深夜加）
  *

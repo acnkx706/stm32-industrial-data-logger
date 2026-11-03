@@ -161,6 +161,8 @@ volatile uint8_t g_sd_error = 0;        /* 1=SD 故障（DISP/PROC 只读展示�
  *   E:07=FR_DENIED（根目录满/卷满，R2 修复路径的报警）…… */
 volatile uint8_t g_sd_last_err = 0;
 
+/* ★ 2026-11-03 加：卡满标志（见 task_sd.h 的说明）*/
+volatile uint8_t g_sd_full = 0u;
 /* ★ 安全关机握手（2026-10-13 深夜加，完整说明见 task_sd.h）
  *   · g_shutdown_req，task_KEY 写，task_SD 读。
  *   · g_shutdown_done，task_SD 写，task_DISP 读。
@@ -1034,9 +1036,24 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
 			 *   （不要硬编 FR_DENIED，否则 OLED 上的 E:xx 会丢信息）*/
 			Serial_Printf("SD: all %u names failed (last fr=%u)\r\n",
 			              (unsigned)SD_FILE_NN_MAX, (unsigned)last_fr);
+			/* ★ 2026-11-03 加：把"卡满"和"卡坏"分开留痕
+			 *   FR_DENIED = 卷满 / 根目录满 ⇒ 换卡才能解决，
+			 *   和"没插卡(3)/盘错误(1)"是两码事，屏上要给不同的话。
+			 *   证据写进 W25 的事件槽（此时卡写不进，只能靠它留痕）*/
+			if (last_fr == FR_DENIED)
+			{
+				if (g_sd_full == 0u)
+				{
+					g_sd_full = 1u;
+					(void)DropCache_PutEvent("# SD_FULL,all nn denied,replace the card");
+					Serial_Printf("SD: CARD FULL -> data -> W25 cache (~10.6h)\r\n");
+				}
+			}
+
 			return (last_fr != FR_OK) ? last_fr : FR_DENIED;
 		}
 
+		g_sd_full  = 0u;                    /* ★ 挂上了 ⇒ 卡不满了（换卡/腾空间后自动恢复）*/
 		s_cur_key = SD_ROLL_KEY(now);       /* ★ 记住归属周期 → 运行中滚动检查要用。
 		                                     *   正式模式 = 年月日打包。
 		                                     *   调试模式 = 分钟（见 SD_ROLL_KEY）*/
