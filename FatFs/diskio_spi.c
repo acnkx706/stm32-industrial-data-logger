@@ -7,7 +7,7 @@
   *  职责分层（谁干什么，出了错顺着这条链上浮）：
   *    task_sd  ：业务层 —— 连续 3 批写失败 → 置错误标志、卸载、进恢复流程
   *    diskio_spi（本文件）：策略层 —— 不再叠加盲目重试！
-  *        驱动内部已带 **2 次/操作的重试（SD_SPI.c 的 `SD_OP_RETRY = 2`），
+  *        驱动内部已带 **2 次/操作的重试（SD_SPI.c 的 SD_OP_RETRY = 2），
   *        这里重试只会把"拔卡"拖成十几秒的连环超时拖死 task_sd。
   *        失败即：置 STA_NOINIT + 返回 RES_ERROR（上浮）。
   *    SD_SPI   ：硬件层 —— 命令/token/busy 全套协议，操作级 3 次重试
@@ -214,7 +214,7 @@ DWORD get_fattime (void)
 RTC_DateTime_t dt;
 
 	MyRTC_GetDateTime(&dt);
-	if (dt.year < 1980u) { return 0u; }              /* ★ FAT 起点是 1980 ✓ */
+	if (dt.year < 1980u) { return 0u; }              /* ★ FAT 起点是 1980。 */
 
 	return ((DWORD)(dt.year - 1980u) << 25)
 	     | ((DWORD)dt.month  << 21)

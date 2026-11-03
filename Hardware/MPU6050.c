@@ -2,7 +2,7 @@
 #include "MyI2C.h"
 #include "MPU6050_Reg.h"
 #include "MPU6050.h"
-#include "Serial.h"                    /* ★ 2026-10-24：残差自检要打印 ✓ */
+#include "Serial.h"                    /* ★ 2026-10-24：残差自检要打印。 */
 #define MPU6050_ADDRESS 		0XD0
 #define MPU6050_GYRO_CAL_N       100
 #define MPU6050_OFF_AX      (+70)
@@ -42,9 +42,9 @@ uint8_t MPU6050_ReadReg(uint8_t RegAddress)
 	return Data;
 }
 
-/* 从 reg 开始连续读 len 个字节（利用 MPU6050 寄存器地址自动递增 ✓）
+/* 从 reg 开始连续读 len 个字节（利用 MPU6050 寄存器地址自动递增）
  * ★ 关键：最后一个字节必须回 NACK，其余回 ACK ——
- *   这是 I2C 告诉从机"我读完了"的唯一方式 ✓ 弄错会多读/时序错乱 ✗ */
+ *   这是 I2C 告诉从机"我读完了"的唯一方式，弄错会多读/时序错乱。 */
 static void MPU6050_ReadBurst(uint8_t reg, uint8_t *buf, uint8_t len)
 {
 	uint8_t i;
@@ -55,14 +55,14 @@ static void MPU6050_ReadBurst(uint8_t reg, uint8_t *buf, uint8_t len)
 	MyI2C_SendByte(reg);
 	MyI2C_ReceiveAck();
 
-	MyI2C_Start();                            /* ★ 重复起始(Restart)，中间不 Stop ✓ */
+	MyI2C_Start();                            /* ★ 重复起始(Restart)，中间不 Stop。 */
 	MyI2C_SendByte(MPU6050_ADDRESS | 0x01);   /* 0xD1 = 读地址 */
 	MyI2C_ReceiveAck();
 
 	for (i = 0; i < len; i++)
 	{
 		buf[i] = MyI2C_ReceiveByte();
-		MyI2C_SendAck((i == (uint8_t)(len - 1)) ? 1 : 0);   /* 最后 1 字节 NACK(1) ✓ */
+		MyI2C_SendAck((i == (uint8_t)(len - 1)) ? 1 : 0);   /* 最后 1 字节 NACK(1)。 */
 	}
 	MyI2C_Stop();
 }
@@ -89,12 +89,12 @@ static void MPU6050_ReadRaw(int16_t *AccX, int16_t *AccY, int16_t *AccZ,
 {
 	uint8_t b[14];
 
-	MPU6050_ReadBurst(MPU6050_ACCEL_XOUT_H, b, 14);     /* 0x3B 起，一次读完 ✓ */
+	MPU6050_ReadBurst(MPU6050_ACCEL_XOUT_H, b, 14);     /* 0x3B 起，一次读完。 */
 
 	*AccX  = (int16_t)((b[0]  << 8) | b[1]);
 	*AccY  = (int16_t)((b[2]  << 8) | b[3]);
 	*AccZ  = (int16_t)((b[4]  << 8) | b[5]);
-	*Temp  = (int16_t)((b[6]  << 8) | b[7]);            /* 0x41/0x42 ✓ */
+	*Temp = (int16_t)((b[6] << 8) | b[7]); /* 0x41/0x42。 */
 	*GyroX = (int16_t)((b[8]  << 8) | b[9]);
 	*GyroY = (int16_t)((b[10] << 8) | b[11]);
 	*GyroZ = (int16_t)((b[12] << 8) | b[13]);
@@ -135,16 +135,16 @@ void MPU6050_GetGyroOffset(int16_t *OffGyroX,int16_t *OffGyroY,int16_t *OffGyroZ
 
 /* 芯片内部温度(die) -> ×100 °C 整数
  * 手册：340 LSB/°C，偏移 36.53 °C
- *   x100 = raw/340*100 + 3653 = raw*5/17 + 3653   （100/340 约分 = 5/17 ✓ 无精度损失）
- * ★ 先用 int32 乘：raw=8500 时 8500*5=42500 会溢出 int16 ✗ */
+ *   x100 = raw/340*100 + 3653 = raw*5/17 + 3653（100/340 约分 = 5/17，无精度损失）
+ * ★ 先用 int32 乘：raw=8500 时 8500*5=42500 会溢出 int16。 */
 int16_t MPU6050_TempX100(int16_t raw)
 {
 	return (int16_t)(((int32_t)raw * 5) / 17 + 3653);
 }
 
-/* ★★★★ 2026-10-24 从 main.c 搬来：校准后【残差核查】✗✓
+/* ★ 2026-10-24 从 main.c 搬来：校准后残差核查
  *   ★ 原理：校准刚跑完 ⇒ 静止时陀螺均值应≈0；采 20 次取均值打印
- *   ★★ 判据：|均值| > 5 = 校准不可信（板子在动 / 误差大）✓✓ */
+ *   ★ 判据：|均值| > 5 = 校准不可信（板子在动 / 误差大） */
 void MPU6050_GyroResidual(void)
 {
 	int32_t sgx = 0, sgy = 0, sgz = 0;
