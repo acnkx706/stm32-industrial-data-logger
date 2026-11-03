@@ -58,4 +58,7 @@ void DS18B20_ResetLoop(void);
 void DS18B20_TimingCheck(uint32_t *pull_ovh, uint32_t *lo6us, uint32_t *one_ms, uint32_t *slot70us,
                          uint32_t *rd_release, uint32_t *rd_sample);
 
+/* 线路体检：PB14/PB15 浮空+上拉各采 8 次，再量存在脉冲宽度（打印到串口）*/
+void DS18B20_WireCheck(void);
+
 #endif

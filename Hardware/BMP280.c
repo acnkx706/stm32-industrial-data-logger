@@ -3,6 +3,7 @@
 #include "MyI2C.h"
 #include "Serial.h"
 #include "BMP280.h"
+#include "ProbeConfig.h"             /* ★ 2026-10-24：探针开关随探针一起搬来 ✓ */
 
 /*==============================================================================
  *  寄存器与常量
@@ -242,4 +243,111 @@ uint8_t BMP280_SelfTest(void)
 	BMP_ReadCalib();                                    /* ★ 自检用完把真校准读回来 ✓
 	                                                     *   （否则后面读数会全错 ✗）*/
 	return ok;
+}
+
+/*==============================================================================
+ *  ★ BMP280 探针（2026-10-09）—— 只做"扫地址 + 读 ID"，先认型号再写驱动
+ *
+ *  为什么先做这个（`30` 号 §15.2 第 462 行的既定办法）：
+ *    BMP280 与 BMP580 是【两套完全不同的驱动】✗ —— 寄存器、测量流程、校准系数都不同 ✓
+ *    → 型号认错 = 白写一版驱动 ✓ → 所以【先认型号，不靠丝印猜】✓✓
+ *
+ *  怎么认：
+ *    ① I2C 扫描：谁应答（ACK=0）就是总线上的器件地址 ✓
+ *       0x76 / 0x77 → BMP280 家族 ✓   0x46 / 0x47 → BMP58x 家族 ✓
+ *    ② 读 ID 寄存器确认：BMP280 的 0xD0 应回 0x58 ✓（BMP58x 的 ID 在 0x01 ✓）
+ *
+ *  ★ 判据纪律（踩过的坑）：★ "器件在不在"看的是【ACK 位】✗
+ *    不能看"读回来的值不是 0xFF"✓ —— 有些寄存器本来就可能是 0xFF ✗ 会误判 ✓
+ *
+ *  ★ 附带作用：全地址扫描会顺带扫出 MPU6050（0x68）✓
+ *     → 若 0x68 应答而 0x76/0x77 不应答 = 【总线是好的，只是 BMP280 没接上】✓✓
+ * ============================================================================*/
+#if PROBE_BMP280_SCAN
+static uint8_t I2C_Probe(uint8_t addr)              /* 返回 1 = 有器件应答 ✓ */
+{
+	uint8_t ack;
+	MyI2C_Start();
+	MyI2C_SendByte((uint8_t)(addr << 1));           /* 写地址帧 ✓ */
+	ack = MyI2C_ReceiveAck();                       /* ★ 0 = 应答 / 1 = 无 ✓ */
+	MyI2C_Stop();
+	return (ack == 0) ? 1 : 0;
+}
+
+static uint8_t I2C_ReadReg(uint8_t addr, uint8_t reg)
+{
+	uint8_t d;
+	MyI2C_Start();
+	MyI2C_SendByte((uint8_t)(addr << 1));
+	MyI2C_ReceiveAck();
+	MyI2C_SendByte(reg);
+	MyI2C_ReceiveAck();
+	MyI2C_Start();                                  /* ★ 重复起始 ✓（MPU6050 已验证的写法 ✓）*/
+	MyI2C_SendByte((uint8_t)((addr << 1) | 0x01));
+	MyI2C_ReceiveAck();
+	d = MyI2C_ReceiveByte();
+	MyI2C_SendAck(1);                               /* ★ 最后一个字节发 NACK ✓ */
+	MyI2C_Stop();
+	return d;
+}
+
+static void BMP280_Probe(void)
+{
+	uint8_t a, id, found = 0;
+
+	Serial_Printf("---- BMP280 probe (I2C: PA2=SCL PA3=SDA) ----\r\n");
+
+	for (a = 0x08u; a <= 0x77u; a++)                /* ★ 全地址扫（不只 0x76/0x77）✓ */
+	{
+		if (I2C_Probe(a))
+		{
+			found++;
+			id = I2C_ReadReg(a, 0xD0u);             /* 读 ID 寄存器 ✓ */
+			Serial_Printf("  ACK at 0x%02X : reg[0xD0]=0x%02X%s\r\n", a, id,
+			              (id == 0x58u) ? "  <== BMP280 (ID=0x58) -- FOUND" : "");
+		}
+	}
+
+	if (found == 0u)
+	{
+		Serial_Printf("  NO device on I2C bus!\r\n");
+		Serial_Printf("  check: VIN=3.3V / GND / SCL=PA2 / SDA=PA3, MPU6050 also missing?\r\n");
+	}
+	else
+	{
+		Serial_Printf("  %u device(s) on bus. BMP280 expected at 0x76/0x77 with ID 0x58\r\n",
+		              (unsigned)found);
+	}
+}
+#endif
+
+/* ★★★★ 2026-10-24 从 main.c 搬来：开机三件套 ✗✓
+ *   Init（认型号+读校准）→ SelfTest（手册算例）→ Read（真读数+换算打印）
+ *   ★ 两个锚点：SelfTest 期望 T=2508/P=100653；真读数应与 DS18B20 ±1C ✓ */
+void BMP280_BootTest(void)
+{
+	int32_t p_x10, t_c100;
+	uint8_t r;
+
+	r = BMP280_Init();
+	Serial_Printf("BMP280 init = %u (0=OK / 1=ID wrong / 2=no bus)\r\n", (unsigned)r);
+
+	if (r == 0u)
+	{
+		(void)BMP280_SelfTest();
+
+		if (BMP280_Read(&p_x10, &t_c100) == 0u)
+		{
+			Serial_Printf("BMP280 raw : press=%ld (x10Pa)  temp=%ld (x100C)\r\n",
+			              (long)p_x10, (long)t_c100);
+			Serial_Printf("BMP280 real: press=%ld.%01lu hPa   temp=%ld.%02lu C\r\n",
+			              (long)(p_x10 / 1000), (unsigned long)((p_x10 % 1000) / 100),
+			              (long)(t_c100 / 100), (unsigned long)(t_c100 % 100));
+			Serial_Printf("  ^^ compare temp with DS18B20 above (expect within ~1C)\r\n");
+		}
+		else
+		{
+			Serial_Printf("BMP280 read FAILED\r\n");
+		}
+	}
 }

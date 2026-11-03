@@ -25,4 +25,6 @@ void MPU6050_GetGyroOffset(int16_t *OffGyroX,int16_t *OffGyroY,int16_t *OffGyroZ
  *     ReadRaw 是内部细节 ✓ 不该对外暴露 ✓✓ */
 
 int16_t MPU6050_TempX100(int16_t raw);
+void MPU6050_GyroResidual(void);   /* ★ 2026-10-24 从 main.c 搬来：校准后残差核查 ✓ */
+
 #endif

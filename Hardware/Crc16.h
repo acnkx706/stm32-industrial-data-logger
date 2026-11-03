@@ -59,4 +59,7 @@ uint16_t Crc16_Xmodem(const uint8_t *d, uint32_t len);
  *       算法非标准 ⇒ PC 侧不能用 `zlib.crc32()` ✓）
  *     · ★★ 收益只有"38,440 行垃圾里少 0.6 行误判"✗ 不值 ✓
  *     · ★ 代价是每行 +5 字节 ✓ */
+/* 契约自检：把两个变体的锚点值打到串口（KERMIT=0x2189 / XMODEM=0x31C3）*/
+void Crc16_SelfTest(void);
+
 #endif

@@ -1,28 +1,13 @@
-#include "stm32f10x.h"                  // Device header
+#include "stm32f10x.h"                  /* Device header */
 
-void Timer_Init(void)
-{
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
-	TIM_InternalClockConfig(TIM2);
-	TIM_TimeBaseInitTypeDef TIM_TImeBaseInitStructure;
-	TIM_TImeBaseInitStructure.TIM_ClockDivision=TIM_CKD_DIV1  ;
-	TIM_TImeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up;
-	TIM_TImeBaseInitStructure.TIM_Period=10000-1;
-	TIM_TImeBaseInitStructure.TIM_Prescaler=7200-1;
-	TIM_TImeBaseInitStructure.TIM_RepetitionCounter=0;
-	TIM_TimeBaseInit(TIM2,&TIM_TImeBaseInitStructure);
-	
-	TIM_ClearFlag(TIM2,TIM_FLAG_Update);
-	TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
-	
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-	
-	NVIC_InitTypeDef NVIC_InitStructure;
-	NVIC_InitStructure.NVIC_IRQChannel=TIM2_IRQn ;
-	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority=1;
-	NVIC_Init(&NVIC_InitStructure);
-	
-	TIM_Cmd(TIM2,ENABLE);
-}
+/*==============================================================================
+ * ★★★★ 2026-10-23：本文件【整体停用】✗✓（原 Timer_Init 的代码已清走 ✓）
+ *
+ *  ★ 为什么停 ✗（两条都是硬理由 ✓）：
+ *    ① 全工程【零调用点】✗（Timer_Init 没有任何 caller ✗ 2026-10-23 全树核过 ✓）
+ *    ② 它会把 NVIC 分组【重设成 Group_2】✗ —— 而本工程铁律是 main() 里统一
+ *       Group_4 ✗ 谁调它谁就把 FreeRTOS 的中断优先级解释整个改掉 ✓✓
+ *       （而且使能了 TIM2 更新中断却全工程无 TIM2_IRQHandler ✗ 会跳 Default_Handler ✓）
+ *  ★★ 为什么不删文件 ✗：不动 .uvprojx 是本工程铁律 ✗ 文件必须留在编译清单里 ✓
+ *  ★★ 想复活 TIM2 ✗：旧实现在 _编码转换备份_20260927 ✗ 先把 NVIC 那两行改掉 ✓✓
+ *============================================================================*/

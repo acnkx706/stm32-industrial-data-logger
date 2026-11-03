@@ -2,6 +2,7 @@
 #include "MyI2C.h"
 #include "MPU6050_Reg.h"
 #include "MPU6050.h"
+#include "Serial.h"                    /* ★ 2026-10-24：残差自检要打印 ✓ */
 #define MPU6050_ADDRESS 		0XD0
 #define MPU6050_GYRO_CAL_N       100
 #define MPU6050_OFF_AX      (+70)
@@ -139,4 +140,21 @@ void MPU6050_GetGyroOffset(int16_t *OffGyroX,int16_t *OffGyroY,int16_t *OffGyroZ
 int16_t MPU6050_TempX100(int16_t raw)
 {
 	return (int16_t)(((int32_t)raw * 5) / 17 + 3653);
+}
+
+/* ★★★★ 2026-10-24 从 main.c 搬来：校准后【残差核查】✗✓
+ *   ★ 原理：校准刚跑完 ⇒ 静止时陀螺均值应≈0；采 20 次取均值打印
+ *   ★★ 判据：|均值| > 5 = 校准不可信（板子在动 / 误差大）✓✓ */
+void MPU6050_GyroResidual(void)
+{
+	int32_t sgx = 0, sgy = 0, sgz = 0;
+	int16_t ax, ay, az, gx, gy, gz, tchip;
+	uint8_t i;
+	for (i = 0; i < 20; i++)              /* 20 × 5.24ms ≈ 105ms */
+	{
+		MPU6050_GetData(&ax, &ay, &az, &gx, &gy, &gz, &tchip);
+		sgx += gx; sgy += gy; sgz += gz;
+	}
+	Serial_Printf("GYRO residual=(%d,%d,%d)  (abs>5 = calibration NOT trustworthy)\r\n",
+	              (int)(sgx / 20), (int)(sgy / 20), (int)(sgz / 20));
 }

@@ -66,4 +66,8 @@ void SD_VerboseInit(void);
 #if PROBE_SD_FAKECARD
 void SD_FakeCardProbe(void);
 #endif
+
+#if (TEST_SD_ON)
+void SD_BootTest(void);               /* ★ 2026-10-24 从 main.c 搬来：上电测试（MBR/写读回/假卡 ✓）*/
+#endif
 #endif

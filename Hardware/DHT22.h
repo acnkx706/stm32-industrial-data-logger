@@ -36,4 +36,6 @@ uint8_t DHT22_Read(uint16_t *humi_x10, int16_t *temp_x10);
  * ★ 只需要调一次（系统初始化时 ✓）；不需要每次读之前调 ✓ */
 void DHT22_Init(void);
 
+void    DHT22_BootTest(void);       /* ★ 2026-10-24 从 main.c 搬来：开机自检读一次 ✓ */
+
 #endif

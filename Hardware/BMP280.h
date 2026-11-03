@@ -38,4 +38,10 @@ uint8_t BMP280_Read(int32_t *press_x10pa, int32_t *temp_c100);
  *      若这里不过 ✗，先怀疑"我抄的算例值"✗，不要先怀疑公式 ✓（两处分开验证 ✓）*/
 uint8_t BMP280_SelfTest(void);
 
+#include "ProbeConfig.h"          /* ★ 2026-10-24：探针声明随开关 ✓ */
+
+#if PROBE_BMP280_SCAN
+void BMP280_Probe(void);            /* ★ 2026-10-24 从 main.c 搬来 ✓ */
+#endif
+void BMP280_BootTest(void);            /* ★ 2026-10-24 从 main.c 搬来 ✓ */
 #endif

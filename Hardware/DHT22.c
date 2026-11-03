@@ -1,5 +1,6 @@
 #include "stm32f10x.h"
 #include "DHT22.h"
+#include "Serial.h"
 #include "DWT_Delay.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -113,4 +114,30 @@ uint8_t DHT22_Read(uint16_t *humi_x10, int16_t *temp_x10)
 	*temp_x10 = (t & 0x8000u) ? (int16_t)(-(int16_t)(t & 0x7FFFu))     /* ★ bit15 = 符号 */
 	                          : (int16_t)t;
 	return 1u;
+}
+
+/*------------------------------------------------------------------------------
+ *  2026-11-03 重建：原实现（2026-10-24 从 main.c 搬来）在 11-03 丢失，
+ *  按当时的串口输出格式重写。开机读一次，把值打出来供人对照 DS18B20。
+ *----------------------------------------------------------------------------*/
+void DHT22_BootTest(void)
+{
+	uint16_t humi = 0u;
+	int16_t  temp = 0;
+	int16_t  t;
+
+	DHT22_Init();                     /* 引脚配成开漏并释放总线（原实现也在读之前做这一步）*/
+
+	if (DHT22_Read(&humi, &temp) == 0u)
+	{
+		Serial_Printf("DHT22: read FAILED (no response or bad checksum)\r\n");
+		return;
+	}
+
+	t = (temp < 0) ? (int16_t)(-temp) : temp;
+	Serial_Printf("DHT22: humi=%u.%u %%RH  temp=%s%d.%d C\r\n",
+	              (unsigned)(humi / 10u), (unsigned)(humi % 10u),
+	              (temp < 0) ? "-" : "",
+	              (int)(t / 10), (int)(t % 10));
+	Serial_Printf("DHT22: (compare with DS18B20 below; DHT22 self-heats a bit)\r\n");
 }

@@ -3,16 +3,16 @@
 #include "boot_w25.h"
 
 /*==============================================================================
- *  ★★★★ Bootloader 的 W25Q64 只读驱动（★ 2026-10-14 建 ✓）
- *    设计理由（★ 为什么只有读 ✓）见 boot_w25.h
+ *  ★ Bootloader 的 W25Q64 只读驱动（2026-10-14 建）
+ *    设计理由（为什么只有读）见 boot_w25.h
  *
- *  ★★ 软件 SPI（★ GPIO 手动打拍 ✗ mode 0 ✓）
- *    · ★ 为什么【不内联 BSRR ✗ 用 `GPIO_WriteBit`】✗
- *      → 【和 App 侧【同一个选择】**✗ 故意慢一点 ✓
- *      → 【实际 SCK 约 1~2MHz ✗ 【面包板/短线【更稳】】✓✓
+ *  ★ 软件 SPI（GPIO 手动打拍，mode 0）
+ *    · 为什么不内联 BSRR，用 GPIO_WriteBit
+ *      → 和 App 侧同一个选择，故意慢一点
+ *      → 实际 SCK 约 1~2MHz，面包板/短线更稳
  *
- *  ★★★ 本文件【不加锁】✗✓ —— ★ 因为【Bootloader 是【裸机单线程】】✓
- *    （★ 没有任务 ✗ 没有中断里碰它 ✗ 【无并发可言】✓）
+ *  ★ 本文件不加锁 —— 因为Bootloader 是裸机单线程
+ *    （没有任务，没有中断里碰它，无并发可言）
  *============================================================================*/
 
 #define W25_PORT_SCK     GPIOA
@@ -36,7 +36,7 @@ static void W25_SCK(uint8_t v)  { GPIO_WriteBit(W25_PORT_SCK,  W25_PIN_SCK,  (Bi
 static void W25_MOSI(uint8_t v) { GPIO_WriteBit(W25_PORT_MOSI, W25_PIN_MOSI, (BitAction)v); }
 static uint8_t W25_MISO(void)   { return (uint8_t)GPIO_ReadInputDataBit(W25_PORT_MISO, W25_PIN_MISO); }
 
-/* ★ mode 0 ✗：MOSI 在 SCK 低时摆好 ✗ 上升沿采样 MISO ✓ */
+/* ★ mode 0：MOSI 在 SCK 低时摆好，上升沿采样 MISO。 */
 static uint8_t W25_SwapByte(uint8_t out)
 {
 	uint8_t i;
@@ -97,7 +97,7 @@ uint8_t BootW25_Init(void)
 {
 	GPIO_InitTypeDef gi;
 
-	/* ★ 两个端口都要开时钟 ✗ SCK/MISO/MOSI 在 A ✗ CS 在 B ✓ */
+	/* ★ 两个端口都要开时钟，SCK/MISO/MOSI 在 A，CS 在 B。 */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
@@ -109,7 +109,7 @@ uint8_t BootW25_Init(void)
 	gi.GPIO_Pin   = W25_PIN_CS;
 	GPIO_Init(W25_PORT_CS, &gi);
 
-	/* ★★ MISO 上拉输入 ✗ 芯片不在位时稳定读 0xFF ✗ 一眼知"没接上" ✓ */
+	/* ★ MISO 上拉输入，芯片不在位时稳定读 0xFF，一眼知"没接上"。 */
 	gi.GPIO_Mode  = GPIO_Mode_IPU;
 	gi.GPIO_Pin   = W25_PIN_MISO;
 	GPIO_Init(W25_PORT_MISO, &gi);

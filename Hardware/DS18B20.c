@@ -1,5 +1,6 @@
 #include "stm32f10x.h"
 #include "DS18B20.h"
+#include "Serial.h"
 #include "DWT_Delay.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -402,4 +403,51 @@ uint8_t DS18B20_ReadScratchpad(uint8_t *sp9)
 		sp9[i] = OW_ReadByte();
 	}
 	return 1;
+}
+
+/*------------------------------------------------------------------------------
+ *  2026-11-03 重建：原实现（2026-10-24 的线路体检）在 11-03 丢失，
+ *  按当时的串口输出格式重写。用途：PB14/PB15 各采 8 次（浮空 / 内部上拉两种），
+ *  再量一次存在脉冲宽度 —— 用来判断"线是不是虚焊 / 有没有被拉死"。
+ *  体检完调 DS18B20_Init() 把引脚还给驱动。
+ *----------------------------------------------------------------------------*/
+static uint8_t Wire_SampleHigh(GPIO_TypeDef *port, uint16_t pin, uint8_t ipu)
+{
+	GPIO_InitTypeDef gi;
+	uint8_t i, n = 0u;
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+	gi.GPIO_Pin   = pin;
+	gi.GPIO_Speed = GPIO_Speed_50MHz;
+	gi.GPIO_Mode  = (ipu != 0u) ? GPIO_Mode_IPU : GPIO_Mode_IN_FLOATING;
+	GPIO_Init(port, &gi);
+	DWT_Delay_us(1000);                /* 换模式后先让上拉把线拉稳，再开始采样 */
+
+	for (i = 0u; i < 8u; i++)
+	{
+		DWT_Delay_us(100);
+		if (GPIO_ReadInputDataBit(port, pin) != 0u) { n++; }
+	}
+	return n;
+}
+
+void DS18B20_WireCheck(void)
+{
+	uint8_t  f14, u14, f15, u15;
+	uint16_t us;
+
+	f14 = Wire_SampleHigh(GPIOB, GPIO_Pin_14, 0u);
+	u14 = Wire_SampleHigh(GPIOB, GPIO_Pin_14, 1u);
+	f15 = Wire_SampleHigh(GPIOB, GPIO_Pin_15, 0u);
+	u15 = Wire_SampleHigh(GPIOB, GPIO_Pin_15, 1u);
+
+	Serial_Printf("WIRE: PB14 float %u/8 ipu %u/8 | PB15 float %u/8 ipu %u/8\r\n",
+	              (unsigned)f14, (unsigned)u14, (unsigned)f15, (unsigned)u15);
+
+	us = DS18B20_MeasurePresence();
+	Serial_Printf("WIRE: DS18B20 presence = %u us (60..240=ok 0=no ack 65535=stuck low)\r\n",
+	              (unsigned)us);
+
+	(void)DS18B20_Init();
 }
