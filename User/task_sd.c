@@ -185,7 +185,8 @@ volatile uint8_t g_sd_last_err = 0;
 
 /* ★ 2026-11-03 加：卡满标志（见 task_sd.h 的说明）*/
 volatile uint8_t g_sd_full = 0u;
-volatile uint8_t g_sd_low  = 0u;      /* ★ 2026-11-03：剩余空间不足（见 sd_space_check）*/
+volatile uint8_t g_sd_low  = 0u;
+static uint32_t  s_space_day = 0u;   /* ★ 上次查剩余空间是哪一天（SD_ROLL_KEY；0 = 还没查过）*/      /* ★ 2026-11-03：剩余空间不足（见 sd_space_check）*/
 /* ★ 安全关机握手（2026-10-13 深夜加，完整说明见 task_sd.h）
  *   · g_shutdown_req，task_KEY 写，task_SD 读。
  *   · g_shutdown_done，task_SD 写，task_DISP 读。
@@ -1298,6 +1299,7 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
  *==========================================================================*/
 static void sd_unmount_force(void)
 {
+	s_space_day = 0u;          /* ★ 卡可能被换掉 ⇒ 下次挂载重新查剩余空间 */
 	(void)f_mount(NULL, "0:", 0);
 }
 
@@ -1405,9 +1407,23 @@ static void sd_space_check(void)
 	char     line[80];
 	uint8_t  dels = 0u;
 	uint32_t now_ts;
+	RTC_DateTime_t dt;
+	uint32_t today;
+
+	/* ★ 2026-11-03 改：同一天只扫一次 FAT
+	 *   ★ 为什么必须限频：f_getfree 要读整张 FAT（4 GB 卡约 1~4 MB），
+	 *     9 MHz SPI 下要好几秒 —— 这几秒卡写不进去，队列满了就丢数据。
+	 *   ★ 为什么不是"只在挂载时查"：设备可能连跑几周不重挂，
+	 *     那样就永远不查了 ⇒ 按"日期变了才查"最省也最可靠。
+	 *   ★ 查的时机：挂载成功那一刻 + 挂载态每轮循环（Loss_Flush 之后），
+	 *     两处都调，由下面这个日期比较去掉重复。*/
+	MyRTC_GetLocalDateTime(&dt);
+	today = SD_ROLL_KEY(dt);
+	if (s_space_day == today) { return; }
 
 	fr = f_getfree("0:", &nclst, &s_fs);
-	if ((fr != FR_OK) || (s_fs == NULL)) { return; }
+	if ((fr != FR_OK) || (s_fs == NULL)) { return; }   /* 没查成 ⇒ 不记日子，下次再试 */
+	s_space_day = today;
 
 	csize   = (uint32_t)s_fs->csize;                          /* 每簇扇区数 */
 	free_mb = (uint32_t)(((nclst >> 10) * csize) >> 1);       /* 簇→MB（=×512B÷1MB）*/
@@ -2176,6 +2192,9 @@ void task_SD(void *pvParameters)
 		 *   · 位置：挂载态、每轮一次（没卡时攒着，有卡了补记）
 		 *   · 全为 0 时不做任何 FatFs 操作 ⇒ 平时零开销。*/
 		Loss_Flush();
+		/* ★ 2026-11-03 加：每天查一次剩余空间（内部按日期自限频，
+		 *   同一天直接 return，开销只是一次日期比较）*/
+		sd_space_check();
 
 		/* ★ 2026-10-18 加（② 用户拍板 A）：运行期检查单文件上限
 		 *
