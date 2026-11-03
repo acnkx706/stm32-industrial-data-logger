@@ -5,3 +5,7 @@
 *.md  text eol=crlf
 *.s   text eol=crlf
 *.uvprojx text eol=crlf
+
+# 本仓库文件混用 CRLF / LF（Keil 工程的 User/ 是 CRLF，Boot/ 与部分 Hardware/ 是 LF）
+# 关掉一切换行转换，保证 checkout 出来的字节与提交时一致
+* -text
