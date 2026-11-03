@@ -48,7 +48,29 @@
  *==========================================================================*/
 #define SD_SYNC_EVERY_BATCH     1   /* 每写完几批 f_sync 一次（T2.5：每批，掉电最多丢一批） */
 #define SD_REMOUNT_PERIOD_MS    3000/* 未挂载态的重试周期（无卡时别狂转） */
-#define SD_FAIL_STREAK_LIMIT    3   /* 连续写失败多少批 → 判卡离场（执行表：3 次） */
+#define SD_FAIL_STREAK_LIMIT    3       /* 连续写失败多少批 → 判卡离场（执行表：3 次） */
+/*============================================================================
+ *  2026-11-03 加：剩余空间监控（方案 C）
+ *
+ *  为什么要有：卡按 80 MB/天 增长，4 GB 卡约 25 天满。满之前没有任何提示，
+ *  满了之后只降级到 W25 缓存（约 10.6 小时），再往后就开始覆盖最旧的数据。
+ *
+ *  三档：
+ *    · 剩余 >= 200 MB  → 什么都不做
+ *    · 剩余 <  200 MB  → 置 g_sd_low，屏上提示，事件槽写一条 # SD_LOW
+ *    · 剩余 <   80 MB  → 删【最旧的一个】数据文件（YYMMDDNN.CSV，NN 01~89）
+ *                       至少保留最近 SD_KEEP_DAYS 天；每次挂载最多删 3 个
+ *
+ *  安全边界（比功能更重要）：
+ *    · 只认 6 位数字 + 2 位数字 + ".CSV" 的名字，其余一律不碰
+ *    · NN 必须 01~89 ⇒ 事件文件 ??90.CSV 永远不会被删
+ *    · 文件日期必须在 SD_KEEP_DAYS 天之前 ⇒ 今天/昨天/前天的文件永远不动
+ *    · 删之前先写一条 # SD_GC 事件行（卡写不进时落 W25 事件槽）
+ *==========================================================================*/
+#define SD_FREE_WARN_MB         200u    /* 低于此值告警 */
+#define SD_FREE_DEL_MB           80u    /* 低于此值删最旧一个 */
+#define SD_KEEP_DAYS              3u    /* 至少保留最近几天 */
+#define SD_GC_MAX_PER_MOUNT       3u    /* 每次挂载最多删几个 */
 /* ★ SD_FILE_IDX_MAX 已删（2026-10-11 独立审查 F15）
  *   它只服务于旧的 "LOG%04u 逐个探测空位" 机制，那套已在 2026-10-10 废弃。
  *   现在文件数上限由 SD_FILE_NN_MAX（同一天 ≤99 个）管着，它没有任何引用。*/
@@ -163,6 +185,7 @@ volatile uint8_t g_sd_last_err = 0;
 
 /* ★ 2026-11-03 加：卡满标志（见 task_sd.h 的说明）*/
 volatile uint8_t g_sd_full = 0u;
+volatile uint8_t g_sd_low  = 0u;      /* ★ 2026-11-03：剩余空间不足（见 sd_space_check）*/
 /* ★ 安全关机握手（2026-10-13 深夜加，完整说明见 task_sd.h）
  *   · g_shutdown_req，task_KEY 写，task_SD 读。
  *   · g_shutdown_done，task_SD 写，task_DISP 读。
@@ -1291,6 +1314,138 @@ static void sd_unmount_force(void)
  *    判离场门槛）时 g_sd_error 仍是 0、但 last_err 已记录 —— 屏上提前留痕。
  *  返回：1 = 本次失败已判定卡离场（调用者需把 mounted 清 0）
  *==========================================================================*/
+/*----------------------------------------------------------------------------
+ *  在根目录里找【最旧的、且够天数】的数据文件
+ *  返回：1 = 找到（写入 out，形如 "0:26110101.CSV"）；0 = 没有可删的
+ *  说明：目录项名字是 8.3 短名（"26110101.CSV"），不带盘符。
+ *        扫描上限 SD_FILE_NN_MAX+ 若干个，防止目录被写坏时死循环。
+ *----------------------------------------------------------------------------*/
+static uint8_t sd_find_oldest(char *out, uint16_t outsz, uint32_t now_ts)
+{
+	static DIR     s_dir;
+	static FILINFO s_fno;
+	char     best[16];
+	uint32_t best_age = 0u;
+	uint8_t  have = 0u;
+	uint8_t  got;
+	uint8_t  i;
+	uint16_t guard = 0u;
+
+	if (f_opendir(&s_dir, "0:") != FR_OK) { return 0u; }
+
+	for (;;)
+	{
+		const char *n;
+		uint8_t  ok = 1u;
+		uint16_t yy;
+		uint8_t  mo, dd, nn;
+		uint32_t ts, age;
+
+		got = (f_readdir(&s_dir, &s_fno) == FR_OK) ? 1u : 0u;
+		if (got == 0u) { break; }
+		if (s_fno.fname[0] == '\0') { break; }             /* 目录结束 */
+		if (++guard > 400u) { break; }                     /* 兜底上限 */
+		if ((s_fno.fattrib & AM_DIR) != 0u) { continue; }  /* 只处理文件 */
+
+		n = s_fno.fname;
+		for (i = 0u; i < 6u; i++)                          /* YYMMDD */
+		{
+			if ((n[i] < '0') || (n[i] > '9')) { ok = 0u; break; }
+		}
+		if (ok == 0u) { continue; }
+		if ((n[6] < '0') || (n[6] > '9') || (n[7] < '0') || (n[7] > '9')) { continue; }
+		if ((n[8] != '.') || (n[9] != 'C') || (n[10] != 'S') || (n[11] != 'V') || (n[12] != '\0'))
+		{
+			continue;
+		}
+
+		nn = (uint8_t)(((n[6] - '0') * 10u) + (n[7] - '0'));
+		if ((nn < 1u) || (nn > 89u)) { continue; }         /* 90 = 事件文件，绝不删 */
+
+		yy = (uint16_t)(2000u + ((n[0] - '0') * 10u) + (n[1] - '0'));
+		mo = (uint8_t)(((n[2] - '0') * 10u) + (n[3] - '0'));
+		dd = (uint8_t)(((n[4] - '0') * 10u) + (n[5] - '0'));
+		if ((mo < 1u) || (mo > 12u) || (dd < 1u) || (dd > 31u)) { continue; }
+
+		ts = MyRTC_YmdToUnix(yy, mo, dd, 0u, 0u, 0u);
+		if (now_ts <= ts) { continue; }                     /* 未来时间：不动 */
+		age = now_ts - ts;
+		if (age < (uint32_t)(SD_KEEP_DAYS * 86400u)) { continue; }
+
+		if ((have == 0u) || (age > best_age))
+		{
+			best_age = age;
+			for (i = 0u; i < 13u; i++) { best[i] = n[i]; }
+			have = 1u;
+		}
+	}
+	(void)f_closedir(&s_dir);
+
+	if (have == 0u) { return 0u; }
+
+	/* 拼成 FatFs 要的完整路径 */
+	if ((uint16_t)(2u + 13u) > outsz) { return 0u; }
+	out[0] = '0';
+	out[1] = ':';
+	for (i = 0u; i < 13u; i++) { out[2u + i] = best[i]; }
+	return 1u;
+}
+
+/*----------------------------------------------------------------------------
+ *  挂载成功后查一次剩余空间（见文件上半部分的说明）
+ *----------------------------------------------------------------------------*/
+static void sd_space_check(void)
+{
+	static FATFS *s_fs;
+	DWORD    nclst = 0u;
+	uint32_t csize;
+	uint32_t free_mb;
+	FRESULT  fr;
+	char     victim[16];
+	char     line[80];
+	uint8_t  dels = 0u;
+	uint32_t now_ts;
+
+	fr = f_getfree("0:", &nclst, &s_fs);
+	if ((fr != FR_OK) || (s_fs == NULL)) { return; }
+
+	csize   = (uint32_t)s_fs->csize;                          /* 每簇扇区数 */
+	free_mb = (uint32_t)(((nclst >> 10) * csize) >> 1);       /* 簇→MB（=×512B÷1MB）*/
+
+	if (free_mb >= SD_FREE_WARN_MB)
+	{
+		g_sd_low = 0u;
+		return;
+	}
+
+	/* ---- 告警档 ---- */
+	if (g_sd_low == 0u)
+	{
+		g_sd_low = 1u;
+		(void)sprintf(line, "# SD_LOW,%luMB,warn %uMB",
+		              (unsigned long)free_mb, (unsigned)SD_FREE_WARN_MB);
+		(void)SD_AppendEventLine(line);
+		Serial_Printf("SD: LOW SPACE %luMB (warn %uMB)\r\n",
+		              (unsigned long)free_mb, (unsigned)SD_FREE_WARN_MB);
+	}
+
+	if (free_mb >= SD_FREE_DEL_MB) { return; }                /* 还不够低：只告警 */
+
+	/* ---- 删除档：删最旧的，至少留 SD_KEEP_DAYS 天 ---- */
+	now_ts = MyRTC_GetUnix();
+	while (dels < (uint8_t)SD_GC_MAX_PER_MOUNT)
+	{
+		if (sd_find_oldest(victim, (uint16_t)sizeof(victim), now_ts) == 0u) { break; }
+		if (f_unlink(victim) != FR_OK) { break; }
+
+		dels++;
+		(void)sprintf(line, "# SD_GC,%s,free %luMB",
+		              victim + 2, (unsigned long)free_mb);
+		(void)SD_AppendEventLine(line);
+		Serial_Printf("SD: GC deleted %s (free was %luMB)\r\n",
+		              victim + 2, (unsigned long)free_mb);
+	}
+}
 static uint8_t sd_note_failure(uint8_t *streak, uint8_t err, uint8_t site)
 {
 	(*streak)++;
@@ -1956,6 +2111,11 @@ void task_SD(void *pvParameters)
 				}
 
 				mounted     = 1;
+
+				/* ★ 2026-11-03 加（方案 C）：查一次剩余空间
+				 *   低于 200 MB 告警、低于 80 MB 删最旧的（见 sd_space_check）
+				 *   ★ 放在挂载成功后、且是 task_SD 里 —— 全工程只有这里能碰 f_xxx */
+				sd_space_check();
 				fail_streak = 0;
 				g_sd_error  = 0;            /* 复位故障标志：DISP 上摘掉报警 */
 				g_sd_last_err = 0;          /* ★ 屏上语义仍是 E:00 = 当前无错。*/

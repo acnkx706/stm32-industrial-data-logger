@@ -25,7 +25,7 @@
  * =1 裁掉 f_stat/f_getfree/f_unlink/f_mkdir/f_truncate/f_rename（本项目不用）；
  * =2 再裁掉 f_opendir/f_readdir/f_closedir（不做文件浏览）。
  * ★ f_lseek 在 MINIMIZE=3 才被裁，=2 保留 —— 追加写全靠它（T2.5） */
-#define _FS_MINIMIZE    2
+#define _FS_MINIMIZE    0
 
 /* 【改】2 → 0：裁掉 f_gets/f_putc/f_puts/f_printf 字符串族。
  * 写行格式在 task_sd 里自己拼（还能控制分隔符与缓冲），不依赖 FatFs 格式化 */

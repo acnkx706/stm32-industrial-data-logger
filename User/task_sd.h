@@ -107,6 +107,10 @@ extern volatile uint8_t g_sd_last_err;
  *   · 用途：屏上把 E:07 翻译成人话 CARD FULL / REPLACE CARD
  *   · 一挂载成功就清 0（换卡 / 腾出空间后自动恢复）*/
 extern volatile uint8_t g_sd_full;
+/* ★ 2026-11-03 加：剩余空间不足（< 200 MB，见 task_sd.c 的 sd_space_check）
+ *   · 1 = 该换卡了，但还能写；0 = 空间充足
+ *   · 屏上每 30 秒闪 3 秒 SD LOW SPACE，不长期占屏 */
+extern volatile uint8_t g_sd_low;
 
 /*============================================================================
  *  ★ 安全关机握手（2026-10-13 深夜加）
