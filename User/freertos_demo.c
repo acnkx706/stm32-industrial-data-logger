@@ -119,7 +119,11 @@ void task_DISP(void *pvParameters);
  *
  *  ★ 关机态（SAFE TO OFF）绝不黑屏，见 task_DISP 里的判断。
  *     因为那正是"必须让人看见"的唯一状态*/
-#define OLED_BLANK_MS               30000u
+/* ★ 2026-11-04 改：30000u -> 0u（台面调试期不黑屏）
+ *   · 0 时 task_DISP 走"强制亮屏"分支，每帧续期 g_ui_act_tick
+ *   · 测低功耗之前必须改回 30000u：屏占 6~7 mA
+ *     是这台机器上唯一还能靠软件砍掉的一块 */
+#define OLED_BLANK_MS               0u
 
 /* ★ 2026-11-04 临时：屏晃线测试开关（1 = 开，0 = 关）
  *
@@ -1762,7 +1766,14 @@ void task_DISP(void *pvParameters)
 			}
 			else
 			{
+				/* ★ 2026-11-04：OLED_BLANK_MS 为 0 时不能直接拿它比较
+				 *   否则编译器报 #186-D（无符号数和 0 比，结果永远为真）
+				 *   ⇒ 用条件编译把那条比较整段去掉 */
+#if (OLED_BLANK_MS > 0u)
 				s_blank = (idle_ms >= OLED_BLANK_MS) ? 1u : 0u;
+#else
+				s_blank = 0u;
+#endif
 			}
 
 			if ((s_blank != 0u) && (s_blanked == 0u))
