@@ -36,6 +36,7 @@
 #include "Serial.h"                     /* Serial_Printf：报挂载/失败信息 */
 #include "task_sd.h"
 #include "MyRTC.h"
+#include "DWT_Delay.h"           /* DWT->CYCCNT 计时（本工程 CMSIS 没带 DWT，shim 在这里）*/
 /* ★ 2026-10-18 加：掉卡缓存 API（实现在 golden.c，W25 归它所有）
  *   ★ 不加这一行 ⇒ 编译器隐式声明，返回类型全按 int 处理
  *     → 参数/返回值都不校验 ⇒ 出错时查不出来 */
@@ -187,6 +188,18 @@ volatile uint8_t g_sd_last_err = 0;
 volatile uint8_t g_sd_full = 0u;
 volatile uint8_t g_sd_low  = 0u;
 static uint32_t  s_space_day = 0u;   /* ★ 上次查剩余空间是哪一天（SD_ROLL_KEY；0 = 还没查过）*/      /* ★ 2026-11-03：剩余空间不足（见 sd_space_check）*/
+
+/* ★ 2026-11-05 加：写卡耗时实测（定 W 用，见 66 号台账 2.9）
+ *   · s_w_max_us  = 单次 f_write 的最大耗时
+ *     ⇒ 它才是"一块缓冲被占多久"（缓冲在 f_sync 之前就还回池了）
+ *   · s_w_ge_100ms = 慢批次计数（>100ms 的 f_write 有几笔）
+ *   ★ 为什么只量 f_write：f_sync 不占缓冲，只拖慢本任务循环
+ *   ★ 用途：推翻或确认"最坏 250ms"这个设计假设 */
+static uint32_t s_w_max_us   = 0u;
+static uint32_t s_w_sum_us   = 0u;
+static uint32_t s_w_cnt      = 0u;
+static uint32_t s_w_ge_100ms = 0u;
+static uint32_t s_t_wr       = 0u;   /* f_write 前的 CYCCNT 快照 */
 /* ★ 安全关机握手（2026-10-13 深夜加，完整说明见 task_sd.h）
  *   · g_shutdown_req，task_KEY 写，task_SD 读。
  *   · g_shutdown_done，task_SD 写，task_DISP 读。
@@ -2392,7 +2405,24 @@ void task_SD(void *pvParameters)
 			 *     sd_set_err(fr, site) ⇒ 只在真失败时打一行 SD: ERR fr=.. site=..
 			 *     （站点码表见上面 762 行那段）
 			 *   ★ 留着这段说明，免得以后有人再去"查一遍 E:09" */
+			s_t_wr = DWT->CYCCNT;
 			fr = f_write(&s_log_file, msg.buf, (UINT)msg.len, &bw);
+			{
+				/* ★ 2026-11-05 加：记下这一笔的真实耗时（72 周期 = 1us @72MHz）*/
+				uint32_t dt = (DWT->CYCCNT - s_t_wr) / 72u;
+				s_w_cnt++;
+				s_w_sum_us += dt;
+				if (dt > s_w_max_us) { s_w_max_us = dt; }
+				if (dt >= 100000u) { s_w_ge_100ms++; }   /* 阈值 100ms，dt 单位是 us */
+				if ((s_w_cnt % 100u) == 0u)
+				{
+					Serial_Printf("SD: W n=%lu avg=%lu us max=%lu us ge100ms=%lu\r\n",
+						(unsigned long)s_w_cnt,
+						(unsigned long)(s_w_sum_us / s_w_cnt),
+						(unsigned long)s_w_max_us,
+						(unsigned long)s_w_ge_100ms);
+				}
+			}
 
 			/* ★ 2026-10-18 加：整批丢了 ⇒ 按条记账。
 			 *   · msg.nrec 是 PROC 报上来的"这批几条"。
