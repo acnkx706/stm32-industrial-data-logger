@@ -25,7 +25,6 @@
 
 #define DHT22_GPIO      GPIOB
 #define DHT22_PIN       GPIO_Pin_15
-
 /* 读取一次：成功返回 1
  *   humi_x10 —— 湿度 ×10（如 653 = 65.3% RH）
  *   temp_x10 —— 温度 ×10（如 245 = 24.5°C，负温为负值）
@@ -37,5 +36,11 @@ uint8_t DHT22_Read(uint16_t *humi_x10, int16_t *temp_x10);
 void DHT22_Init(void);
 
 void    DHT22_BootTest(void);       /* ★ 2026-10-24 从 main.c 搬来：开机自检读一次。 */
+
+/* ★ 2026-11-04 加：失败原因记账（查"约 15% 偶发失败"用，查完可删）
+ *   reason 码值见 DHT22.c 顶部那段说明；ok/fail 是累计次数 */
+extern volatile uint8_t  g_dht_reason;
+extern volatile uint16_t g_dht_ok;
+extern volatile uint16_t g_dht_fail;
 
 #endif

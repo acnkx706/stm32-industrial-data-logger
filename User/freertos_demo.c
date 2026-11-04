@@ -2295,6 +2295,10 @@ void task_sensor(void *pvParameters)
 	 *   ★ 用 static：生命周期贯穿整个任务*/
 	static uint32_t s_sensor_tick = 1u;
 
+	/* ★ 2026-11-04 加：DHT22 连续失败计数
+	 *   偶发失败（实测 3~6%）保留上一次的值，连续 3 次才写 65535 */
+	static uint8_t  s_dht_fail_run = 0u;
+
 	(void)pvParameters;
 
 	/* ★ 错开相位：ACQ 在 0/100/200…ms 上跑，这里先偏 500ms，
@@ -2364,11 +2368,36 @@ void task_sensor(void *pvParameters)
 			{
 				g_humi_x10     = h_x10;
 				g_dht_temp_x10 = t_x10;
+				s_dht_fail_run = 0u;
 			}
 			else
 			{
-				g_humi_x10 = 0xFFFF;            /* ★ 无效 → 0xFFFF（"未接"约定）*/
+				/* ★ 2026-11-04 改：偶发失败不再立刻写 65535
+				 *   · 实测失败率 3~6%，都是单次、下一次就好
+				 *   · 一次失败就写 65535 ⇒ CSV 里出现 3 秒的 65535 断点
+				 *   · 现在保留上一次有效值，连续 3 次（约 9 秒）才认账
+				 *   ⇒ 数据连续；真拔掉传感器时 9 秒内照样报出来 */
+				if (s_dht_fail_run < 255u) { s_dht_fail_run++; }
+				if (s_dht_fail_run >= 3u)
+				{
+					/* ★ 只在"有效 -> 无效"那一刻打一行，别每 3 秒刷屏 */
+					if (g_humi_x10 != 0xFFFFu)
+					{
+						Serial_Printf("DHT: sensor lost (reason=%u, fails=%u)\r\n",
+						              (unsigned)g_dht_reason, (unsigned)s_dht_fail_run);
+					}
+					g_humi_x10 = 0xFFFF;
+				}
 			}
+
+			/* ★ 2026-11-04 临时：把失败原因打出来（查 15% 偶发失败用）
+			 *   reason: 1~3 没人应答 / 4~5 位流被打断 / 6 校验错
+			 *   ★ 查完已改成"只在真丢传感器时打一行"，这里不再每 3 秒刷 */
+#if 0
+			Serial_Printf("DHT: ok=%u fail=%u reason=%u h=%u t=%d\r\n",
+			              (unsigned)g_dht_ok, (unsigned)g_dht_fail,
+			              (unsigned)g_dht_reason, (unsigned)h_x10, (int)t_x10);
+#endif
 		}
 
 		/*========================================================================
