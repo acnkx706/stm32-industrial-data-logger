@@ -117,7 +117,9 @@ seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,
 2. **给人看的时间（文件名、屏显）加 8 小时**，走 `MyRTC_GetLocalDateTime()`
 3. **「配过」和「对过」是两件事**：`BKP_DR1` 说有初始化过，`BKP_DR5` 说有人对过时
 
-没有 VBAT 电池，所以每次断电 RTC 会回到编译时刻；串口 `T<unix>` 或 `time_sync.py` 可以对时。
+本板**已装 CR2032**，正常断电后 RTC 继续走（开机看到 `BKP magic hit -> keep counter` 就是证据）。
+只有换电池、备份域被复位、或 LSE 起不来这几种情况，才会退回"用编译时刻当初值"。
+已在跑但时间不对时，用串口 `T<unix>` 或 `time_sync.py` 对时。
 
 ## 5. 实测数据
 

@@ -343,7 +343,9 @@ int main(void)
  *   ② App_InitUi()       AD / 屏 / 按键 / 蜂鸣器
  *        ★ 排在存储前，它是"看得见"的诊断能力
  *   ③ App_InitW25()      W25Q64 接线验证（金副本/回滚的地基）
- *   ④ App_InitRtc()      RTC（LSE 三次重试 -> 备份域复位重试 -> LSI 降级）
+ *   ④ App_InitRtc()      RTC（LSE 三次重试 -> 备份域复位 -> 重新启动 LSE -> 实在不行才降 LSI）
+ *        ★ 2026-11-04 修：备份域复位会把 BDCR 清掉（LSEON 归零），
+ *          所以复位之后必须重新把 LSE 起起来，否则会一直掉在 LSI
  *   ⑤ App_InitSensors()  MPU6050 + BMP280（共用 PA2/PA3 软件 I2C）
  *   ⑥ App_InitWire()     DHT22 + 超声波 + 1-wire 线路体检
  *   ⑦ App_InitSd()       SD 初始化 + MBR 校验（硬件探针默认关）
