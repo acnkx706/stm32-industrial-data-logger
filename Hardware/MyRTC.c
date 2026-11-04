@@ -35,10 +35,10 @@
  *  ★ 寄存器选择：DR1=RTC 魔数 / DR2=升级标志 / DR3=回退标志
  *    / DR4=低功耗预留 ⇒ DR5 是空的
  *  ★ 语义：只有 MyRTC_SetUnix()（串口 T<unix> 对时）才置它
- *    · 没装 VBAT ⇒ 一断电就丢⇒ 自动回到"不可信"
- *    · 而软复位/看门狗复位不会丢 ⇒ 时间还连着，标记也该留着
- *      （这正是我们要的语义）
- *  ★ 有没有 VBAT 都一样对：装了电池 ⇒ 断电也保留，更准。 */
+ *    · 本板已装 CR2032 ⇒ 断电也保留（软复位 / 看门狗复位同样保留）
+ *    · 只有"备份域被复位"才丢：换电池、电池耗尽，
+ *      或 MyRTC_Init 里那条 RCC_BackupResetCmd 的重试路径
+ *    · 丢了就回到"不可信"，等下次串口对时重新置上 */
 #define RTC_TRUST_MAGIC     0x5A5Au
 #define RTC_TRUST_DR        BKP_DR5
 
@@ -367,7 +367,7 @@ uint8_t MyRTC_Init(void)
 	{
 		Serial_Printf("MyRTC: already configured (BKP magic hit) -> keep counter\r\n");
 		/* ★ 注意：DR1 命中只说明"配过"，不代表"对过"
-		 *   · 可能是上次上电时用编译时刻配的
+		 *   · 可能是首次上电 / 换电池后用编译时刻配的（本板有电池，平时不会走到）
 		 *   · 也可能是本次软复位，计数器还连着
 		 *   ⇒ 真正的判据看下面的 MyRTC_IsTrusted()（BKP_DR5）。 */
 	}

@@ -67,7 +67,7 @@ void BootFlag_ClearRollback(void)
  *    · 也不用担心和别的寄存器冲突 ⇒ 用 BKP_DR6
  *
  *  ★ 读的时候要限幅：
- *    · 备份寄存器上电可能是随机值（没 VBAT 时是 0，但装了就未必）
+ *    · 备份寄存器上电可能是随机值（没 VBAT 时是 0；本板有电池 ⇒ 是上次的值）
  *    · 若读到一个天文数字 ⇒ 永远进不了自动回退
  *    ⇒ 超过 3 一律当 3 处理（逻辑上只需要区分 0 / ≥1） */
 uint8_t BootFlag_GetIwdgRetry(void)
