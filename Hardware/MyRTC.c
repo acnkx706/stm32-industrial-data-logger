@@ -340,9 +340,19 @@ uint8_t MyRTC_Init(void)
 		MyRTC_CompileTime(&ct);
 		ts = MyRTC_YmdToUnix(ct.year, ct.month, ct.day, ct.hour, ct.minute, ct.second);
 
-		Serial_Printf("MyRTC: 1st time -> set from compile time %04u-%02u-%02u %02u:%02u:%02u\r\n",
+		/* ★★★★ 2026-11-04 修：编译时刻是【本机墙钟（本地时间）】，而 RTC 存的是 UTC
+		 *   · 原来直接当 UTC 用 ⇒ 上电到对时之间，RTC 比真 UTC 快 8 小时
+		 *   · 叠加"文件名按本地日期"这条规则，本地会被算成 +16 小时
+		 *     ⇒ 晚上开机时可能直接建出【明天】的文件
+		 *   · 现在减掉时区偏移，上电瞬间就是正确的 UTC
+		 *   · 代价：__DATE__/__TIME__ 仍是"编译那一刻"，本身会旧（这没法靠软件解决）*/
+		ts -= MYRTC_TZ_OFFSET_SEC;
+
+		Serial_Printf("MyRTC: 1st time -> compile %04u-%02u-%02u %02u:%02u:%02u (local)"
+		              " -> UTC %lu\r\n",
 		              (unsigned)ct.year, (unsigned)ct.month, (unsigned)ct.day,
-		              (unsigned)ct.hour, (unsigned)ct.minute, (unsigned)ct.second);
+		              (unsigned)ct.hour, (unsigned)ct.minute, (unsigned)ct.second,
+		              (unsigned long)ts);
 
 		(void)MyRTC_WaitLastTask(500u);          /* ★ 带超时，不再永久卡死。 */
 		RTC_EnterConfigMode();                   /* ★ 进配置模式才能改分频。 */
