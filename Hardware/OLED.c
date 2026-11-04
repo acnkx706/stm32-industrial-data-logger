@@ -659,5 +659,62 @@ uint8_t OLED_IsOn(void)
 {
 	return s_oled_on;
 }
+/*==============================================================================
+ * ★ 面板点亮测试（2026-11-04 加，查"命令通道通了、屏还是黑"）
+ *
+ * ★ 为什么需要它：
+ *   · OLED_SelfCheck 只问"地址有没有应答"，命令和数据拿的是同一个 ACK
+ *   · 命令通了而屏黑，只剩两种可能：
+ *     ① 显存是空的（数据通道 0x40 写不进去）
+ *     ② 面板或电荷泵不工作
+ *
+ * ★ 为什么用 0xA5：
+ *   · 0xA5 = 全显，不读显存，直接把 1024 个点全点亮
+ *   · 所以 0xA5 期间看得到白屏 ⇒ 面板和电荷泵都没问题
+ *   · 0xA4 = 回显存，白屏消失 ⇒ 说明刚才的白是强制点亮的
+ *
+ * ★ 判读（这是判据，不是参考）：
+ *   白 3 秒 → 变黑         面板好，问题在数据通道
+ *   一直黑                 面板或电荷泵坏
+ *   白屏期间板子重启       电荷泵电流把电源拉塌了
+ *============================================================================*/
+void OLED_PanelTest(void)
+{
+	OLED_WriteCommand(0xA5);                   /* ★ 全显，不看显存。 */
+	Serial_Printf("OLED: panel test A5 -> expect ALL WHITE for 3 s\r\n");
+	DWT_Delay_ms(3000);
+	OLED_WriteCommand(0xA4);                   /* ★ 回到显存显示。 */
+	Serial_Printf("OLED: panel test A4 -> back to GDDRAM\r\n");
+}
+
+/* ★ 2026-11-04 加：强制全显 / 回显存（晃线测试用，非阻塞）
+ *   · on=1 发 0xA5，整屏白，不看显存内容
+ *   · on=0 发 0xA4，回显存显示
+ *   · 为什么不复用 OLED_PanelTest：那个自带 3 秒延时，会把调用者卡住 */
+void OLED_PanelForce(uint8_t on)
+{
+	OLED_WriteCommand((on != 0u) ? 0xA5 : 0xA4);
+}
+
+/* ★ 2026-11-04 加：把两根线按 1Hz 慢速拉低/放开（万用表看得见）
+ *   · 为什么需要：万用表看不到 I2C 的翻转，量出来永远是 3.3V
+ *     ⇒ "SCL/SDA 不变"这句话不能用来判断引脚好坏
+ *   · 本函数让 SCL/SDA 一起低 1 秒、高 1 秒
+ *     万用表直流档能看到 0V 和 3.3V 交替 ⇒ 证明 MCU 真的能拉低这两根线
+ *   · low=1 拉低，low=0 放开（开漏写 1 = 松手，靠上拉拉高） */
+void OLED_PinSlowToggle(uint8_t low)
+{
+	if (low != 0u)
+	{
+		OLED_W_SCL(0);
+		OLED_W_SDA(0);
+	}
+	else
+	{
+		OLED_W_SCL(1);
+		OLED_W_SDA(1);
+	}
+}
+
 /* ★ 2026-10-17：本行以下是空行，只为消掉 warning #1-D
  *   「last line of file ends without a newline」（文件末尾缺换行） */

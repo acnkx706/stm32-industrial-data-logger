@@ -291,6 +291,8 @@ void MyRTC_UnixToYmd(uint32_t ts, RTC_DateTime_t *dt)
  * ============================================================================*/
 uint8_t MyRTC_Init(void)
 {
+	uint32_t i;                                  /* ★ 2026-11-04 加：等 LSERDY 用 */
+
 	if (MyRTC_CheckLSE() != RTC_OK)
 	{
 		/* ★ 2026-10-20：起不来不再直接放弃，先切 LSI 让时间能走
@@ -316,6 +318,27 @@ uint8_t MyRTC_Init(void)
 		Serial_Printf("RTC: LSE sync timeout -> backup domain reset + retry LSE\r\n");
 		RCC_BackupResetCmd(ENABLE);
 		RCC_BackupResetCmd(DISABLE);
+
+		/* ★ 2026-11-04 修：备份域复位会把整个 BDCR 清掉，LSEON 跟着归零
+		 *
+		 * ★ 原来的错：复位后只写了 RTCSEL 和 RTCEN，没把 LSE 重新起起来
+		 *   · RTC 于是没有时钟 ⇒ 第二次同步照样超时 ⇒ 掉到 LSI
+		 *   · 而 LSI 一旦被选中，RTCSEL 又锁死 ⇒ 之后每次开机都重复这一幕
+		 *   ⇒ 现象就是"降级过一次，再也回不到 LSE"
+		 *
+		 * ★ 现在：复位之后先把 LSE 拉起来，等到 LSERDY 再选它当时钟 */
+		RCC_LSEConfig(RCC_LSE_OFF);
+		DWT_Delay_ms(5u);
+		RCC_LSEConfig(RCC_LSE_ON);
+		for (i = 0u; i < 500u; i++)
+		{
+			if (RCC_GetFlagStatus(RCC_FLAG_LSERDY) != RESET) { break; }
+			DWT_Delay_ms(1u);
+		}
+		if (RCC_GetFlagStatus(RCC_FLAG_LSERDY) == RESET)
+		{
+			Serial_Printf("RTC: LSE still NOT ready after backup reset\r\n");
+		}
 		RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);
 		RCC_RTCCLKCmd(ENABLE);
 

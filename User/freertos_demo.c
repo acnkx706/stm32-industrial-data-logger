@@ -121,6 +121,24 @@ void task_DISP(void *pvParameters);
  *     因为那正是"必须让人看见"的唯一状态*/
 #define OLED_BLANK_MS               30000u
 
+/* ★ 2026-11-04 临时：屏晃线测试开关（1 = 开，0 = 关）
+ *
+ * ★ 做什么：task_DISP 每 500ms 交替发 0xA5（全显，整屏白）和 0xA4（回显存）
+ *   · 目的：查"总线 ACK 全 1 但屏黑"到底是面板坏，还是接线虚
+ *   · 一边晃线、一边动接插件，只要闪过一次白 ⇒ 就是接触问题
+ *
+ * ★ 为什么放在 task_DISP 里而不是开机时：
+ *   · 开机时跑，屏闪完就没了，人还没开始晃线
+ *   · 放在这里可以一直闪，而且帧号会让串口日志能算出真实间隔
+ *
+ * ★ 收尾：查完把下面这个 1u 改回 0u 重新编译烧录
+ *
+ * ★ 为什么用 volatile 变量而不是 #define：
+ *   · 写成宏，编译器看得见它是常量 1 ⇒ 后面正常绘制那段被判"不可达"
+ *     ⇒ 报 warning #111-D，而且整段绘制代码被优化掉，代码尺寸都变了
+ *   · 用 volatile 变量，编译器不敢假设它恒为 1 ⇒ 两条路都老实留着 */
+static volatile uint8_t s_oled_wiggle = 0u;
+
 /* task_SD：SD 卡落盘任务（乒乓缓冲的接收方，task_sd.c 实现本体）
  * ★ 优先级/栈大小用 task_sd.h 的定版宏（1 / 384 字），别在这里手抄数字 ——
  *   两处漂移是事故温床（改了宏忘了改这里，或反之） */
@@ -1652,6 +1670,32 @@ void task_DISP(void *pvParameters)
 		 *   · 现象"看起来像拔卡导致的"，其实是
 		 *     frame == 200 ⇒ 开机后 40~55 秒的固定窗口 
 		 *   ⇒ 已搬到 task_GOLDEN（没人等它）*/
+
+		/* ★ 2026-11-04 临时：晃线测试（OLED_WIGGLE_TEST 为 1 时整段生效）
+		 *   · 每 500ms 交替 0xA5（整屏白）/ 0xA4（回显存）
+		 *   · 本模式跳过下面的正常绘制，所以蜂鸣器轮询也一起停
+		 *     台面查线够用，收尾把 OLED_WIGGLE_TEST 改回 0u 即可 */
+		if (s_oled_wiggle == 1u)
+		{
+			TimeSync_Poll();           /* ★ 测试模式也得处理串口，否则收不到升级命令 */
+			OLED_PanelForce(((frame & 1u) != 0u) ? 1u : 0u);
+			frame++;
+			vTaskDelay(pdMS_TO_TICKS(500));
+			continue;
+		}
+
+		/* ★ 2026-11-04 临时：1Hz 慢速拉线（模式 2，给万用表看）
+		 *   · SCL/SDA 一起低 1 秒、高 1 秒
+		 *   · 万用表直流档应看到 0V 与 3.3V 交替
+		 *   · 一直不跌到 0 ⇒ 这两根线没被 MCU 拉低（引脚坏/被别的外设占了） */
+		if (s_oled_wiggle == 2u)
+		{
+			TimeSync_Poll();           /* ★ 同上：别把升级通道堵死 */
+			OLED_PinSlowToggle(((frame & 1u) != 0u) ? 1u : 0u);
+			frame++;
+			vTaskDelay(pdMS_TO_TICKS(1000));
+			continue;
+		}
 
 		/* ★ 帧计时从这里开始*/
 		t0 = DWT->CYCCNT;

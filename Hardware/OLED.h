@@ -19,4 +19,15 @@ void OLED_SelfCheck(void);        /* ★ 2026-10-14 加：开机自检（一行�
 void    OLED_DisplayOff(void);
 void    OLED_DisplayOn(void);
 uint8_t OLED_IsOn(void);
+
+/* ★ 2026-11-04 加：面板点亮测试（查"总线 ACK 全 1 但屏黑"）
+ *   · 发 0xA5 强制全屏点亮 3 秒，再发 0xA4 回到显存
+ *   · 白屏出现 = 面板与电荷泵是好的，问题在数据通道 */
+void    OLED_PanelTest(void);
+
+/* ★ 2026-11-04 加：非阻塞版全显/回显存（on=1 全白，on=0 回显存） */
+void    OLED_PanelForce(uint8_t on);
+
+/* ★ 2026-11-04 加：SCL/SDA 1Hz 慢速拉低（给万用表看，判引脚能不能驱动） */
+void    OLED_PinSlowToggle(uint8_t low);
 #endif

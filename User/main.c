@@ -57,7 +57,7 @@
  *      · 它是该 .o 的编译时间，增量编译时不更新
  *      · 本项目已经在 RTC 初值上踩过这个坑（净偏 22h35m 那次）
  *    ⇒ 宁可人手改，也不要一个"看起来自动、其实会骗人"的版本号。 */
-#define APP_VER_STR   "APP: ver 56 (2026-11-04 dsh: compile-time UTC fix)"
+#define APP_VER_STR   "APP: ver 60 (2026-11-04 dsh: LSE restart after backup reset)"
 /*==============================================================================
  *  ★ 2026-10-22 main() 拆分（纯搬代码，不改任何逻辑）
  *
@@ -113,6 +113,11 @@ static void App_InitUi(void)
 	AD_Init();
 	OLED_SelfCheck();
 	OLED_Init();
+	/* ★ 2026-11-04 临时：全屏点亮 3 秒，用来判"屏黑但总线 ACK 全 1"
+	 *   · 白 3 秒 → 变黑 = 面板好，问题在数据通道
+	 *   · 一直黑        = 面板或电荷泵坏
+	 *   · 看完可以把本行和 OLED_PanelTest 一起删掉 */
+	OLED_PanelTest();
 
 	Key_Init();
 	/* ★ 2026-10-23：LightSensor_Init() 已删，PB13 = W25Q64 的 CS，详见 LightSensor.c。 */
