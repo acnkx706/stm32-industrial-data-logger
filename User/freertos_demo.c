@@ -2398,6 +2398,18 @@ void task_sensor(void *pvParameters)
 			              (unsigned)g_dht_ok, (unsigned)g_dht_fail,
 			              (unsigned)g_dht_reason, (unsigned)h_x10, (int)t_x10);
 #endif
+			/* ★ 2026-11-04 诊断：每次失败都打一行责任方证据
+			 *   extra_us 是"超时之后又等了多少微秒线才回高"
+			 *   · 有确定值 + line_high=1 ⇒ 器件自己放开的，只是慢
+			 *   · extra_us=65000 且 line_high=0 ⇒ 线被拉死在低电平 20ms
+			 *     那就不是器件慢，要查是谁在拉（可能是我们自己的引脚） */
+			if (g_dht_reason != 0u)
+			{
+				Serial_Printf("DHT: FAIL reason=%u extra_wait=%u us line_high=%u\r\n",
+				              (unsigned)g_dht_reason,
+				              (unsigned)g_dht_extra_us,
+				              (unsigned)g_dht_line_high);
+			}
 		}
 
 		/*========================================================================

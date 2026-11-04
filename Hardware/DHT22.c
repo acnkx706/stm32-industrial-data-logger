@@ -85,6 +85,13 @@ volatile uint8_t  g_dht_reason = 0u;
 volatile uint16_t g_dht_ok     = 0u;
 volatile uint16_t g_dht_fail   = 0u;
 
+/* ★ 2026-11-04 加：reason=2 那次的"加长观察"结果（查责任方用）
+ *   · g_dht_extra_us  —— 超时之后又过了多少微秒线才变高（65535=一直没高）
+ *   · g_dht_line_high —— 最后读到的电平（1=自己回去了 0=一直低）
+ *   ★ 判读：自己回去了 ⇒ 器件慢；一直低到 20ms ⇒ 线被拉死，再查是谁拉的 */
+volatile uint16_t g_dht_extra_us = 0u;
+volatile uint8_t  g_dht_line_high = 0u;
+
 uint8_t DHT22_Read(uint16_t *humi_x10, int16_t *temp_x10)
 {
 	uint8_t  d[5];
@@ -106,7 +113,19 @@ uint8_t DHT22_Read(uint16_t *humi_x10, int16_t *temp_x10)
 
 	/* ② 器件响应：低 80us → 高 80us → 再低（数据开始） */
 	if (DHT_WaitLevel(0u, DHT_TIMEOUT_US) == 0u) { g_dht_reason = 1u; g_dht_fail++; taskEXIT_CRITICAL(); return 0u; }
-	if (DHT_WaitLevel(1u, DHT_TIMEOUT_US) == 0u) { g_dht_reason = 2u; g_dht_fail++; taskEXIT_CRITICAL(); return 0u; }
+	if (DHT_WaitLevel(1u, DHT_TIMEOUT_US) == 0u)
+	{
+		/* ★ 2026-11-04 诊断：别急着放弃，继续看到底多久才放开（最多 20ms）
+		 *   · 这段只在失败路径上跑，正常帧不受影响
+		 *   · 用 CYCCNT 计时，换算成微秒后存进全局，由任务侧打印
+		 *     （临界区里不许打印，只能存） */
+		uint32_t c0 = DWT->CYCCNT;
+		uint8_t  rose = DHT_WaitLevel(1u, 20000u);
+		uint32_t dt = (DWT->CYCCNT - c0) / (SystemCoreClock / 1000000u);
+		g_dht_extra_us  = (uint16_t)((dt > 65000u) ? 65000u : dt);
+		g_dht_line_high = rose;
+		g_dht_reason = 2u; g_dht_fail++; taskEXIT_CRITICAL(); return 0u;
+	}
 	if (DHT_WaitLevel(0u, DHT_TIMEOUT_US) == 0u) { g_dht_reason = 3u; g_dht_fail++; taskEXIT_CRITICAL(); return 0u; }
 
 	/* ③ 40 位 —— 每位都是"低 50us 开始"，高电平的长短表示 0/1 */

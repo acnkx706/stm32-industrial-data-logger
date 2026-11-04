@@ -43,4 +43,10 @@ extern volatile uint8_t  g_dht_reason;
 extern volatile uint16_t g_dht_ok;
 extern volatile uint16_t g_dht_fail;
 
+/* ★ 2026-11-04 加：reason=2 那次的加长观察结果（查责任方用）
+ *   extra_us = 超时之后又等了多少微秒线才变高（65000 = 一直没高）
+ *   line_high = 最后读到的电平 */
+extern volatile uint16_t g_dht_extra_us;
+extern volatile uint8_t  g_dht_line_high;
+
 #endif
