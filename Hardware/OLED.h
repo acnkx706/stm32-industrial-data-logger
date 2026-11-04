@@ -30,4 +30,7 @@ void    OLED_PanelForce(uint8_t on);
 
 /* ★ 2026-11-04 加：SCL/SDA 1Hz 慢速拉低（给万用表看，判引脚能不能驱动） */
 void    OLED_PinSlowToggle(uint8_t low);
+
+/* ★ 2026-11-04 加：全屏写 + 逐字节数应答（判"雪花是总线丢还是面板坏"） */
+void    OLED_BusStress(void);
 #endif

@@ -57,7 +57,7 @@
  *      · 它是该 .o 的编译时间，增量编译时不更新
  *      · 本项目已经在 RTC 初值上踩过这个坑（净偏 22h35m 那次）
  *    ⇒ 宁可人手改，也不要一个"看起来自动、其实会骗人"的版本号。 */
-#define APP_VER_STR   "APP: ver 61 (2026-11-04 dsh: no blank, no boot flash)"
+#define APP_VER_STR   "APP: ver 64 (2026-11-04 dsh: OLED bus stress count)"
 /*==============================================================================
  *  ★ 2026-10-22 main() 拆分（纯搬代码，不改任何逻辑）
  *
@@ -113,6 +113,7 @@ static void App_InitUi(void)
 	AD_Init();
 	OLED_SelfCheck();
 	OLED_Init();
+	OLED_BusStress();     /* ★ 2026-11-04 临时：全屏写并数丢应答（查雪花） */
 
 	Key_Init();
 	/* ★ 2026-10-23：LightSensor_Init() 已删，PB13 = W25Q64 的 CS，详见 LightSensor.c。 */

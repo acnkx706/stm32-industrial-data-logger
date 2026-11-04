@@ -58,7 +58,16 @@
 #define OLED_PIN_SDA    GPIO_Pin_7      /* ★ = 排针 ⑧（PB7）。 */
 
 #define OLED_W_SDA(x)   GPIO_WriteBit(GPIOB, OLED_PIN_SDA, (BitAction)(x))
-#define OLED_W_SCL(x)   do { GPIO_WriteBit(GPIOB, OLED_PIN_SCL, (BitAction)(x)); DWT_Delay_us(1); } while (0)
+
+/* ★ 2026-11-04 加：SCL 半周期延时（µs）
+ *
+ * ★ 为什么抽成宏：原来硬写 1，想改快慢只能改宏体
+ *   （开漏总线的上升沿靠外部上拉充电，线一长就可能采错位）
+ * ★ 实测过 4 µs（约 100 kHz）：残破字符的现象一点没变
+ *   ⇒ 已排除"上升沿太慢"，回到 1 µs 保速度
+ * ★ 以后若换长线 / 弱上拉又出现丢字节，先回来把这里调大试 */
+#define OLED_SCL_DELAY_US           1u
+#define OLED_W_SCL(x)   do { GPIO_WriteBit(GPIOB, OLED_PIN_SCL, (BitAction)(x)); DWT_Delay_us(OLED_SCL_DELAY_US); } while (0)
 /*==============================================================================
  *  ★ I2C 总线恢复（9 个时钟）—— 2026-10-14 加
  *
@@ -423,6 +432,19 @@ void OLED_Init(void)
 	 *      不发的话，列/页指针可能停在上次被破坏的位置，-> 字画到错地方
 	 *   ★ 这两条的作用是"消除历史状态"—— 加了之后，即使中途失步，下次开机也能彻底恢复 */
 	OLED_WriteCommand(0x2E);	// ★ 停止硬件滚动
+
+	/* ★ 2026-11-04 补：明确"页寻址模式"
+	 *   上面那段注释一直写着要有 0x20 0x02，代码里其实从来没有过
+	 *
+	 * ★ 为什么必须有：
+	 *   · 0x20 0x00 = 水平寻址（SSD1306 复位默认值）
+	 *     0x20 0x02 = 页寻址，才配得上下面的 OLED_SetCursor
+	 *   · 不指定时，列指针一旦跨页就会连写到下一页
+	 *     ⇒ 字符只剩半截、整屏错位（2026-11-04 实测：残破字符 + 随后全黑）
+	 *   · 而屏是被干扰还是被谁改过模式，本程序无从知道
+	 *     ⇒ 每次开机都显式写一遍，不依赖"复位默认值"这种东西 */
+	OLED_WriteCommand(0x20);	// ★ 设置内存寻址模式
+	OLED_WriteCommand(0x02);	// ★ 页寻址（page addressing）
 	
 
 	OLED_WriteCommand(0xD5);	//设置显示时钟分频比/振荡器频率
@@ -714,6 +736,45 @@ void OLED_PinSlowToggle(uint8_t low)
 		OLED_W_SCL(1);
 		OLED_W_SDA(1);
 	}
+}
+
+/*==============================================================================
+ * ★ 全屏写 + 逐字节数应答（2026-11-04 加，查"雪花"用）
+ *
+ * ★ 为什么需要它：
+ *   · OLED_SelfCheck 只问 3 个字节（地址 / 控制字 / 一条命令）
+ *   · 而雪花是"一千多个字节里有一部分错了"
+ *     ⇒ 只测 3 个字节就下结论，等于没测
+ *
+ * ★ 做法：把 8 页 × 128 字节全写 0x00，每个字节都读一次 ACK 并记账
+ *   · 顺带把显存清干净（写完屏就是黑的，不会再花）
+ *
+ * ★ 判读（这是判据，不是参考）：
+ *   lost = 0       显存写全成功 ⇒ 总线没问题，雪花出在面板/供电侧
+ *   lost > 0       有字节没人应答 ⇒ 总线在丢，查接触/上拉/地线
+ *   lost 上千      基本每字节都丢 ⇒ 线断了或屏没上电
+ *============================================================================*/
+void OLED_BusStress(void)
+{
+	uint16_t i;
+	uint16_t bad = 0u;
+	uint8_t  p;
+
+	for (p = 0u; p < 8u; p++)
+	{
+		OLED_SetCursor(p, 0u);                       /* ★ 页寻址下先定位。 */
+
+		OLED_I2C_Start();
+		(void)OLED_SendByteAck(0x78);                /* 地址 */
+		(void)OLED_SendByteAck(0x40);                /* 控制字：后面是数据 */
+		for (i = 0u; i < 128u; i++)
+		{
+			if (OLED_SendByteAck(0x00) == 0u) { bad++; }
+		}
+		OLED_I2C_Stop();
+	}
+
+	Serial_Printf("OLED: stress 8x128 bytes, lost ACK = %u\r\n", (unsigned)bad);
 }
 
 /* ★ 2026-10-17：本行以下是空行，只为消掉 warning #1-D
