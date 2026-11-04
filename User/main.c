@@ -57,7 +57,7 @@
  *      · 它是该 .o 的编译时间，增量编译时不更新
  *      · 本项目已经在 RTC 初值上踩过这个坑（净偏 22h35m 那次）
  *    ⇒ 宁可人手改，也不要一个"看起来自动、其实会骗人"的版本号。 */
-#define APP_VER_STR   "APP: ver 64 (2026-11-04 dsh: OLED bus stress count)"
+#define APP_VER_STR   "APP: ver 66 (2026-11-04 dsh: DHT22 every 3 s)"
 /*==============================================================================
  *  ★ 2026-10-22 main() 拆分（纯搬代码，不改任何逻辑）
  *
@@ -286,6 +286,14 @@ static void App_InitWire(void)
 	/* ★ 2026-10-24：1-wire 线路体检搬进 DS18B20.c → DS18B20_WireCheck()
 	 *   （PB14/PB15 浮空+上拉双采样 + 存在脉冲测量，体检完把引脚还给驱动） */
 	DS18B20_WireCheck();
+
+	/* ★ 2026-11-04 修：体检会把 PB15 改成输入，必须还回 DHT22 手里
+	 *   · Wire_SampleHigh() 把 PB15 配成 IN_FLOATING / IPU
+	 *   · 而 DS18B20_WireCheck 收尾只调 DS18B20_Init()，那只管 PB14
+	 *   ⇒ 体检之后 PB15 一直是输入 ⇒ DHT22_Read 的启动脉冲发不出去
+	 *   ⇒ 运行时湿度永远 65535，屏上 H 那一格一直显示 --.-%
+	 *   （开机测试读在体检之前，所以"开机那次是好的"，最容易误导人） */
+	DHT22_Init();
 
 	/* ★ 2026-10-24：单次读自检搬进 DS18B20.c → DS18B20_BootTest()
 	 *   开关仍是 ProbeConfig.h 的 TEST_DS18B20_ON，与驱动内探针同一开关。 */
