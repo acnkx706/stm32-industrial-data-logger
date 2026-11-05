@@ -133,6 +133,19 @@ seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,
 | 每天行数 | 864,004 ~ 864,049（满量段）；10-22~10-28 为 861,269 ~ 862,789 | ✅ 实测 |
 | 每天体积 | 79 ~ 84 MB | ✅ 实测 |
 
+### SD 延迟与停摆（2026-11-06，ver 74-EXP02，单卡）
+
+| 项 | 值 | 状态 |
+|---|---|---|
+| 单次 `f_write` | 11,000 次：avg **10.07 ms**、p99 100 ms、max **124.5 ms** | ✅ 实测 |
+| 单次 `f_sync` | 11,000 次：avg 11.38 ms、p99 101 ms、max 126.1 ms | ✅ 实测 |
+| ≥250 ms 的次数 | **0**（250 ms 假设偏保守，实测最坏只有它的 1/2） | ✅ 实测 |
+| 停 SD 任务 1 s | 10/10 次先涨 `LOSS_NO_BUF`，`Δqueue_full = 0`；`first_loss` 644~956 ms | ✅ 实测 |
+| 停 PROC 任务 1 s（对照） | 10/10 次先涨 `LOSS_Q_FULL`，`qmax` 冲到 8 | ✅ 实测 |
+| 队列 8 vs 4 | 第一计数器相同，`first_loss` 均值 789 vs 772 ms | ✅ 实测 |
+| 故障注入（拔卡/坏卡/掉电） | 未做 | ⬜ 未做 |
+| 证据 | [延迟报告](evidence/sd_latency/latency_report.md) · [停摆报告](evidence/sd_stall/stall_report.md) · [执行记录](evidence/sd_stall/status.md) |
+
 ### 17 天连续记录（2026-10-18 ~ 11-03，E 盘 SD 卡）
 
 | 项 | 值 |
