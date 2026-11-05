@@ -1,0 +1,13 @@
+EXP-01 longrun summary
+files=24
+rows=12722768
+bytes=1231916856
+nominal=12615220
+downtime_s=194927
+false_gap=11943
+real_gap=1056787
+boundary_gap=0
+rtc_anomaly_expected=1176278
+unexplained_vs_readme=-4178103
+lost_events_rows=19426
+segments_total=871
