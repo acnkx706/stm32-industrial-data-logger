@@ -148,7 +148,7 @@ def main():
     cols = ["file", "date", "bytes", "rows", "sha256",
             "first_seq", "last_seq", "first_tick", "last_tick", "first_rtc", "last_rtc",
             "segments", "tick_expected", "nominal_rtc10",
-            "false_gap", "real_gap", "seq_gap_rows", "missed_rows", "rtc_day", "anomaly", "check"]
+            "false_gap", "acq_seq_gap", "seq_gap_rows", "missed_rows", "downtime_rows", "anomaly", "check"]
     with open(os.path.join(a.out, "manifest_clean11.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(cols)
@@ -313,21 +313,22 @@ def main():
         f.write("\n## 四块拆分（公式逐项可复算）\n\n")
         f.write("| 块 | 行数 | 公式 |\n|---|---:|---|\n")
         f.write("| 假缺口 false_gap | %.0f | Σ可信段 (rtc_span×10 − tick_expected) |\n" % tot["false"])
-        f.write("| 真缺口 real_gap | %.0f | Σ可信段 (tick_expected − rows) |\n" % tot["real"])
-        f.write("| 　其中 seq 跳号 seq_gap_rows | %d | 按 seq 算真的有行不在本文件（10-22 那 149 行来自回灌交错） |\n" % seqg_sum)
+        f.write("| 采集/序列缺口 acq_seq_gap | %.0f | Σ可信段 (tick_expected − rows) |\n" % tot["real"])
+        f.write("| 　其中 seq 跳号 seq_gap_rows | %d | 按 seq 有跳号；10-22 那 149 条经 seq_gap_check 反查，全部能在文件其它位置找到（139 条纯乱序、10 条出现两次） |\n" % seqg_sum)
         f.write("| 　其中 未产生 missed_rows | %.0f | 拍子丢了但 seq 连续：设备在跑、没采样，记录从未产生 |\n" % miss_sum)
-        f.write("| rtc 日长不足 rtc_day | %.0f | 864,000 − Σ全部段 rtc_span×10 |\n" % tot["rtc_day"])
+        f.write("| 停机/未运行 downtime_rows | %.0f | 864,000 − Σ全部段 rtc_span×10 = 未被任何段覆盖的时间（段间停机 + 文件边界少记的 1 秒）×10 |\n" % tot["rtc_day"])
         f.write("| 异常段 anomaly | %.0f | Σ异常段 (rtc_span×10 − rows) |\n" % tot["anomaly"])
         f.write("| 合计 | %.0f | 应等于差额 |\n" % (tot["false"] + tot["real"] + tot["rtc_day"] + tot["anomaly"]))
         f.write("\n## 逐文件\n\n")
-        f.write("| 文件 | rows | false | real | rtc_day | anomaly | 差额 | 校验 |\n|---|---:|---:|---:|---:|---:|---:|---:|\n")
+        f.write("| 文件 | rows | false | acq_seq_gap | downtime_rows | anomaly | 差额 | 校验 |\n|---|---:|---:|---:|---:|---:|---:|---:|\n")
         for n in clean:
             st, b = recs[n]
             d = nominal / len(clean) - st["rows"]
             chk = b["false"] + b["real"] + b["rtc_day"] + b["anomaly"] - d
             f.write("| %s | %d | %.0f | %.0f | %.0f | %.0f | %.0f | %.2f |\n"
                     % (n, st["rows"], b["false"], b["real"], b["rtc_day"], b["anomaly"], d, chk))
-        f.write("\n说明：缺口是\"相对 864,000/天\"的差，不等于丢行。真缺口只认 real_gap。\n")
+        f.write("\n说明：缺口是\"相对 864,000/天\"的差，不等于丢行。真缺口只认 acq_seq_gap，"
+                "且它还分『未产生』与『seq 跳号』两类。\n")
 
         # seq 跳号复核（seq_gap_check.py 的产物）：跳号不等于丢数据，
         # 回灌会打乱书写顺序，同样的 seq 号会在文件别处出现
@@ -340,6 +341,8 @@ def main():
             f.write("| 项 | 值 |\n|---|---:|\n")
             f.write("| 缺失 seq 个数 | %d |\n" % miss_n)
             f.write("| 在同一文件其它位置找到 | %d |\n" % found_n)
+            f.write("| 　其中只出现 1 次（纯乱序） | %d |\n" % sum(1 for r in gr if r.get("total_count") == "1"))
+            f.write("| 　其中出现 2 次（回灌重复写入） | %d |\n" % sum(1 for r in gr if r.get("total_count") == "2"))
             f.write("| **storage_loss（真缺）** | **%d** |\n" % (miss_n - found_n))
             f.write("\n逐条明细见 `seq_gap_check.csv`；能找回的那些是 W25 回灌把书写顺序打乱，"
                     "记录仍在文件里，只是不在原位置。\n")

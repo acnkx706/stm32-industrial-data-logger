@@ -57,10 +57,11 @@ for seq, tick, rtc, ln in rows:
                 found_total += 1
                 l0 = others[0]
                 out_rows.append([os.path.basename(SRC), gap_no, miss, prev, seq,
-                                 1, l0[0], l0[1], l0[2], "found_elsewhere"])
+                                 1, len(others), len(hits),
+                                 l0[0], l0[1], l0[2], "found_elsewhere"])
             else:
                 out_rows.append([os.path.basename(SRC), gap_no, miss, prev, seq,
-                                 0, "", "", "", "truly_missing"])
+                                 0, 0, len(hits), "", "", "", "truly_missing"])
     prev = seq
     prev_ln = ln
 
@@ -68,7 +69,8 @@ os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w", newline="", encoding="utf-8") as f:
     w = csv.writer(f)
     w.writerow(["file", "gap_no", "missing_seq", "prev_seq", "next_seq",
-                "found_elsewhere", "found_line_no", "found_tick", "found_rtc", "verdict"])
+                "found_elsewhere", "found_count", "total_count",
+                "found_line_no", "found_tick", "found_rtc", "verdict"])
     w.writerows(out_rows)
 
 storage_loss = missing_total - found_total
