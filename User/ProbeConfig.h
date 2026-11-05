@@ -34,4 +34,10 @@
 #define TEST_DS18B20_ON     0   /* 单次读一次 DS18B20 并打印。 */
 #define TEST_SD_ON          1   /* SD 初始化 + 读扇区 0 验 MBR（换板/换卡后才开） */
 
+/*---------------- EXP-02：SD 延迟与停摆注入（见 exp/EXP02 方案）---------------- */
+#define TEST_EXP02          0   /* 总开关，正式固件必须 0 */
+#define TEST_SD_LAT         0   /* 1 = 累加 f_write/f_sync 延迟直方图 */
+#define TEST_SD_STALL       0   /* 1 = 跑 SD 任务停摆矩阵 */
+#define TEST_PROC_STALL     0   /* 1 = 跑 PROC 停摆控制组 */
+
 #endif

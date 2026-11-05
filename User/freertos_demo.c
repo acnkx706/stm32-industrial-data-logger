@@ -30,6 +30,7 @@
 #include "MyRTC.h" 
 #include "boot_flag.h"             /* ★ 升级请求标志（★ 和 Boot\boot_flag.h 逐字节一致）*/
 #include "Crc16.h"
+#include "exp02.h"   /* EXP-02 原型（TEST_EXP02=0 时全为空宏） */
 /*==============================================================================
  *  数据记录仪 —— 应用层（任务总装）
  *      数据流：task_ACQ --Record_t--> [xQueueRec] --> task_PROC
@@ -233,6 +234,7 @@ typedef char assert_record_size[( sizeof(Record_t) == 44 ) ? 1 : -1];
  * （当前实测 QMAX=1；长度还有吸收抖动的作用，别缩到 1~2） */
 #define REC_QUEUE_LEN     8
 
+
 /* 队列句柄：本质是指针；创建失败返回 NULL，必须检查 */
 QueueHandle_t xQueueRec; 
 
@@ -245,6 +247,12 @@ typedef struct {
     uint32_t q_max_depth;  /* 队列历史最大积压 ★ 决定队列该开多大的依据 */
 } Stat_t;
 Stat_t g_stat;
+
+/* ★ 2026-11-06（EXP-02）：测试模块用 #include 并在本编译单元。
+ *   · 本工程约定不改 .uvprojx，所以不把 exp02.c 加进工程文件
+ *   · 放在 Stat_t / g_stat 之后，因为 exp02.c 要引用它们
+ *   · TEST_EXP02=0 时 exp02.c 内所有代码被 #if 编译掉，等于不存在 */
+#include "exp02.c"
 
 /* ★ 2026-10-18 加：空闲钩子进入次数—— 低功耗改造 序 1 的观测点。
  *
@@ -414,6 +422,11 @@ static StackType_t  s_sd_stack    [TASK_SD_STACK_SIZE];
 static StaticTask_t s_sd_tcb;
 static StackType_t  s_golden_stack[TASK_GOLDEN_STACK_SIZE];
 static StaticTask_t s_golden_tcb;
+#if (TEST_EXP02 != 0)
+/* ★ 2026-11-06（EXP-02）：测试任务的静态栈与 TCB（只在测试固件里存在） */
+static StackType_t  s_exp02_stack[256];
+static StaticTask_t s_exp02_tcb;
+#endif
 
 /* 队列和互斥量的静态存储：控制块 + 缓冲，都在 .bss 里。
  *
@@ -450,6 +463,9 @@ static BaseType_t MakeTask(TaskFunction_t fn, const char *name, uint32_t depth,
 	else if (fn == task_SD)     { stk = s_sd_stack;     tcb = &s_sd_tcb;     }
 	else if (fn == task_GOLDEN) { stk = s_golden_stack; tcb = &s_golden_tcb; }
 	else if (fn == start_task)  { stk = s_start_stack;  tcb = &s_start_tcb;  }
+#if (TEST_EXP02 != 0)
+	else if (fn == Exp02_Task)  { stk = s_exp02_stack;  tcb = &s_exp02_tcb;  }
+#endif
 
 	if ((stk == NULL) || (tcb == NULL)) { return pdFAIL; }
 
@@ -615,6 +631,22 @@ void start_task(void *pvParameters)
 	{
 		fail_mask |= (1u << 6);		/* bit6 = GOLD 没建起来 */
 	}
+	/* ★ 2026-11-06（EXP-02）：测试任务。
+	 *   · prio 1、静态栈 256 字，仅在测试固件里创建
+	 *   · 正式固件这段整块不存在 */
+#if (TEST_EXP02 != 0)
+	static TaskHandle_t s_exp02_handler;
+	if (MakeTask(  (TaskFunction_t )   Exp02_Task,
+                   (char *         )   "EXP02",
+                   (uint32_t       )   256,
+                   (void *         )   NULL,
+                   (UBaseType_t    )   1,
+                   (TaskHandle_t * )   &s_exp02_handler) != pdPASS)
+	{
+		fail_mask |= (1u << 7);		/* bit7 = EXP02 没建起来 */
+	}
+#endif
+
 	taskEXIT_CRITICAL();
 
 	/* 顺序必须是：出临界区，打印，最后自删。
@@ -839,6 +871,14 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 		 taskENTER_CRITICAL();
          g_stat.proc_count++;
          taskEXIT_CRITICAL();
+
+		/* ★ 2026-11-06（EXP-02）：PROC 停摆注入点（控制组）。
+		 *   · 停在这里 = 出队后不处理，队列会先被填满
+		 *   · 正式固件 Exp02_StallProcMs() 恒为 0 */
+		 {
+			 uint32_t stall_ms = Exp02_StallProcMs();
+			 if (stall_ms != 0u) { vTaskDelay(pdMS_TO_TICKS(stall_ms)); }
+		 }
 
 	/* ★ 只在真实收到记录时 ++：否则空闲空转也计数，STAT 会漂移 */
 		 n++;
@@ -2144,8 +2184,15 @@ void task_DISP(void *pvParameters)
 		 *       → "数据存不进去"必须有物理反馈
 		 *     · SD 一恢复就自动停（Clear）。
 		 *   ★ ② 按键反馈在 task_KEY 里请求，这里只负责发声*/
+#if (TEST_EXP02 != 0)
+		/* ★ 2026-11-06（EXP-02）：测试固件屏蔽 SD 错误蜂鸣。
+		 *   · 夜间无人值守跑注入测试，卡偶发错误不该把人吵醒
+		 *   · 正式固件（TEST_EXP02=0）走下面的原逻辑，行为不变 */
+		Buzz_Clear(BUZZ_EV_SD_ERR);
+#else
 		if (g_sd_error != 0u) { Buzz_Request(BUZZ_EV_SD_ERR); }
 		else                  { Buzz_Clear(BUZZ_EV_SD_ERR);   }
+#endif
 		Buzz_Poll();
 
 		/* ★ 2026-10-18 从这里移走：校准不能放在 t0 之后 

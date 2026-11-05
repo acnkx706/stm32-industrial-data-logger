@@ -1,0 +1,3 @@
+# 原始串口日志不入库：体积大（本次约 13 MB），且可用 capture_exp02.py 重跑生成
+**/serial_*.log
+**/flash_*.log

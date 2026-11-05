@@ -185,5 +185,7 @@ BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len, uint16_t nrec);
 
 /* ★ 任何任务都可以调（内部进临界区，中断里不许调） */
 void Loss_Add(uint8_t reason, uint16_t n);
+/* ★ 2026-11-06 加（EXP-02）：把 6 个原因的累计值拷出去（临界区内拷贝） */
+void Loss_GetTotals(uint32_t *out);
 
 #endif

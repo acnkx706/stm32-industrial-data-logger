@@ -1,0 +1,6 @@
+kind,stall_ms,qlen,n,first_reason,first_loss_ms_min,first_loss_ms_mean,first_loss_ms_max,d_qfull_sum,d_nobuf_sum,d_enqfail_sum,d_acq_late_sum,qmax_max,sd_err_sum
+SD,100,8,9,none:9,,,,0,0,0,0,1,0
+SD,250,8,10,none:10,,,,0,0,0,0,1,0
+SD,500,8,8,LOSS_NO_BUF:3/none:5,527,603.0,751,0,3,0,0,1,0
+SD,1000,8,10,LOSS_NO_BUF:10,644,788.8,956,0,58,0,0,1,0
+SD,2000,8,9,LOSS_NO_BUF:9,576,774.7,1124,0,141,0,0,1,0

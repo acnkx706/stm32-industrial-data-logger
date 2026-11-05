@@ -43,6 +43,7 @@
 #include "golden.h"
 /* ★ 2026-10-19 加：验"文件尾行 CRC"要用它（与 PC 侧同一套参数）*/
 #include "Crc16.h"
+#include "exp02.h"          /* EXP-02 钩子，TEST_EXP02=0 时全为空宏 */
 
 /*============================================================================
  *  配置常量（拍板后改这里，别散在流程里）
@@ -549,12 +550,29 @@ static const char *const s_loss_name[LOSS_N] = {
 };
 
 /* ★ 任何任务都能调，但中断里不许调（用了临界区）*/
+/* ★ 2026-11-06 加（EXP-02）：按原因的累计值。
+ *   · s_loss_pending 会被 Loss_Flush 清零，测不出"整段测试里丢了多少"
+ *   · 这一份只增不减，供测试任务取增量 */
+static uint32_t s_loss_total[LOSS_N];
+
 void Loss_Add(uint8_t reason, uint16_t n)
 {
 	if ((reason >= LOSS_N) || (n == 0u)) { return; }
 
 	taskENTER_CRITICAL();
 	s_loss_pending[reason] = (uint16_t)(s_loss_pending[reason] + n);
+	s_loss_total[reason]   = s_loss_total[reason] + n;
+	taskEXIT_CRITICAL();
+
+	Exp02_NoteLoss(reason);
+}
+
+void Loss_GetTotals(uint32_t *out)
+{
+	uint8_t i;
+	if (out == NULL) { return; }
+	taskENTER_CRITICAL();
+	for (i = 0u; i < LOSS_N; i++) { out[i] = s_loss_total[i]; }
 	taskEXIT_CRITICAL();
 }
 
@@ -2405,6 +2423,14 @@ void task_SD(void *pvParameters)
 			 *     sd_set_err(fr, site) ⇒ 只在真失败时打一行 SD: ERR fr=.. site=..
 			 *     （站点码表见上面 762 行那段）
 			 *   ★ 留着这段说明，免得以后有人再去"查一遍 E:09" */
+			/* ★ 2026-11-06 加（EXP-02）：停摆注入点。
+			 *   · 只在测试固件里生效，正式固件 Exp02_StallSdMs() 恒为 0
+			 *   · 停在这里等于"卡忙了很久"，用来验证缓冲链先丢哪一类 */
+			{
+				uint32_t stall_ms = Exp02_StallSdMs();
+				if (stall_ms != 0u) { vTaskDelay(pdMS_TO_TICKS(stall_ms)); }
+			}
+
 			s_t_wr = DWT->CYCCNT;
 			fr = f_write(&s_log_file, msg.buf, (UINT)msg.len, &bw);
 			{
@@ -2414,6 +2440,7 @@ void task_SD(void *pvParameters)
 				s_w_sum_us += dt;
 				if (dt > s_w_max_us) { s_w_max_us = dt; }
 				if (dt >= 100000u) { s_w_ge_100ms++; }   /* 阈值 100ms，dt 单位是 us */
+				Exp02_Lat(0u, dt);                       /* EXP-02：写延迟打点 */
 
 				/* ★ 2026-11-05 加（ver 74）：慢写现场取证
 				 *
@@ -2553,7 +2580,14 @@ void task_SD(void *pvParameters)
 					/* ★ R3 修复：f_sync 才是"真的进卡"的那一步，它的错必须计数。
 					 *   ★ Y2：先接住返回值再判 —— 原来直接 f_sync(...) != FR_OK，
 					 *     错误码拿不到，上浮通道无从喂起 */
-					fr = f_sync(&s_log_file);
+					/* ★ 2026-11-06 加（EXP-02）：f_sync 单独计时。
+					 *   · f_write 可能只进 FatFs 缓存，f_sync 才是真刷盘
+					 *   · 两者分布要分开报，不能混池 */
+					{
+						uint32_t t_sy = DWT->CYCCNT;
+						fr = f_sync(&s_log_file);
+						Exp02_Lat(1u, (uint32_t)((DWT->CYCCNT - t_sy) / 72u));
+					}
 					if (fr != FR_OK)
 					{
 						if (sd_note_failure(&fail_streak, (uint8_t)fr, 6u))
