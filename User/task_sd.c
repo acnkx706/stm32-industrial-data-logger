@@ -2416,11 +2416,13 @@ void task_SD(void *pvParameters)
 				if (dt >= 100000u) { s_w_ge_100ms++; }   /* 阈值 100ms，dt 单位是 us */
 				if ((s_w_cnt % 100u) == 0u)
 				{
-					Serial_Printf("SD: W n=%lu avg=%lu us max=%lu us ge100ms=%lu\r\n",
+					Serial_Printf("SD: W n=%lu avg=%lu us max=%lu us ge100ms=%lu lwmax=%lu ms lwslow=%lu\r\n",
 						(unsigned long)s_w_cnt,
 						(unsigned long)(s_w_sum_us / s_w_cnt),
 						(unsigned long)s_w_max_us,
-						(unsigned long)s_w_ge_100ms);
+						(unsigned long)s_w_ge_100ms,
+						(unsigned long)DropCache_LockWaitMaxMs(),
+						(unsigned long)DropCache_LockWaitSlowCnt());
 				}
 			}
 

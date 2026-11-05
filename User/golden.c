@@ -864,9 +864,24 @@ static void Dc_Pop(uint32_t sec_a, uint32_t sec_b, DcLog_t *log, DcHdr_t *h)
 	(void)Dc_LogSave(h, sec_a, sec_b, log);  /* ★ 指针没存住 ⇒ 最多重搬一次，不会丢。*/
 }
 
+/* ★ 2026-11-05 加：等锁耗时观测
+ *
+ * 做了什么：记下每次等 s_w25_lock 花了多少毫秒，以及超过 100ms 的次数。
+ * 为什么：后台备份擦块时单次持锁最坏约 4 秒（见 Dc_Lock 上方注释），
+ *         而两块乒乓缓冲只撑得住 1 秒（10 条），被挡住的那段时间里
+ *         task_sd 交批会失败并按条记 LOSS_SD_WRITE，可原先只看得到终点。
+ * 影响什么：只加两个计数，不改任何超时、返回值与调用约定。
+ * 怎么验证：串口 SD: W 行的 lwmax / lwslow 两列，健康卡上应是近零。
+ */
+static uint32_t s_lw_max_ms   = 0u;   /* 最长一次等锁，单位 ms */
+static uint32_t s_lw_slow_cnt = 0u;   /* 等锁 >= 100ms 的次数 */
+
 /* ★ 运行时入口都要拿锁，但调度器没起来之前不能拿。 */
 static uint8_t Dc_Lock(void)
 {
+	TickType_t t0;
+	BaseType_t got;
+
 	if ((s_dc_on == 0u) || (s_w25_lock == NULL)) { return 0u; }
 	/* ★ 2026-10-23 改（独立审查，2s < 块擦最坏 4s，漏了对齐）：
 	 *   ★ Golden_EraseImageArea 一次持锁连擦两个 64KB 块，最坏约 4 秒
@@ -874,8 +889,23 @@ static uint8_t Dc_Lock(void)
 	 *   ★ 超时返回 0 的调用方会把"W25 忙"误当失败：
 	 *     · PutBatch 失败 ⇒ task_sd 把整批 Loss_Add 后丢弃
 	 *     · PeekBatch 失败 ⇒ 被当坏项跳过，⇒ 都是真丢数据。 */
-	return (xSemaphoreTake(s_w25_lock, pdMS_TO_TICKS(10000)) == pdTRUE) ? 1u : 0u;
+	t0  = xTaskGetTickCount();
+	got = xSemaphoreTake(s_w25_lock, pdMS_TO_TICKS(10000));
+
+	/* ★ 2026-11-05 加：记下这次等了多久（configTICK_RATE_HZ=1000 ⇒ 1 tick = 1ms）
+	 *   ★ 只记不改：拿不到锁仍然返回 0，行为与改动前一致 */
+	{
+		uint32_t w = (uint32_t)(xTaskGetTickCount() - t0);
+		if (w > s_lw_max_ms) { s_lw_max_ms = w; }
+		if (w >= 100u)       { s_lw_slow_cnt++; }
+	}
+
+	return (got == pdTRUE) ? 1u : 0u;
 }
+
+/* ★ 2026-11-05 加：把上面两个观测值交给 task_sd 的 SD: W 行打印 */
+uint32_t DropCache_LockWaitMaxMs(void)   { return s_lw_max_ms; }
+uint32_t DropCache_LockWaitSlowCnt(void) { return s_lw_slow_cnt; }
 
 uint8_t DropCache_Init(void)
 {

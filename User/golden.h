@@ -190,6 +190,8 @@ uint8_t  DropCache_PutEvent(const char *line);              /* 存一条事件�
 uint8_t  DropCache_PeekEvent(char *dst, uint16_t sz);       /* 读最早一条（不推进）。 */
 void     DropCache_PopEvent(void);
 uint16_t DropCache_PendingEvents(void);
+uint32_t DropCache_LockWaitMaxMs(void);                     /* W25 锁：最长一次等锁（ms）*/
+uint32_t DropCache_LockWaitSlowCnt(void);                   /* W25 锁：等锁 >= 100ms 的次数 */
 
 /*==============================================================================
  *  ★ 对外接口
