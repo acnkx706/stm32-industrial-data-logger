@@ -1,11 +1,24 @@
+# 行尾策略（2026-11-05 统一；此前本文件自相矛盾）
+#
+# 规则：仓库按文本处理，工作区一律 CRLF。
+# 为什么：Keil 与 Windows 编辑器默认 CRLF；混用会让 git blame 失效，
+#         并让"改一行"变成"整文件重写"（2026-11-05 实测 golden.c 1597/1567 行）。
+# 注意：改完本文件必须跑一次 git add --renormalize . 才会生效。
 * text=auto eol=crlf
 
-*.c   text eol=crlf
-*.h   text eol=crlf
-*.md  text eol=crlf
-*.s   text eol=crlf
-*.uvprojx text eol=crlf
+*.c        text eol=crlf
+*.h        text eol=crlf
+*.s        text eol=crlf
+*.inc      text eol=crlf
+*.md       text eol=crlf
+*.txt      text eol=crlf
+*.bat      text eol=crlf
+*.uvprojx  text eol=crlf
+*.uvoptx   text eol=crlf
 
-# 本仓库文件混用 CRLF / LF（Keil 工程的 User/ 是 CRLF，Boot/ 与部分 Hardware/ 是 LF）
-# 关掉一切换行转换，保证 checkout 出来的字节与提交时一致
-* -text
+# 二进制产物：明确排除，禁止任何换行转换（当前库里没有，为将来预备）
+*.axf      binary
+*.hex      binary
+*.bin      binary
+*.o        binary
+*.crf      binary
