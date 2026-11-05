@@ -329,6 +329,21 @@ def main():
                     % (n, st["rows"], b["false"], b["real"], b["rtc_day"], b["anomaly"], d, chk))
         f.write("\n说明：缺口是\"相对 864,000/天\"的差，不等于丢行。真缺口只认 real_gap。\n")
 
+        # seq 跳号复核（seq_gap_check.py 的产物）：跳号不等于丢数据，
+        # 回灌会打乱书写顺序，同样的 seq 号会在文件别处出现
+        sg = os.path.join(a.out, "seq_gap_check.csv")
+        if os.path.exists(sg):
+            gr = list(csv.DictReader(open(sg, encoding="utf-8")))
+            miss_n = len(gr)
+            found_n = sum(1 for r in gr if r.get("found_elsewhere") == "1")
+            f.write("\n## seq 跳号复核\n\n")
+            f.write("| 项 | 值 |\n|---|---:|\n")
+            f.write("| 缺失 seq 个数 | %d |\n" % miss_n)
+            f.write("| 在同一文件其它位置找到 | %d |\n" % found_n)
+            f.write("| **storage_loss（真缺）** | **%d** |\n" % (miss_n - found_n))
+            f.write("\n逐条明细见 `seq_gap_check.csv`；能找回的那些是 W25 回灌把书写顺序打乱，"
+                    "记录仍在文件里，只是不在原位置。\n")
+
     print("clean files:", len(clean))
     print("rows=%d nominal=%.0f diff=%.0f" % (rows_sum, nominal, nominal - rows_sum))
     print("false=%.0f real=%.0f rtc_day=%.0f anomaly=%.0f"

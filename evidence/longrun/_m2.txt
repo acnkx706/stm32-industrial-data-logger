@@ -1,0 +1,10 @@
+EXP-01b 收口：seq 跳号复核 storage_loss=0，重写结论文件
+
+- 新增 seq_gap_check.py / seq_gap_check.csv：10-22 的 149 个 seq 跳号逐条反查，
+  149 个全部在同一文件其它位置找到（例：seq 2..8 出现在第 31523 行之后），
+  判定为 W25 回灌打乱书写顺序，storage_loss = 0
+- 结论-EXP01.md 整体重写：只用 summary_clean11 / crc_summary / valid_csv_bytes /
+  inventory_notes / timeline_1029 / seq_gap_check 六个来源
+- 删除旧数字：2,056（真缺口）、3,982（其他）、无条件的零失败说法
+- 保留：10-29 未定案、故障注入未做、52 行残差未解释
+- summary_clean11.md 增加 storage_loss 小节（由 seq_gap_check.csv 汇总）
