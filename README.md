@@ -142,7 +142,7 @@ seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,
 | 满量天数 | 10-29 起连续 6 天满量（误差 <100 行）|
 | 10-22~11-02 相对 864,000 的差额 | **16,133 行**，四块拆分见下 |
 | **CRC（全量）** | **24 个文件 12,722,768 行逐行校验，失败 0**；196 行是旧格式 crc=0，不参与 |
-| 缺口账本 | 见 [evidence/longrun/结论-EXP01.md](evidence/longrun/结论-EXP01.md)、[gap_report.md](evidence/longrun/out/gap_report.md) |
+| 缺口账本 | [结论](evidence/longrun/结论-EXP01.md) · [干净窗口 11 天](evidence/longrun/out/summary_clean11.md) · [CRC 汇总](evidence/longrun/out/crc_summary.md) · [10-29 未定案](evidence/longrun/timeline_1029.md) · [26101801 取证](evidence/longrun/forensics_26101801.md) |
 
 **16,133 行缺口的四块拆分**（README 早前按"864,000/天"口径写过 16,175，与本次相差 42 行，在容差内）：
 
