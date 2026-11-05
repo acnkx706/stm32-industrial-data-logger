@@ -2414,6 +2414,23 @@ void task_SD(void *pvParameters)
 				s_w_sum_us += dt;
 				if (dt > s_w_max_us) { s_w_max_us = dt; }
 				if (dt >= 100000u) { s_w_ge_100ms++; }   /* 阈值 100ms，dt 单位是 us */
+
+				/* ★ 2026-11-05 加（ver 74）：慢写现场取证
+				 *
+				 * 做了什么：每次 f_write 超过 100ms，就打一行当时的 tick / 批次号 / 文件大小。
+				 * 为什么：四组实测显示慢写是"开机约 9 分钟后持续出现、约每秒一次、单笔约 118ms"，
+				 *         但没有时刻表就分不清是卡的内部搬运，还是 FAT 在分配新簇。
+				 * 影响什么：只在慢写时打印（实测约 4% 的批），写卡逻辑一字不改。
+				 * 怎么验证：抓 20 分钟，看 SLOW 行的 tick 间隔是否规律、size 是否成倍跳。
+				 */
+				if (dt >= 100000u)
+				{
+					Serial_Printf("SD: SLOW batch=%lu us=%lu tick=%lu size=%lu\r\n",
+					              (unsigned long)s_w_cnt,
+					              (unsigned long)dt,
+					              (unsigned long)xTaskGetTickCount(),
+					              (unsigned long)f_size(&s_log_file));
+				}
 				if ((s_w_cnt % 100u) == 0u)
 				{
 					Serial_Printf("SD: W n=%lu avg=%lu us max=%lu us ge100ms=%lu lwmax=%lu ms lwslow=%lu\r\n",
