@@ -1,0 +1,52 @@
+# 证据矩阵
+
+> 日期：2026-11-06
+> 用途：一张表回答“这个项目到底证明了什么、没证明什么”。
+> 状态只有四档：`[实测]` 有原始样本且可复跑；`[设计目标]` 是设计取舍/核算，不是实测；
+> `[未定案]` 有观测但不足以定论；`[未做]` 明确没做。
+> 链接都相对仓库根目录。
+
+---
+
+## 1. 主张与证据
+
+| # | 主张 | 状态 | 证据资产 | 边界 / 不能说的话 |
+|---:|---|---|---|---|
+| 1 | 10 Hz 采集，满量约 864,000 行/天 | `[实测]` | `evidence/longrun/结论-EXP01.md`（24 个数据文件 12,722,768 行）；日行数 864,004~864,049 | 精确抖动 σ=0.39 ms 的原始样本在备赛区，未入库；只能作“实验室台架”说 |
+| 2 | 生产路径 `f_write` 11k：avg 10.07 ms / max 124.5 ms；`f_sync` avg 11.38 / max 126.1 ms | `[实测]` | `evidence/sd_latency/latency_report.md`、`latency_summary.csv` | **单卡、平静状态**；不是全局最坏；不覆盖拔卡/坏卡 |
+| 3 | 停 SD 1 s：10/10 先涨 `LOSS_NO_BUF`，`queue_full` 增量 0 | `[实测]` | `evidence/sd_stall/stall_report.md`、`q8/` `q4/` `ctrl/` | 注入是 `vTaskDelay`，验证的是缓冲链归属，不是“卡内部 busy 1 s” |
+| 4 | 队列 8 vs 4：第一计数器相同；500 ms 档 q8 3/8、q4 9/10 | `[实测]` | `evidence/sd_stall/stall_report.md` | 第一瓶颈是 512 B 缓冲，不是队列深度；不能写“队列深度完全无关” |
+| 5 | 掉电 8/8 进 App、0 次回滚、每次丢 1 个在途批 2~6 行 | `[实测-有限]` | `evidence/exp03/EXP03-结果-20261106.md`、`card_out/26110601.CSV`、`26110690.CSV` | 8 次，不是 100 次；给不出概率；只测数据窗口，不测金副本保存窗口 |
+| 6 | 运行中拔卡 6/6 不死机、6/6 恢复；代价 30 条 `no_buf` | `[实测-有限]` | `evidence/exp03/EXP03-结果-20261106.md`、`exp03_A_10pull.log` | 6 次；故障期缓存降采样到 1 条/秒，不是全分辨率；不给概率 |
+| 7 | 无卡启动 89 s → 回写 89 条；exFAT 跨重启 → 回写 276 条 | `[实测]` | `evidence/exp03/EXP03-结果-20261106.md`、`exp03_B1_nocard.log`、`exp03_B2_recover.log` | “坏卡”只指文件系统不可挂载（exFAT），不是物理坏块 |
+| 8 | 17 天账本：12,722,768 行 CRC 0 失败；干净 11 天 `storage_loss=0` | `[实测]` | `evidence/longrun/结论-EXP01.md`、`out/crc_summary.md`、`out/summary_clean11.md` | 10-29 tick 台阶未定案；52 行残差未解释；34 文件口径未证实 |
+| 9 | 942 ms 单笔写只出现 1 次，20 万次未复现 | `[未定案]` | `evidence/EXP02b-结果-20261106.md`、`evidence/sd_latency/postburst/` | 不能写“已解决/已定位”；三个候选解释都没证明 |
+| 10 | 掉卡缓存：全速率 63 min / 降采样 1 条/秒 ~10.6 h | `[设计目标]` + 核算 | `docs/架构总览.md`、`golden.h:162`、`task_sd.c` 的 `Sd_DsPush` | 只测到 89 s / 276 条，没灌满；容量不是实测 |
+| 11 | 金副本：App 写、Boot 读；头最后写 | `[设计目标]` | `golden.c`、`Boot/`、`docs/架构总览.md` | 单槽保存窗口不是掉电安全；`app_ok` 失败后未重算；黑名单单槽；无回退标记 |
+| 12 | 物理坏卡 / 坏块 / 卡寿命 / 高低温 / 72 h soak | `[未做]` | — | 不要写“100 次 0 损坏”“工业级验证” |
+
+---
+
+## 2. 怎么用这张表
+
+- **简历/面试只引 `[实测]`**；`[设计目标]` 必须带“按设计/按核算”；`[未定案]` 必须说“未定案”；`[未做]` 直接说没做。
+- 每条 `[实测]` 都要能回答：**样本量、条件、单卡还是多卡、平静还是故障态**。
+- 这条表不替代原始报告；有冲突时以原始报告为准，并回来改这张表。
+
+---
+
+## 3. 复跑入口
+
+| 证据 | 命令 / 文件 |
+|---|---|
+| 10 Hz / 17 天账本 | `python evidence/longrun/crc_all.py`、`analyze_longrun.py`（先看 `结论-EXP01.md` 的“怎么复跑”） |
+| SD 延迟 | `python evidence/sd_latency/analyze_lat.py` |
+| SD 停摆 | `python evidence/sd_stall/analyze_exp02.py` |
+| 拔卡/坏卡/掉电 | `python evidence/exp03/analyze_exp03.py exp03_A_10pull.log out_A`；CSV 用 `crc_all.py` 同款 CRC |
+| 卡健康 | `python evidence/card_health/card_stress_test.py`（会写卡，先备份） |
+
+---
+
+## 4. 一句话
+
+**这张表的价值不是“证明了很多”，而是把“哪些能说、哪些不能说”钉死。**

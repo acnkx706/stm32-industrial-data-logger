@@ -126,7 +126,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--card", default="E:\\")
+    ap.add_argument("--card", default=None, help="可选：SD 卡盘符，如 E:；不给就跳过 file_inventory")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
 
@@ -236,7 +236,7 @@ def main():
     # ---------- file_inventory ----------
     inv = []
     seen = set()
-    if os.path.isdir(a.card):
+    if a.card and os.path.isdir(a.card):
         for e in os.listdir(a.card):
             if not e.upper().endswith(".CSV"):
                 continue

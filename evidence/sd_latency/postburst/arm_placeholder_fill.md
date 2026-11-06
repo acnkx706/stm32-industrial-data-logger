@@ -15,7 +15,7 @@
 
 ## 二、占位
 
-- 命令：sutil file createnew E:\FILLER.BIN 1557999387
+- 命令：sutil file createnew <卡>:\FILLER.BIN 1557999387
 - 性质：**瞬间把 1.5 GB 标成已分配，不写数据**（与 10:29 那次完全同一种做法）
 - 文件：FILLER.BIN = 1557999387 B，时间 11/06/2026 12:21:24
 - 刷卷：Write-VolumeCache -DriveLetter E
@@ -35,3 +35,4 @@
 
 卡插回板子 → 烧 Objects/app_fast100k.bin → boot 后立刻跑 100k（约 13 分钟）。
 判读看：LAT,SUM 两行、LAT,OVF 行（第一次 ≥256 ms 的样本序号与 tick）、TOP 的 tick。
+

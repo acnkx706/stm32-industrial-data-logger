@@ -5,6 +5,9 @@ DebugConfig/
 *.build_log.htm
 *.axf
 *.hex
+# release 里的 hex 要入库（否则被上面的 *.hex 挡掉）
+!release/APP.hex
+!release/*.hex
 *.lnp
 *.crf
 *.d
@@ -13,6 +16,8 @@ DebugConfig/
 *.sct
 *.log
 build.log
+# release 里的构建日志要入库
+!release/build.log
 
 # Keil 用户/调试配置（每人一份，不入库）
 *.uvguix.*
@@ -47,3 +52,6 @@ __pycache__/
 
 # 一次性补丁/抓包脚本（跑完就没用了，不入库）
 _临时脚本/
+
+# 卡压力测试的运行状态（每次跑都会重建，不入库）
+evidence/card_health/card_stress_state.json

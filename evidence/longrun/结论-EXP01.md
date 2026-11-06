@@ -192,7 +192,7 @@ README 总行数 12,844,939 − 本账本 12,722,768 = 122,171
 python evidence\longrun\analyze_longrun.py --input evidence\longrun\_stage --out evidence\longrun\out
 python evidence\longrun\crc_all.py         --input evidence\longrun\_stage --out evidence\longrun\out
 python evidence\longrun\seq_gap_check.py
-python evidence\longrun\exp01b.py          --input evidence\longrun\_stage --out evidence\longrun\out --card E:\
+python evidence\longrun\exp01b.py          --input evidence\longrun\_stage --out evidence\longrun\out --card <卡>:\
 ```
 
 `crc_all.py` 约 12 分钟（纯 Python，1.23 GB），其余合计不到 1 分钟。
@@ -210,3 +210,4 @@ python evidence\longrun\exp01b.py          --input evidence\longrun\_stage --out
 | 5 | 0 字节同名目录条目 | ⬜ 未清；建议镜像后 `chkdsk E: /f` |
 | 6 | 故障注入（拔卡/坏卡/缓存灌满） | ⬜ **未做**，账本不替代 |
 | 7 | 暂停时段与真丢行的区分 | ⬜ 1,581 已确认 KEY1 暂停；账本无法区分暂停与丢行的限制仍成立 |
+

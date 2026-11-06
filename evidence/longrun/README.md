@@ -7,7 +7,7 @@
 
 ```powershell
 # 卡插在读卡器里，假设是 E:
-.\run_exp01.ps1 -Src E:\
+.\run_exp01.ps1 -Src <卡>:\
 ```
 
 脚本会先把 CSV 复制到本地 `_stage\`（规格要求，避免读卡器读一半掉线），再跑两个分析脚本。
@@ -15,8 +15,8 @@
 也可以分开跑：
 
 ```powershell
-python analyze_longrun.py --input E:\ --out out
-python crc_all.py        --input E:\ --out out
+python analyze_longrun.py --input <卡>:\ --out out
+python crc_all.py        --input <卡>:\ --out out
 ```
 
 ## 产出
@@ -63,3 +63,4 @@ per 段      tick_expected = tick_span/100 + 1 ，  nominal = rtc_span*10
 3. 逐文件 `false_gap + real_gap == nominal - rows`（±1 行舍入）。
 4. 四块之和与 README 的 16,175 差 ≤ 50 行；超了写「未解释」，不硬凑。
 5. `gap_report.md` 里六条「证明不了什么」原样保留。
+

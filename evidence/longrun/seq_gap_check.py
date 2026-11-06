@@ -13,8 +13,10 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 ALLOWED = b"0123456789,-."
-SRC = r"C:\Users\acnkx\Desktop\stm32\项目1：工业记录仪\工业记录仪\evidence\longrun\_stage\26102201.CSV"
-OUT = r"C:\Users\acnkx\Desktop\stm32\项目1：工业记录仪\工业记录仪\evidence\longrun\out\seq_gap_check.csv"
+# 相对本文件定位：仓库可直接 clone 后复跑，不写死用户目录
+BASE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(BASE, "_stage", "26102201.CSV")
+OUT = os.path.join(BASE, "out", "seq_gap_check.csv")
 
 # 第一遍：按行号收集 (seq, tick, rtc, lineno)
 rows = []
