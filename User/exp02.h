@@ -22,6 +22,7 @@ void     Exp02_NoteLoss(uint8_t reason);
 uint32_t Exp02_StallSdMs(void);         /* 返回待注入的毫秒数，取走后自动清零 */
 uint32_t Exp02_StallProcMs(void);       /* 同上，POS 侧控制组用 */
 void     Exp02_Task(void *pvParameters);
+void     Exp02_FastLatRun(void);        /* 全速延迟模式：由 task_SD 主循环调用一次 */
 
 #else
 

@@ -1,0 +1,6 @@
+kind,stall_ms,qlen,trial,qmax,d_qfull,d_qfull_loss,d_nobuf,d_enqfail,d_acq_late,first_reason,first_loss_ms,acq_before,acq_after,sd_err
+0,1000,8,101,1,0,0,5,0,0,1,655,30,50,0
+0,1000,8,102,1,0,0,5,0,0,1,1151,60,80,0
+0,1000,8,103,1,0,0,5,0,0,1,1047,90,110,0
+0,1000,8,104,1,0,0,5,0,0,1,939,120,140,0
+0,1000,8,105,1,0,0,5,0,0,1,835,150,170,0

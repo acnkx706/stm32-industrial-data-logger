@@ -39,5 +39,9 @@
 #define TEST_SD_LAT         0   /* 1 = 累加 f_write/f_sync 延迟直方图 */
 #define TEST_SD_STALL       0   /* 1 = 跑 SD 任务停摆矩阵 */
 #define TEST_PROC_STALL     0   /* 1 = 跑 PROC 停摆控制组 */
+#define TEST_SD_STALL_BURST     0      /* 连停次数，0 = 不跑连停模式（A2-3） */
+#define TEST_SD_STALL_BURST_MS  1000u  /* 连停模式下每次停多久 */
+#define TEST_SD_LAT_FAST    0   /* 1 = 全速延迟模式（自己开文件写，暂停采集） */
+#define TEST_SD_SAMPLES     10000u  /* 全速模式样本数：10k 或 100000u */
 
 #endif

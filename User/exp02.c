@@ -21,6 +21,9 @@
 #include "task_sd.h"
 #include "Serial.h"
 #include "DWT_Delay.h"
+#include "ff.h"          /* FATFS / FIL / f_open（全速模式用） */
+#include <stdio.h>       /* sprintf：拼 "0:<文件名>" 给 f_unlink 用 */
+#include <string.h>
 
 /* ---- 直方图：256 个 1ms 桶 + 1 个溢出桶，写/同步各一套 ---------------- */
 #define LAT_BINS      256
@@ -32,6 +35,14 @@ static uint32_t s_n[2];
 static uint32_t s_sum_us[2];
 static uint32_t s_max_us[2];
 static volatile uint8_t  s_dump_req;
+static volatile uint8_t  s_fast_running;   /* 全速模式下先别 dump，免得抢串口 */
+
+/* 全速模式与填充共用：一个 512B 数据块 + 一个文件对象 + 一个挂载对象。
+ * 不各开一份是为了省 RAM —— 20KB 的板子，ZI 每 1KB 都要算账。 */
+static FATFS    s_fs;
+static FIL      s_fil;
+static uint8_t  s_buf[512];
+extern volatile uint8_t  g_pause;          /* 采集暂停（freertos_demo.c 定义） */
 
 /* ---- top-32 最慢样本（线性插入，32 个元素足够快）---------------------- */
 #define TOP_N 32
@@ -124,7 +135,8 @@ void Exp02_Lat(uint8_t op, uint32_t us)
         }
     }
 
-    if (((s_n[0] + s_n[1]) % LAT_DUMP_STEP) == 0u) { s_dump_req = 1u; }
+    if ((s_fast_running == 0u) &&
+        (((s_n[0] + s_n[1]) % LAT_DUMP_STEP) == 0u)) { s_dump_req = 1u; }
 }
 
 void Exp02_NoteLoss(uint8_t reason)
@@ -186,22 +198,34 @@ static void exp02_dump(void)
 /*==============================================================================
  *  测试任务：停摆矩阵（仅在 TEST_SD_STALL / TEST_PROC_STALL 时跑）
  *============================================================================*/
-#if (TEST_SD_STALL != 0) || (TEST_PROC_STALL != 0)
+#if (TEST_SD_STALL != 0) || (TEST_PROC_STALL != 0) || (TEST_SD_STALL_BURST != 0)
 
-static const uint32_t k_stall_ms[] = { 100u, 250u, 500u, 1000u, 2000u };
+static const uint32_t k_stall_ms[] = { 500u };
 #define STALL_LEVELS (sizeof(k_stall_ms) / sizeof(k_stall_ms[0]))
-#define TRIALS_PER_LEVEL 10u
+#define TRIALS_PER_LEVEL 20u
 
-static void exp02_one_trial(uint8_t kind, uint32_t ms, uint8_t qlen, uint8_t trial)
+/*==============================================================================
+ *  一次停摆试验
+ *
+ *  做了什么：等 pre_ms 静置 -> 记基线 -> 武装 -> 注入停摆 -> 等 ms+post_ms
+ *            -> 再记一次快照 -> 打印这一次的增量。
+ *  为什么：pre_ms 决定上一次试验残留是否散尽；A2-4（单次 500 ms）用
+ *            3000/5000 留足恢复时间；A2-3（连停 5 次）用 1000/1000，
+ *            故意不让状态恢复，才看得出连续停摆会不会累积。
+ *  影响什么：只在测试固件里跑；每次调用阻塞本任务，不影响 ACQ/PROC。
+ *  怎么验证：串口每行 EXP02,<kind>,<ms>,<qlen>,<trial>,... 对应一次试验。
+ *============================================================================*/
+static void exp02_one_trial(uint8_t kind, uint32_t ms, uint8_t qlen, uint8_t trial,
+                            uint32_t pre_ms, uint32_t post_ms)
 {
     Snap_t a, b;
     uint32_t first_ms = 0u;
 
-    /* 基线：先恢复 3 秒，让队列/缓冲回到稳定态 */
+    /* 基线：先静置，让队列/缓冲回到稳定态 */
     s_stall_sd = 0u;
     s_stall_proc = 0u;
     s_armed = 0u;
-    vTaskDelay(pdMS_TO_TICKS(3000));
+    vTaskDelay(pdMS_TO_TICKS(pre_ms));
 
     snap_take(&a);
 
@@ -214,7 +238,7 @@ static void exp02_one_trial(uint8_t kind, uint32_t ms, uint8_t qlen, uint8_t tri
     else            { s_stall_proc = ms; }
 
     /* 停摆 + 恢复观察窗 */
-    vTaskDelay(pdMS_TO_TICKS(ms + 5000u));
+    vTaskDelay(pdMS_TO_TICKS(ms + post_ms));
     s_armed = 0u;
 
     snap_take(&b);
@@ -239,6 +263,86 @@ static void exp02_one_trial(uint8_t kind, uint32_t ms, uint8_t qlen, uint8_t tri
 
 #endif
 
+/*==============================================================================
+ *  全速延迟模式（A2-1 / A2-2）
+ *
+ *  做了什么：自己挂载、打开 0:EXP02.BIN、连续做 N 次 512B 写 + f_sync，
+ *            每次都用 DWT 计时并累加直方图，结束时 dump。
+ *  为什么：生产节奏 2 批/秒，10k 要 83 分钟、100k 要 14 小时；
+ *            全速模式不受采集节拍限制，10k 约 5 分钟、100k 约 1 小时。
+ *  影响什么：只在 TEST_SD_LAT_FAST=1 时执行；执行前把 g_pause 置 1 停采集，
+ *            结束后保持暂停（测试固件本来就不采集）。
+ *  怎么验证：串口出现 EXP02,FAST,start -> 进度 -> done，且 LAT 桶和等于样本数。
+ *============================================================================*/
+void Exp02_FastLatRun(void)
+{
+    static uint8_t  s_ran  = 0u;
+    DWORD fre_clust = 0u;
+    FATFS *fs_p = NULL;
+    FRESULT fr;
+    UINT bw = 0u;
+    uint32_t i;
+
+    if (s_ran != 0u) { return; }
+    s_ran = 1u;
+
+    g_pause = 1u;                       /* 停采集，别让队列来抢卡 */
+    /* 给 PC 侧留出连串口的时间：烧录脚本退出到起抓包约需 5~10 秒 */
+    Serial_Printf("EXP02,FAST,wait 15s before start\r\n");
+    vTaskDelay(pdMS_TO_TICKS(15000));
+    s_fast_running = 1u;
+
+    (void)f_mount(&s_fs, "0:", 1);
+    if (f_getfree("0:", &fre_clust, &fs_p) == FR_OK)
+    {
+        Serial_Printf("EXP02,FAST,free_KB=%lu,n=%lu\r\n",
+                      (unsigned long)(fre_clust * (fs_p->csize / 2u)),
+                      (unsigned long)TEST_SD_SAMPLES);
+    }
+
+    fr = f_open(&s_fil, "0:EXP02.BIN", FA_WRITE | FA_OPEN_ALWAYS);
+    if (fr != FR_OK)
+    {
+        Serial_Printf("EXP02,FAST,open FAIL %u\r\n", (unsigned)fr);
+        s_fast_running = 0u;
+        return;
+    }
+    (void)f_lseek(&s_fil, f_size(&s_fil));   /* 追加写 */
+
+    for (i = 0u; i < (uint32_t)TEST_SD_SAMPLES; i++)
+    {
+        uint32_t t0 = DWT->CYCCNT;
+        fr = f_write(&s_fil, s_buf, 512u, &bw);
+        {
+            uint32_t t1 = DWT->CYCCNT;
+            FRESULT fr2 = f_sync(&s_fil);
+            uint32_t t2 = DWT->CYCCNT;
+            (void)fr2;
+            Exp02_Lat(0u, (uint32_t)((t1 - t0) / 72u));
+            Exp02_Lat(1u, (uint32_t)((t2 - t1) / 72u));
+        }
+        if (fr != FR_OK) { Serial_Printf("EXP02,FAST,wr FAIL %u\r\n", (unsigned)fr); break; }
+
+        /* ★ 2026-11-06：全速循环会长时间占着 CPU，喂狗的是 idle 钩子，跑不到
+         *   ⇒ 必须自己喂，否则 6.55 秒后被 IWDG 复位（实测：10k 跑到 ~6 秒复位，
+         *      Boot 判定 App 无效，回退成金副本的旧测试版）
+         *   每 64 次约 0.5 秒，留足余量 */
+        if ((i & 0x3Fu) == 0x3Fu)
+        {
+            IWDG_ReloadCounter();
+            taskYIELD();
+        }
+    }
+
+    (void)f_sync(&s_fil);
+    (void)f_close(&s_fil);
+    (void)f_mount(NULL, "0:", 0);
+
+    Serial_Printf("EXP02,FAST,done,n=%lu\r\n", (unsigned long)s_n[0]);
+    s_fast_running = 0u;
+    exp02_dump();
+}
+
 void Exp02_Task(void *pvParameters)
 {
     (void)pvParameters;
@@ -248,7 +352,21 @@ void Exp02_Task(void *pvParameters)
                   (unsigned)TEST_SD_LAT, (unsigned)TEST_SD_STALL,
                   (unsigned)TEST_PROC_STALL, (unsigned)REC_QUEUE_LEN);
 
-#if (TEST_SD_STALL != 0) || (TEST_PROC_STALL != 0)
+#if (TEST_SD_STALL_BURST != 0)
+    /* A2-3：连停。trial 编号从 101 起，和分析脚本的矩阵行区分开 */
+    {
+        uint8_t k;
+        for (k = 1u; k <= (uint8_t)TEST_SD_STALL_BURST; k++)
+        {
+            exp02_one_trial(0u, (uint32_t)TEST_SD_STALL_BURST_MS,
+                            (uint8_t)REC_QUEUE_LEN, (uint8_t)(100u + k),
+                            (k == 1u) ? 3000u : 1000u, 1000u);
+        }
+        Serial_Printf("EXP02,DONE\r\n");
+    }
+#endif
+
+#if ((TEST_SD_STALL != 0) || (TEST_PROC_STALL != 0)) && (TEST_SD_STALL_BURST == 0)
     {
         uint32_t lv;
         uint8_t kind;
@@ -268,7 +386,7 @@ void Exp02_Task(void *pvParameters)
                 for (t = 1u; t <= TRIALS_PER_LEVEL; t++)
                 {
                     exp02_one_trial(kind, k_stall_ms[lv],
-                                    (uint8_t)REC_QUEUE_LEN, t);
+                                    (uint8_t)REC_QUEUE_LEN, t, 3000u, 5000u);
                 }
             }
         }

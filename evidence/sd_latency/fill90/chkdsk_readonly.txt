@@ -1,0 +1,65 @@
+The type of the file system is FAT32.
+Access is denied.
+
+Volume Serial Number is 24A1-0AFF
+Windows is verifying files and folders...
+0 percent completed.                  Windows found errors on the disk, but will not fix them
+because disk checking was run without the /F (fix) parameter.
+Removing nonvalid long folder entry from \...
+\ÿÿÿÿÿþ€  Invalid time stamp.
+\ÿÿÿÿÿþ€  first allocation unit is not valid. The entry will be truncated.
+Removing nonvalid long folder entry from \...
+1 percent completed..                 Removing nonvalid long folder entry from \...
+2 percent completed...                3 percent completed....               More than one 26101801.CSV entry in folder \.
+Renamed to 26101801.CS0.
+More than one 26101801.CSV entry in folder \.
+Renamed to 26101801.CS0.
+Removing nonvalid long folder entry from \...
+4 percent completed.....              Removing nonvalid long folder entry from \...
+6 percent completed......             7 percent completed.                  10 percent completed..                 11 percent completed...                14 percent completed....               18 percent completed.....              22 percent completed......             26 percent completed.                  30 percent completed..                 34 percent completed...                38 percent completed....               42 percent completed.....              46 percent completed......             50 percent completed.                  54 percent completed..                 58 percent completed...                60 percent completed....               63 percent completed.....              66 percent completed......             67 percent completed.                  71 percent completed..                 100 percent completed...                File and folder verification is complete.
+Bad links in lost chain at cluster 4097 corrected.
+Bad links in lost chain at cluster 4101 corrected.
+Bad links in lost chain at cluster 4102 corrected.
+Bad links in lost chain at cluster 4103 corrected.
+Bad links in lost chain at cluster 8193 corrected.
+Bad links in lost chain at cluster 8197 corrected.
+Bad links in lost chain at cluster 8198 corrected.
+Bad links in lost chain at cluster 8199 corrected.
+Bad links in lost chain at cluster 8253 corrected.
+Lost chain cross-linked at cluster 8254.  Orphan truncated.
+Bad links in lost chain at cluster 8255 corrected.
+Bad links in lost chain at cluster 8267 corrected.
+Bad links in lost chain at cluster 8268 corrected.
+Bad links in lost chain at cluster 8269 corrected.
+Bad links in lost chain at cluster 8281 corrected.
+Bad links in lost chain at cluster 8282 corrected.
+Lost chain cross-linked at cluster 8295.  Orphan truncated.
+Bad links in lost chain at cluster 8296 corrected.
+Bad links in lost chain at cluster 8308 corrected.
+Lost chain cross-linked at cluster 8309.  Orphan truncated.
+Bad links in lost chain at cluster 8310 corrected.
+Bad links in lost chain at cluster 19073 corrected.
+Bad links in lost chain at cluster 19074 corrected.
+Bad links in lost chain at cluster 19446 corrected.
+Lost chain cross-linked at cluster 19585.  Orphan truncated.
+Bad links in lost chain at cluster 19586 corrected.
+Bad links in lost chain at cluster 19587 corrected.
+Bad links in lost chain at cluster 20097 corrected.
+Bad links in lost chain at cluster 20098 corrected.
+Bad links in lost chain at cluster 20099 corrected.
+Lost chain cross-linked at cluster 22145.  Orphan truncated.
+Bad links in lost chain at cluster 22146 corrected.
+Bad links in lost chain at cluster 22147 corrected.
+Convert lost chains to files (Y/N)? Convert lost chains to files (Y/N)? 597557248 bytes in 845 recoverable files.
+
+Windows has checked the file system and found problems.
+Run CHKDSK with the /F (fix) option to correct these.
+
+3,956,801,536 bytes total disk space.
+       32,768 bytes in 1 hidden files.
+1,466,499,072 bytes in 45 files.
+1,892,646,912 bytes available on disk.
+
+       32,768 bytes in each allocation unit.
+      120,752 total allocation units on disk.
+       57,759 allocation units available on disk.
