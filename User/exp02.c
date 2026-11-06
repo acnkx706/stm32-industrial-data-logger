@@ -31,6 +31,8 @@
 
 static uint16_t s_hist[2][LAT_BINS];
 static uint16_t s_ovf[2];
+static uint32_t s_ovf_tick[2];              /* 第一次溢出（>=256ms）时的开机 tick */
+static uint32_t s_ovf_idx[2];               /* 第一次溢出时是第几个样本 */
 static uint32_t s_n[2];
 static uint32_t s_sum_us[2];
 static uint32_t s_max_us[2];
@@ -93,6 +95,7 @@ void Exp02_Init(void)
         uint16_t b;
         for (b = 0u; b < LAT_BINS; b++) { s_hist[i][b] = 0u; }
         s_ovf[i] = 0u; s_n[i] = 0u; s_sum_us[i] = 0u; s_max_us[i] = 0u;
+        s_ovf_tick[i] = 0u; s_ovf_idx[i] = 0u;
     }
     s_top_cnt = 0u;
     s_stall_sd = 0u;
@@ -112,7 +115,18 @@ void Exp02_Lat(uint8_t op, uint32_t us)
     if (us > s_max_us[op]) { s_max_us[op] = us; }
 
     ms = (uint16_t)(us / 1000u);
-    if (ms >= LAT_BINS) { s_ovf[op]++; }
+    if (ms >= LAT_BINS)
+    {
+        /* 第一次掉进溢出桶时把"第几个样本、开机多少 tick"记下来。
+         * 942 ms 那笔当时只留下一个计数，没有时间轴，事后无法判断它是
+         * 发生在 burst 后 1 分钟还是 10 分钟；补这一行，才回答得了"什么时候" */
+        if (s_ovf[op] == 0u)
+        {
+            s_ovf_tick[op] = xTaskGetTickCount();
+            s_ovf_idx[op]  = s_n[op];
+        }
+        s_ovf[op]++;
+    }
     else if (s_hist[op][ms] < 0xFFFFu) { s_hist[op][ms]++; }
 
     /* top-32：只在与最小值比较后插入，避免每次都挪数组 */
@@ -178,6 +192,14 @@ static void exp02_dump(void)
                       (unsigned long)((s_n[op] != 0u) ? (s_sum_us[op] / s_n[op]) : 0u),
                       (unsigned long)s_max_us[op],
                       (unsigned)s_ovf[op]);
+        /* 溢出桶第一次出现的时刻与样本序号；ovf=0 时这行没有意义，不打 */
+        if (s_ovf[op] != 0u)
+        {
+            Serial_Printf("LAT,OVF,%u,%u,%lu,%lu\r\n", (unsigned)op,
+                          (unsigned)s_ovf[op],
+                          (unsigned long)s_ovf_idx[op],
+                          (unsigned long)s_ovf_tick[op]);
+        }
         for (b = 0u; b < LAT_BINS; b++)
         {
             if (s_hist[op][b] != 0u)
@@ -291,6 +313,7 @@ void Exp02_FastLatRun(void)
     Serial_Printf("EXP02,FAST,wait 15s before start\r\n");
     vTaskDelay(pdMS_TO_TICKS(15000));
     s_fast_running = 1u;
+    g_print_quiet  = 1u;                /* 压掉 IDLE/SONAR/DISP，别让它们插进 LAT 行 */
 
     (void)f_mount(&s_fs, "0:", 1);
     if (f_getfree("0:", &fre_clust, &fs_p) == FR_OK)
@@ -303,8 +326,11 @@ void Exp02_FastLatRun(void)
     fr = f_open(&s_fil, "0:EXP02.BIN", FA_WRITE | FA_OPEN_ALWAYS);
     if (fr != FR_OK)
     {
+        /* 没插卡时走这条路。必须把静音解开，否则整板从此不再打 IDLE/SONAR/DISP，
+         * 看起来像"卡不认就整个卡死"，其实是自己把嘴闭了没张开 */
         Serial_Printf("EXP02,FAST,open FAIL %u\r\n", (unsigned)fr);
         s_fast_running = 0u;
+        g_print_quiet  = 0u;
         return;
     }
     (void)f_lseek(&s_fil, f_size(&s_fil));   /* 追加写 */
@@ -341,6 +367,7 @@ void Exp02_FastLatRun(void)
     Serial_Printf("EXP02,FAST,done,n=%lu\r\n", (unsigned long)s_n[0]);
     s_fast_running = 0u;
     exp02_dump();
+    g_print_quiet = 0u;                 /* 跑完解锁，周期性打印恢复 */
 }
 
 void Exp02_Task(void *pvParameters)

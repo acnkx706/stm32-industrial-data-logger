@@ -1,0 +1,31 @@
+EXP-02b 准备：串口静音、首次溢出时间戳、全卡校验脚本、方案修订
+
+问题（2026-11-06 100k 那轮暴露）：
+- LAT,SUM 汇总行被 DISP:/IDLE: 插进中间，f_write 那一行整行丢失
+- 942 ms 只留下一个计数，没有"什么时候发生"的信息，事后无法归因
+
+固件改动（都只在测试开关下生效）：
+- freertos_demo.c：新增 volatile uint8_t g_print_quiet，
+  压掉 IDLE / SONAR / DISP 三类周期打印；计数照常推进，只跳打印，
+  避免解锁后第一行算进一大段空档
+- exp02.c：全速跑批期间置 1，跑完置 0；f_open 失败那条早退路径也要置 0，
+  否则没插卡时会永久静音，看起来像卡死
+- exp02.c：新增 s_ovf_tick / s_ovf_idx，第一次 >=256ms 时记下样本序号与开机 tick，
+  dump 时多打一行 LAT,OVF,<op>,<n>,<idx>,<tick>
+
+工具：
+- evidence/card_health/card_stress_test.py：整卡写满 + 读回校验，
+  写和读分两次命令跑，中间可以拔卡（h2testw 做不到这一点）
+
+方案：
+- stm32/exp/EXP02b-942ms复现与卡健康-方案.md 追加 §12：
+  原 §5 把 h2testw 排在第 4~6 步之前，会把卡写空导致后面没卡可用；
+  全速 10k 实际约 1.5 分钟（不是 6 分钟），所以改成一次 100k 连续覆盖 0~13 分钟；
+  burst 拆成"占位"与"真写"两臂；备份范围从 24 个文件扩到全部 42 个
+
+两个固件已各留一份命名副本，杜绝烧错陈旧 bin：
+  Objects/app_prod.bin     68,644 B  Code=64644 RO=3932 RW=540  ZI=15068
+  Objects/app_fast100k.bin 70,288 B  Code=66288 RO=3932 RW=616  ZI=18600
+
+注意：Keil 每次编译都会变哈希（内嵌构建时间），
+所以"核对 bin"只能看 Code/RO/RW/ZI 与文件大小，不能靠哈希相等。

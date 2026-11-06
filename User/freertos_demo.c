@@ -248,6 +248,16 @@ typedef struct {
 } Stat_t;
 Stat_t g_stat;
 
+/* 串口静音开关：1 = 压掉 IDLE / SONAR / DISP 的周期性打印。
+ *
+ * 做了什么：这几处打印平时是好事，但全速延迟测试一跑就是十几分钟，
+ *          每 1 秒一条 IDLE、每 5 秒一条 DISP，正好插进 LAT 汇总行中间，
+ *          把整行数据撕成两半（2026-11-06 100k 那轮的 f_write 汇总行就是这么丢的）。
+ * 为什么：与其在 PC 侧写容错解析，不如从源头保证一次性数据不被别的任务插话。
+ * 影响什么：只在测试跑批期间置 1，正式固件永远是 0，行为不变。
+ * 怎么验证：全速跑完，日志里 LAT,SUM 两行完整、没有 DISP:/IDLE: 插进中间。 */
+volatile uint8_t g_print_quiet = 0u;
+
 /* ★ 2026-11-06（EXP-02）：测试模块用 #include 并在本编译单元。
  *   · 本工程约定不改 .uvprojx，所以不把 exp02.c 加进工程文件
  *   · 放在 Stat_t / g_stat 之后，因为 exp02.c 要引用它们
@@ -2232,7 +2242,7 @@ void task_DISP(void *pvParameters)
 		 *     · 新阈值 120ms 的依据。
 		 *        常态 max ≈ 84~98 ms，留约 25% 余量 ⇒ 120 ms。
 		 *        （超过它 = 真的被谁拖了，值得看一眼）*/
-		if (dt_us > 120000u)
+		if ((dt_us > 120000u) && (g_print_quiet == 0u))
 		{
 			Serial_Printf("DISP: SLOW frame %u us !\r\n", (unsigned)dt_us);
 		}
@@ -2240,8 +2250,11 @@ void task_DISP(void *pvParameters)
 		/* ★ 每 8 次刷新（= 5 秒）报一次汇总，看趋势用*/
 		if (s_cnt >= 8u)
 		{
-			Serial_Printf("DISP: avg=%u us  max=%u us  (per refresh)\r\n",
-			              (unsigned)(s_us_sum / s_cnt), (unsigned)s_us_max);
+			if (g_print_quiet == 0u)
+			{
+				Serial_Printf("DISP: avg=%u us  max=%u us  (per refresh)\r\n",
+				              (unsigned)(s_us_sum / s_cnt), (unsigned)s_us_max);
+			}
 			s_cnt    = 0u;
 			s_us_sum = 0u;
 			/* ★ s_us_max不清，保留历史最大（看最坏情况）*/
@@ -2280,9 +2293,13 @@ void task_DISP(void *pvParameters)
 				 *   ★ 先乘后除可能溢出 ⇒ 先取商再补，这里 ms ≤ 4000、×1000 安全*/
 				uint32_t ms_raw = (uint32_t)(g_idle_ms - s_idle_ms_last);
 				uint32_t ms_per = (uint32_t)((unsigned long)ms_raw * 1000u / (unsigned long)dms);
-				Serial_Printf("IDLE: %lu/1000 ms  hook %lu/s  blank %u\r\n",
-				              (unsigned long)ms_per, (unsigned long)per_s,
-				              (unsigned)s_blanked);
+				/* 静音时只跳过打印，计数照常推进：否则解锁后第一行会算进一大段空档 */
+				if (g_print_quiet == 0u)
+				{
+					Serial_Printf("IDLE: %lu/1000 ms  hook %lu/s  blank %u\r\n",
+					              (unsigned long)ms_per, (unsigned long)per_s,
+					              (unsigned)s_blanked);
+				}
 				s_idle_last    = g_idle_cnt;
 				s_idle_ms_last = g_idle_ms;
 				s_idle_tick    = now;
@@ -2493,9 +2510,12 @@ void task_sensor(void *pvParameters)
 			if (sr == 1u)
 			{
 				g_sonar_mm = mm;                 /* ★ 进 CSV 的值（task_ACQ 取）*/
-				Serial_Printf("SONAR: %u mm (pulse %u us, edges %u)\r\n",
-				              (unsigned)mm, (unsigned)HC_SR04_LastPulseUs(),
-				              (unsigned)HC_SR04_EdgeCount());
+				if (g_print_quiet == 0u)
+				{
+					Serial_Printf("SONAR: %u mm (pulse %u us, edges %u)\r\n",
+					              (unsigned)mm, (unsigned)HC_SR04_LastPulseUs(),
+					              (unsigned)HC_SR04_EdgeCount());
+				}
 			}
 			else
 			{
@@ -2503,10 +2523,13 @@ void task_sensor(void *pvParameters)
 				 *   ★ 但 edges 一直为 0 就不是正常结果。
 				 *     ⇒ 那是"线上一根边沿都没有" ⇒ 查供电/接线  */
 				g_sonar_mm = 0u;                 /* ★ CSV 约定：0 = 无回波*/
-				Serial_Printf("SONAR: no echo (pulse %u us, edges %u, echo=%u)\r\n",
-				              (unsigned)HC_SR04_LastPulseUs(),
-				              (unsigned)HC_SR04_EdgeCount(),
-				              (unsigned)HC_SR04_EchoLevel());
+				if (g_print_quiet == 0u)
+				{
+					Serial_Printf("SONAR: no echo (pulse %u us, edges %u, echo=%u)\r\n",
+					              (unsigned)HC_SR04_LastPulseUs(),
+					              (unsigned)HC_SR04_EdgeCount(),
+					              (unsigned)HC_SR04_EchoLevel());
+				}
 			}
 		}
 
