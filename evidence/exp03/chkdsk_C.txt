@@ -1,0 +1,19 @@
+The type of the file system is FAT32.
+Access is denied.
+
+Volume LOGGER created 2026/11/6 16:11
+Volume Serial Number is 767D-DF9A
+Windows is verifying files and folders...
+0 percent completed.                  3 percent completed..                 86 percent completed...                90 percent completed....               93 percent completed.....              96 percent completed......             100 percent completed.                  File and folder verification is complete.
+
+Windows has scanned the file system and found no problems.
+No further action is required.
+
+3,956,801,536 bytes total disk space.
+       32,768 bytes in 1 hidden files.
+      917,504 bytes in 4 files.
+3,955,818,496 bytes available on disk.
+
+       32,768 bytes in each allocation unit.
+      120,752 total allocation units on disk.
+      120,722 allocation units available on disk.

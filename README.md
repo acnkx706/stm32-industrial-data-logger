@@ -63,7 +63,7 @@ task_GOLDEN (1) 一次性 ──▶ 把当前固件备份进 W25Q64（金副本�
 
 三条设计铁律：
 
-1. **SD 的慢被压在最低优先级**，ACQ→PROC 采集链永不阻塞（实测单次 `f_write`：干净时段 avg 7.5 ms；慢写时段 avg 13.5 ms、单笔最大 118.7 ms，约每写满 16 KB 出现一次且常成对。一块 512 B 缓冲攒满要 500 ms，最坏一笔占去约四分之一）
+1. **SD 的慢被压在低优先级后台**，ACQ→PROC 采集链按设计不等待 SD（实测生产路径 11k：`f_write` avg 10.07 ms、max 124.5 ms；0% 干净卡 10k p99 10 ms；不是“永不阻塞”，I2C 互斥仍用 `portMAX_DELAY`。一块 512 B 缓冲攒满 500 ms，最坏一笔约占 1/4）
 2. **FatFs 只允许出现在 `task_sd.c`**（`_FS_REENTRANT=0`），从架构上消灭并发而不是加锁
 3. **所有任务的内存都是静态分配的**（`.bss` 里的具名数组），堆只剩 64 B，`map` 能逐项对账
 
@@ -137,14 +137,18 @@ seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,
 
 | 项 | 值 | 状态 |
 |---|---|---|
-| 单次 `f_write` | 11,000 次：avg **10.07 ms**、p99 100 ms、max **124.5 ms** | ✅ 实测 |
-| 单次 `f_sync` | 11,000 次：avg 11.38 ms、p99 101 ms、max 126.1 ms | ✅ 实测 |
-| ≥250 ms 的次数 | **0**（250 ms 假设偏保守，实测最坏只有它的 1/2） | ✅ 实测 |
+| 单次 `f_write`（生产路径） | 11,000 次：avg **10.07 ms**、p99 100 ms、max **124.5 ms** | ✅ 实测 |
+| 单次 `f_sync`（生产路径） | 11,000 次：avg 11.38 ms、p99 101 ms、max 126.1 ms | ✅ 实测 |
+| 全速 0% 干净卡 | 10,000 次：write avg 3.48 ms、p99 10 ms、max 27.98 ms；sync p99 13 ms、max 89.48 ms | ✅ 实测 |
+| 全速 91.5% 脏卡 | 两臂各 100,000 次：write avg 3.63~3.64 ms、max 67.19~72.07 ms；≥256 ms 零次 | ✅ 实测 |
+| ≥250 ms | 平静生产 11k **0**；91.5% 200k **0**；942 ms 仅 1 次，20 万次未复现 | ⚠️ 未定案 |
 | 停 SD 任务 1 s | 10/10 次先涨 `LOSS_NO_BUF`，`Δqueue_full = 0`；`first_loss` 644~956 ms | ✅ 实测 |
 | 停 PROC 任务 1 s（对照） | 10/10 次先涨 `LOSS_Q_FULL`，`qmax` 冲到 8 | ✅ 实测 |
-| 队列 8 vs 4 | 第一计数器相同，`first_loss` 均值 789 vs 772 ms | ✅ 实测 |
-| 故障注入（拔卡/坏卡/掉电） | 未做 | ⬜ 未做 |
-| 证据 | [延迟报告](evidence/sd_latency/latency_report.md) · [停摆报告](evidence/sd_stall/stall_report.md) · [执行记录](evidence/sd_stall/status.md) |
+| 队列 8 vs 4 | 第一计数器相同；500 ms 档 q8 3/8、q4 9/10；第一瓶颈是缓冲 | ✅ 实测 |
+| 卡健康 | 格式化 + 3.956 GB 写满 + 拔插读回，mismatch=0；845 丢失簇已清；一次检查不等于完全健康 | ✅ 实测/⚠️ 一次 |
+| 100k 分位数 | 直方图 `uint16` 饱和，p90/p99=256 是假数；只引 avg/max | ⚠️ 无效 |
+| 故障注入（拔卡/坏卡/掉电） | 拔卡 6/6 无死机、丢条全是 `no_buf`（25 条）；无卡 89 s 回写 89 条；exFAT 跨重启回写 276 条；掉电 8/8 进 App、0 次回滚、尾损 7/8 为 0 行；CSV 9,212 行 0 坏行；chkdsk 干净 | ✅ 实测（样本 6/8，非概率） |
+| 证据 | [延迟报告](evidence/sd_latency/latency_report.md) · [停摆报告](evidence/sd_stall/stall_report.md) · [EXP-02b 结果](evidence/EXP02b-结果-20261106.md) · [EXP-03 结果](evidence/exp03/EXP03-结果-20261106.md) · [卡健康](evidence/card_health/卡健康基线-20261106.md) |
 
 ### 17 天连续记录（2026-10-18 ~ 11-03，E 盘 SD 卡）
 
