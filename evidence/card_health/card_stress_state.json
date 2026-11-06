@@ -1,0 +1,11 @@
+{
+  "filler": "E:\\STRESS.BIN",
+  "nblk": 3773,
+  "bytes": 3956277248,
+  "write_s": 424.9,
+  "base_sha256": "8e90be4c6d7a90e3dee854c0daf87b4ebaaa6fab686791f80facc5dd634ab900",
+  "when": "2026-11-06 13:48:56",
+  "total_bytes": 3956801536,
+  "free_before": 3956670464,
+  "free_after": 393216
+}
