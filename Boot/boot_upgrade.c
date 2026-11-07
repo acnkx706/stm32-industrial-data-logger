@@ -256,6 +256,63 @@ typedef struct
 	uint32_t rsv[12];
 } UpStageHdr_t;
 
+/* ★ U5：镜像里的元数据（App 侧一个普通 const 结构，"ATEM" 开头）
+ *   ⚠️ 为什么按 magic 扫、而不是钉死地址：
+ *     AC5 的 __attribute__((at(addr))) 在这套工程里不可靠 ——
+ *     试过 0x08004200 和 0x08004800，两次都能编过、bin 里也对，
+ *     但 App 跑到一半就静默（去掉 at 立刻正常）。
+ *     与其和链接器较劲，不如让 Boot 扫一遍：只在升级时扫一次，1.7 秒。 */
+typedef struct
+{
+	uint32_t magic;
+	uint32_t version;
+	uint32_t build;
+	uint32_t rsv;
+} UpMeta_t;
+
+static uint8_t Up_FindMeta(uint32_t size, UpMeta_t *out)
+{
+	uint32_t off = 0u;
+	uint32_t i;
+
+	if (size < 16u) { return 0u; }
+
+	while (off < size)
+	{
+		uint32_t n = size - off;
+		uint32_t step;
+
+		if (n > (uint32_t)BOOT_FLASH_PAGE_SIZE) { n = (uint32_t)BOOT_FLASH_PAGE_SIZE; }
+		if (BootW25_Read(UP_STAGE_IMG_ADDR + off, s_page, n) == 0u) { return 0u; }
+
+		/* ★ 逐字节扫，不能 4 字节跳
+		 *   · 分块起点是 off += (n-15)，不是 4 的倍数
+		 *   · 结构体在块内的偏移因此也不一定是 4 的倍数
+		 *   · 按 4 步长会漏掉（第一次实现就是这么漏的：报 FAIL nometa） */
+		for (i = 0u; (i + 16u) <= n; i++)
+		{
+			/* ★ 小端 "ATEM"：41 54 45 4D */
+			if ((s_page[i]      == 0x41u) && (s_page[i + 1u] == 0x54u) &&
+			    (s_page[i + 2u] == 0x45u) && (s_page[i + 3u] == 0x4Du))
+			{
+				uint32_t k;
+				uint8_t *p = (uint8_t *)out;
+
+				for (k = 0u; k < 16u; k++) { p[k] = s_page[i + k]; }
+				if ((out->version == 0u) || (out->version > 100000u)) { continue; }
+				if (out->rsv != 0u) { continue; }
+				return 1u;
+			}
+		}
+
+		/* ★ 留 15 字节重叠：结构体可能正好跨 1KB 边界 */
+		step = (n > 15u) ? (n - 15u) : n;
+		off += step;
+	}
+
+	return 0u;
+}
+
 static uint8_t Up_StageHdrWrite(uint32_t state, uint32_t size, uint32_t crc)
 {
 	UpStageHdr_t h;
@@ -784,6 +841,28 @@ static void Up_HandleEnd(uint16_t n)
 		 *   · 再搬进内部：搬到一半断电，头还在 ⇒ 开机自己装回去
 		 *   · 搬成功后清头：暂存已消费 */
 		uint8_t r;
+		UpMeta_t m;
+
+		/* ★ U5（2026-11-07）：防回滚
+		 *   · 版本号在镜像里（"ATEM" 开头的 16 字节），跟着镜像走，PC 端不用改
+		 *   · 比参数区记的 img_min_ver 小 ⇒ 拒绝，不写任何 Flash
+		 *   · 没有元数据也拒绝：否则"剥掉元数据"就能绕过防回滚 */
+		if (Up_FindMeta(s_expect, &m) == 0u)
+		{
+			Up_SendFail("nometa");
+			Up_Reset();
+			return;
+		}
+		if (m.version < Param_GetMinVer())
+		{
+			Serial_SendString("FAIL downgrade ver=");
+			Serial_SendU32(m.version);
+			Serial_SendString(" min=");
+			Serial_SendU32(Param_GetMinVer());
+			Serial_SendString("\r\n");
+			Up_Reset();
+			return;
+		}
 
 		if (Up_StageHdrWrite(UP_STAGE_READY, s_expect, (uint32_t)s_crc) == 0u)
 		{
@@ -803,6 +882,9 @@ static void Up_HandleEnd(uint16_t n)
 			Up_Reset();
 			return;
 		}
+
+		/* ★ 装成功才抬高下限：装到一半失败时，旧版本还得能装回去 */
+		(void)Param_SetMinVer(m.version);
 
 		(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);
 	}

@@ -121,6 +121,13 @@
 #define UP_STAGE_READY        1u
 #define UP_STAGE_IMG_MAX      (108u * 1024u)
 
+/* ---- 镜像元数据（U5 防回滚，2026-11-07）--------------------------
+ *  ★ App 侧把 g_app_meta 用 at() 钉在 App 区起始 + 0x200
+ *  ★ Boot 按同一个偏移去读，两边必须一致
+ *    （App: User/app_meta.h 的 APP_META_ADDR / APP_META_MAGIC） */
+#define APP_META_OFFSET       0x200u
+#define APP_META_MAGIC        0x4D455441u      /* ★ "ATEM" 小端 */
+
 /* ---- 看门狗（IWDG，2026-10-13 加）---------------------------------- */
 
 /* ★ 为什么Bootloader 必须喂狗

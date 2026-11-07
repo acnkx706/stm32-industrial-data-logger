@@ -283,6 +283,8 @@ int main(void)
 	Serial_SendU32(prm.seq);
 	Serial_SendString(" flags=");
 	Serial_SendHex(prm.flags, 2u);
+	Serial_SendString(" min=");
+	Serial_SendU32(prm.img_min_ver);          /* ★ U5：防回滚下限 */
 	Serial_SendString("\r\n");
 
 	/*==========================================================================

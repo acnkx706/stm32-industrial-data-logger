@@ -27,6 +27,7 @@
 | 13 | 时间基：tick(HSE) 与 RTC(LSE) 独立；13.05 h 实测 tick −1,227 ppm、RTC −10 ppm；10-28 19:45 UTC 一次约 1,800 ppm 渐变；11 月初又回 −1,215 | `[实测-有限]` | `evidence/timebase/EXP04-结果-20261107.md`、`step1d_1028.py`、`run24_regress.py` | **13.05 h 不是 24 h**；原因未定案；第二次变化 11-03~11-06 未定位；不能写“换晶振/换板/重烧” |
 | 14 | 参数区（4 KB @0x0801F000）双槽：正常启动 3 次 `seq` 不变（0 写入）；升级后进试用，4 次开机不确认则从金副本回退；`U`+`C` 取消后 `flags` 01→00 | `[实测]` | `../exp/U1-U2-测试-20261107.md` §12、`../exp/serial-u1u2.log`（10:39~11:01） | 单块板、单次跑通；**没做 10k 擦写寿命**、没做传输中途掉电；`img=0` 那一行是靠 `seq` 2→4 推断的，没直接抓到串口行 |
 | 15 | 升级"先落盘再切换"：整包先写 W25 暂存区，传输期间内部 Flash 不动；装到一半断电，下次开机自动重装（`G: stage ok -> installing`） | `[实测]` | `../exp/u3_cut.log`、`Boot/boot_upgrade.c`、`Boot/boot_w25.c` | 两次手工注入（传 20 KB 中断、装到一半复位），不是概率实验；`--stage data` 那条还叠加了 `flags=01`，用 `C` 消歧 |
+| 16 | 防回滚：镜像带 version，参数区记 `img_min_ver`，升级时 `version < min` 直接拒绝（`FAIL downgrade ver=1 min=2`），不写任何 Flash | `[实测]` | `Boot/boot_upgrade.c`、`User/app_meta.h`、`docs/架构总览.md` §6 | 一次 v1→v2→v1 的验证；**只管安装，不管金副本恢复**；版本号靠人改，没有签名，改了元数据就绕过了 |
 
 ---
 

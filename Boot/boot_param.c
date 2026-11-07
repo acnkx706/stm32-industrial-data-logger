@@ -213,3 +213,34 @@ uint8_t Param_ConfirmImage(void)
 	r.iwdg_retry = 0u;                         /* ★ 确认成功，清恢复次数 */
 	return Param_Save(&r);
 }
+
+/*==============================================================================
+ *  ★ 防回滚计数器（U5，2026-11-07）
+ *
+ *  ★ 语义：img_min_ver = "从此以后不再接受比它小的镜像"
+ *  ★ 为什么只增不减：递减就等于没有防回滚，攻击者/误操作把计数器写小即可
+ *  ★ 为什么升级成功才更新：装到一半失败时，旧版本还得能装回去
+ *============================================================================*/
+uint32_t Param_GetMinVer(void)
+{
+	ParamRec_t r;
+
+	(void)Param_Get(&r);
+	return r.img_min_ver;
+}
+
+uint8_t Param_SetMinVer(uint32_t ver)
+{
+	ParamRec_t r;
+
+	(void)Param_Get(&r);
+
+	/* ★ 只往上走：比现有值小就直接算成功，不写 flash */
+	if (ver <= r.img_min_ver)
+	{
+		return 1u;
+	}
+
+	r.img_min_ver = ver;
+	return Param_Save(&r);
+}

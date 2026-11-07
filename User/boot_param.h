@@ -57,10 +57,19 @@ typedef struct
 	uint32_t image_ok;
 	uint32_t iwdg_retry;
 	uint32_t version;
-	uint32_t rsv[5];
+	uint32_t img_min_ver;   /* ★ 2026-11-07（U5）：允许安装的最低镜像版本，防回滚 */
+	uint32_t rsv[4];
 	uint16_t crc;
 	uint16_t valid;
 } ParamRec_t;
+
+/* ★ 2026-11-07（U5）：防回滚计数器
+ *   · 升级前读它：新镜像 version 比它小 ⇒ 拒绝
+ *   · 升级成功后取 max(旧值, 新版本)
+ *   ⚠️ 金副本恢复不走这个判断 —— 那是"救回来"，不是"安装更新"，
+ *      拦住它只会把板子锁死在升级模式。 */
+uint32_t Param_GetMinVer(void);
+uint8_t  Param_SetMinVer(uint32_t ver);
 
 /* ★ 填默认值：magic/version，image_ok=1（迁移时把当前 App 当好的） */
 void    Param_Default(ParamRec_t *r);
