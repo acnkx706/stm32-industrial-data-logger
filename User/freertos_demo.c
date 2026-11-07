@@ -29,6 +29,7 @@
 #include "golden.h"                /* ★ 金副本（版本备份/回退，2026-10-14 加）*/
 #include "MyRTC.h" 
 #include "boot_flag.h"             /* ★ 升级请求标志（★ 和 Boot\boot_flag.h 逐字节一致）*/
+#include "boot_param.h"            /* ★ 4KB 参数区：image_ok 确认（2026-11-07） */
 #include "Crc16.h"
 #include "exp02.h"   /* EXP-02 原型（TEST_EXP02=0 时全为空宏） */
 /*==============================================================================
@@ -1669,6 +1670,8 @@ void task_DISP(void *pvParameters)
 	Stat_t snap;
 	uint32_t frame = 0;		/* 心跳计数：每帧 +1（用来证明屏是活的） */
 	static uint8_t s_shutdown_seen = 0u;	/* ★ 关机长响只响一次的边沿标志*/
+	static uint8_t s_img_confirmed = 0u;	/* ★ 2026-11-07：本次镜像已确认 */
+	static uint8_t s_img_try = 0u;			/* ★ 参数区写失败重试次数 */
 
 	       
 	/* ★ 2026-10-14 加：刷屏耗时统计。
@@ -1702,6 +1705,26 @@ void task_DISP(void *pvParameters)
 
 	for (;;)
 	{
+		/* ★ 2026-11-07：镜像确认（U2）
+		 *   · 10 秒后、ACQ/SD 任务句柄都在 ⇒ 调度器和主链起来了；
+		 *   · 写 image_ok=1 / boot_count=0；
+		 *   · 写失败最多重试 3 次，别每 200ms 擦一次 flash。 */
+		if ((s_img_confirmed == 0u) &&
+		    (xTaskGetTickCount() > pdMS_TO_TICKS(10000)) &&
+		    (task_acq_handler != NULL) && (task_sd_handler != NULL))
+		{
+			if (Param_ConfirmImage() != 0u)
+			{
+				s_img_confirmed = 1u;
+				Serial_Printf("APP: image confirmed\r\n");
+			}
+			else if (++s_img_try >= 3u)
+			{
+				s_img_confirmed = 1u;
+				Serial_Printf("APP: image confirm FAILED\r\n");
+			}
+		}
+
 		/* ★ 2026-10-18 校准挪到这里（计时起点之前）
 		 *
 		 *  ★ 为什么必须在这：

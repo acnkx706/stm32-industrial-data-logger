@@ -171,6 +171,18 @@ uint8_t Param_ClearFlags(void)
 	return Param_Save(&r);
 }
 
+uint8_t Param_OnUpgrade(void)
+{
+	ParamRec_t r;
+
+	(void)Param_Get(&r);
+	r.image_ok   = 0u;
+	r.boot_count = 0u;
+	r.flags      = 0u;
+	r.iwdg_retry = 0u;                         /* ★ 新升级，重新给满机会 */
+	return Param_Save(&r);
+}
+
 uint8_t Param_OnNewImage(void)
 {
 	ParamRec_t r;
@@ -179,6 +191,7 @@ uint8_t Param_OnNewImage(void)
 	r.image_ok   = 0u;
 	r.boot_count = 0u;
 	r.flags      = 0u;
+	/* ★ 保留 iwdg_retry：恢复次数上限跨"恢复→试用"保留 */
 	return Param_Save(&r);
 }
 
@@ -187,8 +200,16 @@ uint8_t Param_ConfirmImage(void)
 	ParamRec_t r;
 
 	(void)Param_Get(&r);
+
+	if ((r.image_ok == 1u) && (r.boot_count == 0u) &&
+	    (r.flags == 0u) && (r.iwdg_retry == 0u))
+	{
+		return 1u;                             /* ★ 已确认 ⇒ 只读不写 */
+	}
+
 	r.image_ok   = 1u;
 	r.boot_count = 0u;
 	r.flags      = 0u;
+	r.iwdg_retry = 0u;                         /* ★ 确认成功，清恢复次数 */
 	return Param_Save(&r);
 }

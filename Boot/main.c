@@ -5,6 +5,7 @@
 #include "boot_upgrade.h"
 #include "boot_w25.h"           /* ★ W25Q64 只读驱动（2026-10-14 加） */
 #include "boot_golden.h"        /* ★ 金副本恢复（2026-10-14 加，G5） */
+#include "boot_param.h"         /* ★ 4KB 参数区（2026-11-07，U1/U2） */
 #include "Serial.h"
 
 /*==============================================================================
@@ -97,6 +98,10 @@ int main(void)
 	uint8_t by_iwdg_stop = 0u;          /* ★ 回退过一次还是被狗咬 ⇒ 停在升级模式（2026-10-19 修审计 B1）
 	                                     *   ★ 必须带 = 0u，它只在 by_key == 0u 里被赋值
 	                                     *     而 :401 是无条件读它 ⇒ 否则读到的是栈上垃圾值 */
+	ParamRec_t prm;                     /* ★ 4KB 参数区记录（2026-11-07） */
+	uint8_t    prm_ok;
+	uint8_t    prm_saved = 1u;
+	uint8_t    trial_fail = 0u;         /* ★ image_ok=0 试用超限 */
 
 	Serial_Init();
 
@@ -218,6 +223,67 @@ int main(void)
 	by_rb   = BootFlag_IsRollbackRequested();   /* ★ 回退标志（BKP_DR3） */
 
 	/*==========================================================================
+	 *  ★ 2026-11-07：4KB 参数区（U1/U2）
+	 *
+	 *  ★ 先读参数；没有就迁移 BKP 的一次性标志。
+	 *  ★ BKP 继续当"旧 App 的邮箱"：
+	 *    · 旧 App 仍写 BKP_DR2/DR3/DR6；
+	 *    · Boot 每次启动把它们折进参数区，然后清掉 BKP；
+	 *    · 这样旧 App 不改也能用新 Boot。
+	 *  ★ 参数区写失败 → 保留 BKP，下一次还能重试。
+	 *========================================================================*/
+	prm_ok = Param_Load(&prm);
+
+	if (prm_ok == 0u)
+	{
+		Param_Default(&prm);
+		if (by_flag != 0u) { prm.flags |= PARAM_FLAG_UPGRADE; }
+		if (by_rb   != 0u) { prm.flags |= PARAM_FLAG_ROLLBACK; }
+		prm.iwdg_retry = (uint32_t)BootFlag_GetIwdgRetry();
+		prm_saved = Param_Save(&prm);
+	}
+	else
+	{
+		uint8_t dirty = 0u;
+
+		if ((by_flag != 0u) && ((prm.flags & PARAM_FLAG_UPGRADE) == 0u))
+		{
+			prm.flags |= PARAM_FLAG_UPGRADE;
+			dirty = 1u;
+		}
+		if ((by_rb != 0u) && ((prm.flags & PARAM_FLAG_ROLLBACK) == 0u))
+		{
+			prm.flags |= PARAM_FLAG_ROLLBACK;
+			dirty = 1u;
+		}
+		if ((uint32_t)BootFlag_GetIwdgRetry() > prm.iwdg_retry)
+		{
+			prm.iwdg_retry = (uint32_t)BootFlag_GetIwdgRetry();
+			dirty = 1u;
+		}
+		if (dirty != 0u) { prm_saved = Param_Save(&prm); }
+	}
+
+	if (prm_saved != 0u)
+	{
+		/* ★ 已折进参数区 ⇒ 清 BKP，防下一次重复折叠 */
+		BootFlag_ClearUpgrade();
+		BootFlag_ClearRollback();
+		BootFlag_ClearIwdgRetry();
+	}
+
+	by_flag = ((prm.flags & PARAM_FLAG_UPGRADE)  != 0u) ? 1u : 0u;
+	by_rb   = ((prm.flags & PARAM_FLAG_ROLLBACK) != 0u) ? 1u : 0u;
+
+	Serial_SendString("PARAM: img=");
+	Serial_SendU32(prm.image_ok);
+	Serial_SendString(" boot=");
+	Serial_SendU32(prm.boot_count);
+	Serial_SendString(" flags=");
+	Serial_SendHex(prm.flags, 2u);
+	Serial_SendString("\r\n");
+
+	/*==========================================================================
 	 *  ★ 判据③：App 有没有效（第三步，2026-10-13 加）
 	 *
 	 *  ★ 为什么必须有这一条，只有上面那条不行
@@ -258,6 +324,22 @@ int main(void)
 	 *      → 再读第二次就永远返回 0 了
 	 *========================================================================*/
 	iwdg_rst = BootGolden_ResetWasIwdg();
+
+	/* ★ 2026-11-07：image_ok=0 的试用计数
+	 *   · 只在"App 有效、没按键、还没确认"时写；
+	 *   · image_ok=1 后正常启动根本不写参数区 ⇒ 不磨 10k 寿命。 */
+	if ((by_key == 0u) && (app_ok != 0u) && (prm.image_ok == 0u))
+	{
+		prm.boot_count++;
+		if (Param_Save(&prm) == 0u)
+		{
+			Serial_SendString("PARAM: trial save FAILED\r\n");
+		}
+		if (prm.boot_count > PARAM_BOOT_TRIAL_MAX)
+		{
+			trial_fail = 1u;
+		}
+	}
 
 	/*==========================================================================
 	 *  ★ 金副本恢复（2026-10-14 加，G5，本次的核心）
@@ -316,21 +398,37 @@ int main(void)
 			 *      （而 :292 那次读早就过去了，这正是 B1 的原因）
 			 *    · 现在改用 by_iwdg_stop，自己的变量，自己的判据
 			 *      ⇒ :401 多一个分支，而日志说得是实话 */
-			if (BootFlag_GetIwdgRetry() >= 1u)
+			if (prm.iwdg_retry >= 1u)
 			{
-				by_iwdg_stop = 1u;              /* ★ 让 :401 命中"停在升级模式"
-				                                 *   ★ 原来这里写的是 app_ok = 0u;
-				                                 *     而 app_ok 最后一次被读是在上面的
-				                                 *     else if 链里 ⇒ 之后没人看它
-				                                 *     ，整个是死赋值
-				                                 *   ★ 所以这个分支必须有自己的判据。 */
-				BootFlag_ClearIwdgRetry();      /* ★ 清 0 ⇒ 下次上电重新给一次机会。 */
+				by_iwdg_stop = 1u;
+				prm.iwdg_retry = 0u;
+				(void)Param_Save(&prm);
 				Serial_SendString("G: IWDG again -> NO rollback, stay in upgrade\r\n");
 			}
 			else
 			{
-				BootFlag_IncIwdgRetry();        /* ★ 先记一笔，再回退。 */
+				prm.iwdg_retry++;
+				(void)Param_Save(&prm);        /* ★ 先记一笔，再回退。 */
 				need = 1u; why = "IWDG reset";
+			}
+		}
+		else if (trial_fail != 0u)
+		{
+			/* ★ 2026-11-07：image_ok=0 且连续启动超过 3 次 ⇒ 回退
+			 *   · 第一次回退；恢复后 iwdg_retry 保留 1；
+			 *   · 恢复的旧版再失败 ⇒ 停升级模式，不无限擦写。 */
+			if (prm.iwdg_retry >= 1u)
+			{
+				by_iwdg_stop = 1u;
+				prm.iwdg_retry = 0u;
+				(void)Param_Save(&prm);
+				Serial_SendString("G: trial again -> NO rollback, stay in upgrade\r\n");
+			}
+			else
+			{
+				prm.iwdg_retry++;
+				(void)Param_Save(&prm);
+				need = 1u; why = "trial";
 			}
 		}
 		/* ⚠️ 这里原来还有第 ④ 条，2026-10-14 当场删掉了
@@ -384,14 +482,23 @@ int main(void)
 			 *   · 放在"先看备份"之前也没关系：
 			 *     万一恢复中途断电，第 0 页已被擦成 0xFF
 			 *     ⇒ 下次开机命中"App 无效"，照样会再去恢复 */
-			BootFlag_ClearRollback();
+			if (by_rb != 0u)
+			{
+				prm.flags &= ~PARAM_FLAG_ROLLBACK;
+				(void)Param_Save(&prm);
+			}
 
 			if (BootW25_Init() == 0u)
 			{
 				Serial_SendString("G: no W25Q64\r\n");
+				if (trial_fail != 0u) { by_iwdg_stop = 1u; }
 			}
 			else if (BootGolden_Restore() != 0u)
 			{
+				/* ★ 恢复出来的旧版也要走一次"试用→确认"：
+				 *   image_ok=0，boot_count=0；保留 iwdg_retry 作为恢复次数上限。 */
+				(void)Param_OnNewImage();
+
 				/* ★ DR3 已经在"决定要恢复"那一刻清掉了，这里只剩 DR2。 */
 				BootFlag_ClearUpgrade();
 
@@ -405,6 +512,7 @@ int main(void)
 				/* ★ 护栏③：恢复不成就照旧往下走
 				 *   → App 有效就跳，无效就进升级模式， */
 				Serial_SendString("G: cannot restore\r\n");
+				if (trial_fail != 0u) { by_iwdg_stop = 1u; }
 				/* ★ DR3 已在上面统一清掉，这里不用再清
 				 *   （2026-10-19 修 B2：原来只在这一条出口清，漏了"W25 不在位"） */
 			}

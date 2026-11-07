@@ -3,6 +3,7 @@
 #include "boot_jump.h"
 #include "boot_flag.h"
 #include "boot_flash.h"
+#include "boot_param.h"
 #include "boot_upgrade.h"
 #include "Serial.h"
 
@@ -537,6 +538,18 @@ static void Up_HandleEnd(uint16_t n)
 		Serial_SendString(" want=");
 		Serial_SendHex((uint32_t)want, 4u);
 		Serial_SendString("\r\n");
+		Up_Reset();
+		return;
+	}
+
+	/* ★ 2026-11-07：先把 image_ok 置 0，再写第 0 页。
+	 *   · 第 0 页 = "新镜像生效"的提交点；
+	 *   · 如果先写第 0 页、后写 image_ok，中间掉电会留下
+	 *     "新镜像有效 + image_ok 还是 1" ⇒ 绕过试用/回退。
+	 *   · 这里失败就中止升级，不写第 0 页。 */
+	if (Param_OnUpgrade() == 0u)
+	{
+		Up_SendFail("param");
 		Up_Reset();
 		return;
 	}

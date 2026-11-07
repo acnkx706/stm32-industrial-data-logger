@@ -78,8 +78,12 @@ uint8_t Param_Get(ParamRec_t *out);
 uint8_t Param_SetFlag(uint32_t flag, uint8_t on);
 uint8_t Param_ClearFlags(void);
 
-/* ★ Boot 用：新镜像已提交，等 App 确认
- *   image_ok=0、boot_count=0、清 flags */
+/* ★ Boot 用：新镜像已提交（升级），等 App 确认
+ *   image_ok=0、boot_count=0、flags=0、iwdg_retry=0 */
+uint8_t Param_OnUpgrade(void);
+
+/* ★ Boot 用：金副本恢复完成，等 App 确认
+ *   image_ok=0、boot_count=0、flags=0；保留 iwdg_retry（恢复次数上限） */
 uint8_t Param_OnNewImage(void);
 
 /* ★ App 用：POST 通过，确认本次镜像

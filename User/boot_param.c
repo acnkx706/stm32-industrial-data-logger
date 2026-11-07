@@ -191,6 +191,18 @@ uint8_t Param_ClearFlags(void)
 	return Param_Save(&r);
 }
 
+uint8_t Param_OnUpgrade(void)
+{
+	ParamRec_t r;
+
+	(void)Param_Get(&r);
+	r.image_ok   = 0u;
+	r.boot_count = 0u;
+	r.flags      = 0u;
+	r.iwdg_retry = 0u;
+	return Param_Save(&r);
+}
+
 uint8_t Param_OnNewImage(void)
 {
 	ParamRec_t r;
@@ -207,8 +219,19 @@ uint8_t Param_ConfirmImage(void)
 	ParamRec_t r;
 
 	(void)Param_Get(&r);
+
+	/* ★ 已经确认过 ⇒ 直接返回，不写 flash。
+	 *   · 正常启动每 10 秒都会走到这里；
+	 *   · 不判这一下，每次开机都擦一页，10k 寿命很快磨完。 */
+	if ((r.image_ok == 1u) && (r.boot_count == 0u) &&
+	    (r.flags == 0u) && (r.iwdg_retry == 0u))
+	{
+		return 1u;
+	}
+
 	r.image_ok   = 1u;
 	r.boot_count = 0u;
 	r.flags      = 0u;
+	r.iwdg_retry = 0u;
 	return Param_Save(&r);
 }
