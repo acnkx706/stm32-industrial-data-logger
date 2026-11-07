@@ -636,6 +636,10 @@ static void Up_HandleCancel(void)
 	UP_LOG("BOOT: cancel requested -> checking App...\r\n");
 
 	BootFlag_ClearUpgrade();
+	/* ★ 2026-11-07：参数区也要清。
+	 *   · 新 Boot 的升级请求以参数区为准；
+	 *   · 只清 BKP 的话，C 取消后下次开机又看到 flags=01，永远进升级模式。 */
+	(void)Param_ClearFlags();
 	UP_LOG("BOOT: upgrade flag cleared\r\n");
 
 	if (Boot_IsAppValid() != 0u)
