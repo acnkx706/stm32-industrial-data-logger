@@ -2408,12 +2408,31 @@ void task_sensor(void *pvParameters)
 		/* ★ BMP280 气压 —— 1 秒读一次。
 		 *   ★ 与 ACQ 里的 MPU6050 共用同一条软件 I2C（PA2/PA3）。
 		 *   ★ 2026-10-09 升级：用I2C 互斥量串行化（见 30 号 §二十）
-		 *      —— 只挡另一个 I2C 用户（ACQ），其它任务不受影响 
-		 *      （原来的 vTaskSuspendAll 会冻全场 10ms，已弃用）*/
+		 *      —— 只挡另一个 I2C 用户（ACQ），其它任务不受影响
+		 *      （原来的 vTaskSuspendAll 会冻全场 10ms，已弃用）
+		 *   ★ 2026-11-07 再改：把"等转换"挪到锁外面
+		 *      · 原来整段读要 15ms 都在锁里，每秒挡 ACQ 一次
+		 *      · 实测 5% 的采样间隔偏离 100ms（115 后跟 85，成对出现）
+		 *      · 现在只锁两次：触发（~1ms）和取数（~2ms） */
 		{
 			int32_t p_x10, t_c100;
+			uint8_t r;
+
 			xSemaphoreTake(s_i2c_lock, portMAX_DELAY);
-			if (BMP280_Read(&p_x10, &t_c100) == 0u)
+			r = BMP280_Trigger();
+			xSemaphoreGive(s_i2c_lock);
+
+			if (r == 0u)
+			{
+				/* ★ 转换约 10ms，给 25ms 余量；这段时间不持锁 */
+				vTaskDelay(pdMS_TO_TICKS(25));
+
+				xSemaphoreTake(s_i2c_lock, portMAX_DELAY);
+				r = BMP280_Fetch(&p_x10, &t_c100);
+				xSemaphoreGive(s_i2c_lock);
+			}
+
+			if (r == 0u)
 			{
 				g_press_x10pa   = p_x10;
 				g_bmp_temp_x100 = (int16_t)t_c100;
@@ -2422,7 +2441,6 @@ void task_sensor(void *pvParameters)
 			{
 				g_press_x10pa   = 0;            /* ★ 无效 → 0（"未接"约定）*/
 			}
-			xSemaphoreGive(s_i2c_lock);
 		}
 
 		/*========================================================================

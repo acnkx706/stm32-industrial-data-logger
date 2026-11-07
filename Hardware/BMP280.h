@@ -32,6 +32,14 @@ uint8_t BMP280_Init(void);
  * ★ 单位：*press_x10pa = ×10 Pa；*temp_c100 = ×100 °C（传 NULL 可只读其一） */
 uint8_t BMP280_Read(int32_t *press_x10pa, int32_t *temp_c100);
 
+/* ★ 2026-11-07：拆成两步，给"持锁时间要短"的调用者用（task_sensor）
+ *   · 触发和取数据各只需要 1~2ms 的 I2C
+ *   · 中间那 ~10ms 转换时间可以不在锁里（否则每秒挡 ACQ 一次）
+ *   · 用法：拿锁 → Trigger() → 放锁 → 等 25ms 以上 → 拿锁 → Fetch() → 放锁
+ *   · 返回值和 BMP280_Read 一致 */
+uint8_t BMP280_Trigger(void);
+uint8_t BMP280_Fetch(int32_t *press_x10pa, int32_t *temp_c100);
+
 /* ★ 自检：用数据手册的官方算例跑一遍补偿公式
  *   返回 1 = 通过（说明公式与常量搬运无误）
  *   ⚠️ 算例常量是凭记忆写入手册值—— 第一次跑必须核对：

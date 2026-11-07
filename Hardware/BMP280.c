@@ -177,7 +177,18 @@ uint8_t BMP280_Init(void)
 	return 0u;
 }
 
-uint8_t BMP280_Read(int32_t *press_x10pa, int32_t *temp_c100)
+/* ★ 2026-11-07：拆成"触发 / 取结果"两步
+ *   · 为什么拆：转换要 ~10ms，原来整段都在 I2C 互斥量里
+ *     ⇒ 每秒挡 ACQ 一次，实测 5% 的采样间隔偏离 100ms（115 后跟 85）
+ *   · 现在持锁只做"写 CTRL"和"读 6 字节"，等转换时把锁让出去
+ *   · BMP280_Read() 保留原样（Boot 自检用），内部就是 触发+等+取 */
+uint8_t BMP280_Trigger(void)
+{
+	if (BMP_WriteReg(BMP_REG_CTRL, BMP_CTRL_FORCED) != 0u) { return 1u; }
+	return 0u;
+}
+
+uint8_t BMP280_Fetch(int32_t *press_x10pa, int32_t *temp_c100)
 {
 	uint8_t  b[6];
 	uint8_t  t;
@@ -185,28 +196,15 @@ uint8_t BMP280_Read(int32_t *press_x10pa, int32_t *temp_c100)
 	int32_t  T;
 	uint32_t P;
 
-	/* ① 触发一次 forced 测量。 */
-	if (BMP_WriteReg(BMP_REG_CTRL, BMP_CTRL_FORCED) != 0u) { return 1u; }
-
-	/* ② 等测量完成（轮询 status 的 bit3，带超时，不能死等）
-	 *    ×2/×4 过采样的典型测量时间约 10ms 量级 → 给 50ms 余量。
-	 *
-	 *    ★ 2026-11-07 修：必须先等一会儿再轮询
-	 *      measuring 位表示"转换进行中"，写完 CTRL 之后要过几毫秒才置 1。
-	 *      紧接着读 status 会读到 0，被当成"已经测完"，
-	 *      读到的其实是上一次的结果。
-	 *      冷启动时上一次根本不存在，寄存器还是复位值 0x80000，
-	 *      换算出来固定是 692.3 hPa / 23.29 C。
-	 *      （实测：断电 2 秒再上电，14 次开机这个数一模一样。）
-	 *      运行时不明显，因为上一次是 0.5 秒前的真实值，只是慢了一拍。 */
-	DWT_Delay_us(5000);                                 /* 先让它真正开始转换。 */
-
+	/* ★ 轮询到转换完成
+	 *   · 调用者通常已经等过 25ms，这里一般第一轮就过
+	 *   · 仍然保留 50ms 上限：万一被高优先级任务拖住，也不能死等 */
 	for (t = 0u; t < 100u; t++)
 	{
-		if ((BMP_ReadReg(BMP_REG_STATUS) & 0x08u) == 0u) { break; }   /* bit3=0 = 测完。 */
-		DWT_Delay_us(500);                              /* 100 × 500us = 50ms 上限。 */
+		if ((BMP_ReadReg(BMP_REG_STATUS) & 0x08u) == 0u) { break; }
+		DWT_Delay_us(500);
 	}
-	if (t >= 100u) { return 2u; }                       /* 超时。 */
+	if (t >= 100u) { return 2u; }
 
 	/* ③ 读 6 字节：press(3) + temp(3)。 */
 	if (BMP_ReadRegs(BMP_REG_DATA, b, 6u) != 0u) { return 3u; }
@@ -227,6 +225,21 @@ uint8_t BMP280_Read(int32_t *press_x10pa, int32_t *temp_c100)
 	if (press_x10pa  != NULL) { *press_x10pa  = (int32_t)(P * 10u); }   /* Pa → ×10 Pa
 	                                                                     * 101325×10 = 1013250，不溢出。 */
 	return 0u;
+}
+
+uint8_t BMP280_Read(int32_t *press_x10pa, int32_t *temp_c100)
+{
+	uint8_t r = BMP280_Trigger();
+
+	if (r != 0u) { return r; }
+
+	/* ★ 必须等一会儿再取：measuring 位要过几毫秒才置 1，
+	 *   紧接着读 status 会读到 0，被当成"已经测完"，
+	 *   读到的其实是上一次的结果（冷启动时是复位值 0x80000，
+	 *   换算出来固定 692.3 hPa / 23.29 C，实测 14 次一模一样）。 */
+	DWT_Delay_us(5000);
+
+	return BMP280_Fetch(press_x10pa, temp_c100);
 }
 
 /*==============================================================================
