@@ -278,7 +278,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8004000</StartAddress>
-                <Size>0x1c000</Size>
+                <Size>0x1b000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -929,6 +929,16 @@
               <FileName>golden.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\User\golden.h</FilePath>
+            </File>
+            <File>
+              <FileName>boot_param.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\boot_param.c</FilePath>
+            </File>
+            <File>
+              <FileName>boot_param.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\boot_param.h</FilePath>
             </File>
           </Files>
         </Group>

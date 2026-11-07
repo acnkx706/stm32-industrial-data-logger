@@ -46,12 +46,25 @@
  *   ★ 现在是 0x08004000：Boot = 16KB = 0x4000，16 个 Flash 页
  *     （旧注释写的 0x08002000 是8KB Boot时代的，已过期）
  *   ★ 为什么必须页对齐：擦除只能整页擦，1KB 一页
- *   ★ 尺寸账：芯片 128KB − Boot 16KB = 112KB = 0x1C000
- *     · 与 App 工程 .uvprojx 的 IROM（0x08004000 / 0x1C000）完全一致
- *   ★ 2026-10-19 实测，App 镜像 Code+RO+RW ≈ 61KB（上限 112KB，余约 54KB） */
+ *   ★ 尺寸账（2026-11-07 改）：
+ *     · 128KB − Boot 16KB − 参数区 4KB = 108KB = 0x1B000
+ *     · 与 App 工程 .uvprojx 的 IROM（0x08004000 / 0x1B000）完全一致
+ *     · 参数区在 App 之后：0x0801F000 ~ 0x0801FFFF
+ *   ★ 2026-11-07 实测，App 镜像 bin ≈ 68.6KB（上限 108KB，余约 39KB） */
 #define APP_BASE         0x08004000u
-#define APP_SIZE         (112u * 1024u)       /* ★ 128KB − 16KB = 112KB。 */
+#define APP_SIZE         (108u * 1024u)       /* ★ 128KB − 16KB − 4KB = 108KB。 */
 #define APP_END          (APP_BASE + APP_SIZE)
+
+/* ★ 2026-11-07 加：4KB 参数区（U1/U2）
+ *
+ *  ★ 为什么放 App 后面：
+ *    · 128KB 已经被 Boot 16KB + App 112KB 占满；
+ *    · 把 App 缩到 108KB，末尾 4KB 单独做参数区，
+ *      Boot 16KB 不动，App 仍有 39KB 余量。
+ *
+ *  ★ 具体地址/槽布局/读写协议在 boot_param.h（Boot 和 App 各一份，必须一致）：
+ *    · A 槽 0x0801F000，B 槽 0x0801F400，预留 0x0801F800/0x0801FC00
+ *  ★ 正常启动 image_ok=1 时只读不写，避免 10k 擦写寿命被 boot_count 磨掉。 */
 
 /* ★ 芯片总容量（只作参考，实际可用范围由链接器管）
  *  ⚠️ 2026-10-13 修正：原来这里叫 FLASH_BASE

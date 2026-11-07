@@ -83,16 +83,14 @@
  *  ⚠️ 这两个值Boot 和 App 各有一份
  *    改一边必须改另一边，否则 Boot 恢复时会对不上地址 */
 #define GOLDEN_APP_BASE      0x08004000u
-/* ★ 2026-10-14 改：随 CBT6 新分区一起搬（56KB → 112KB）
- *   · 112 × 1024 = 114688，正好是 App 的新分区长度（0x1C000）
+/* ★ 2026-11-07 改：App 缩到 108KB，末尾 4KB 做参数区
+ *   · 108 × 1024 = 110592，正好是 App 的新分区长度（0x1B000）
  *   ★ 必须和 Boot\boot_config.h 的 APP_SIZE 严格一致
  *     因为 Boot 校验备份时的判据是「magic == "GOLD" 且 size == APP_SIZE」
  *（见 Boot\boot_golden.h:45）
- *   ★ 不一致的后果：App 写 112KB，Boot 认 56KB
+ *   ★ 不一致的后果：App 写 108KB，Boot 认 112KB
  *      → 备份被判为无效，回退功能静默失效，而且是"看起来正常"的那种失效 */
-#define GOLDEN_APP_SIZE      (112u * 1024u)          /* ★ = 114688
-                                                      *（原来写 57344，那是旧 56KB 值
-                                                      *     ★ 而且和同文件上面的 114688 自相矛盾） */
+#define GOLDEN_APP_SIZE      (108u * 1024u)          /* ★ = 110592 */
 
 /* ---- W25Q64 里的地址（见上面的布局图）-------------------------------- */
 #define GOLDEN_ADDR_HDR      0x000000u              /* ★ 头（magic 最后写，独占一扇区） */

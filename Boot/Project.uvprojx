@@ -451,6 +451,11 @@
               <FilePath>.\boot_flag.c</FilePath>
             </File>
             <File>
+              <FileName>boot_param.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\boot_param.c</FilePath>
+            </File>
+            <File>
               <FileName>boot_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\boot_flash.c</FilePath>
