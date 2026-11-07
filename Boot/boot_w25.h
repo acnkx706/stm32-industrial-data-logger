@@ -49,4 +49,13 @@ uint32_t BootW25_ReadJedec(void);
  *    ★ 越界（超过 8MB）会拒绝并返回 0。 */
 uint8_t  BootW25_Read(uint32_t addr, uint8_t *buf, uint32_t len);
 
+/* ★ 2026-11-07 加：写与擦（升级暂存区要用，见 boot_config.h 的 UP_STAGE_*）
+ *    · 只提供页写（自动按 256B 边界切）和 4KB 扇区擦
+ *    · 每次写前自动发 WREN，写完轮询 WIP 等它落地
+ *    · 返回 1 = OK；地址越界或没准备好返回 0
+ *    ★ 原本这里只有读，理由是"Boot 不需要写"——现在需要了，
+ *      因为新固件要先落 W25 再搬进内部区 */
+uint8_t  BootW25_Write(uint32_t addr, const uint8_t *buf, uint32_t len);
+uint8_t  BootW25_EraseSector(uint32_t addr);
+
 #endif

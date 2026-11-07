@@ -5,6 +5,7 @@
 #include "boot_flash.h"
 #include "boot_param.h"
 #include "boot_upgrade.h"
+#include "boot_w25.h"
 #include "Serial.h"
 
 /*==============================================================================
@@ -65,6 +66,7 @@ static uint32_t  s_expect;        /* ★ E<len> 声明的总字节数。 */
 static uint32_t  s_total;         /* ★ 已经收了多少字节。 */
 static uint16_t  s_crc;           /* ★ 边收边算的 CRC-16/KERMIT。 */
 static uint16_t  s_seq;           /* ★ 期望的下一块块号。 */
+static uint8_t   s_stage;         /* ★ 1 = 本次走 W25 暂存（U3），0 = 老直写路径。 */
 
 
 /*==============================================================================
@@ -231,6 +233,181 @@ static uint8_t Up_ReadLine(uint16_t *out_len, uint32_t max_empty_polls)
  *
  *  ★ 返回 1 = 这一页确认写对了；0 = 失败（已经打了 FAIL，调用者直接回 IDLE）
  *============================================================================*/
+/*==============================================================================
+ *  ★ U3：升级暂存区（2026-11-07 加）
+ *
+ *  ★ 为什么要有它：
+ *    · 老路径是 PC 直接往内部 Flash 写，传到一半断电 ⇒ App 区是半成品
+ *      ⇒ 下次开机 App 无效 ⇒ 只能接电脑救
+ *    · 新路径：整包先写进 W25 尾部，整包校验通过后才搬进内部
+ *      ⇒ 传输期间内部 App 一个字节都不动，断电照常开机
+ *
+ *  ★ 暂存头放在单独一个扇区：
+ *    · magic 先写成 0xFFFFFFFF，其它字段写完后再单独补 magic
+ *      ⇒ 中途断电，magic 没补上 ⇒ 头无效 ⇒ 当没暂存
+ *    ⚠️ 这和内部参数区的 0xFF01 是同一个思路：有效标志最后写
+ *============================================================================*/
+typedef struct
+{
+	uint32_t magic;
+	uint32_t size;
+	uint32_t crc;
+	uint32_t state;
+	uint32_t rsv[12];
+} UpStageHdr_t;
+
+static uint8_t Up_StageHdrWrite(uint32_t state, uint32_t size, uint32_t crc)
+{
+	UpStageHdr_t h;
+	uint32_t i;
+	uint32_t magic_only = UP_STAGE_HDR_MAGIC;
+	uint32_t off = 0u;                          /* ★ magic 在结构体第一个字 */
+
+	for (i = 0u; i < (uint32_t)(sizeof(h) / 4u); i++)
+	{
+		((uint32_t *)&h)[i] = 0xFFFFFFFFu;
+	}
+	h.size  = size;
+	h.crc   = crc;
+	h.state = state;
+
+	if (BootW25_EraseSector(UP_STAGE_HDR_ADDR) == 0u) { return 0u; }
+	if (BootW25_Write(UP_STAGE_HDR_ADDR, (const uint8_t *)&h, (uint32_t)sizeof(h)) == 0u)
+	{
+		return 0u;
+	}
+
+	/* ★ 最后补 magic（只清位不改别的位），失败就整条不算数 */
+	if (state == UP_STAGE_NONE) { return 1u; }
+	if (BootW25_Write(UP_STAGE_HDR_ADDR + off, (const uint8_t *)&magic_only, 4u) == 0u)
+	{
+		return 0u;
+	}
+	return 1u;
+}
+
+static uint8_t Up_StageHdrRead(UpStageHdr_t *h)
+{
+	if (BootW25_Read(UP_STAGE_HDR_ADDR, (uint8_t *)h, (uint32_t)sizeof(*h)) == 0u) { return 0u; }
+	if (h->magic != UP_STAGE_HDR_MAGIC) { return 0u; }
+	if ((h->size == 0u) || (h->size > (uint32_t)UP_STAGE_IMG_MAX)) { return 0u; }
+	return 1u;
+}
+
+/* ★ 算暂存区里前 size 字节的 CRC16（和 PC 的 X 命令同一个算法） */
+static uint16_t Up_StageCrc(uint32_t size)
+{
+	uint32_t off = 0u;
+	uint32_t n;
+	uint32_t i;
+	uint16_t crc = 0u;
+
+	while (off < size)
+	{
+		n = size - off;
+		if (n > (uint32_t)BOOT_FLASH_PAGE_SIZE) { n = (uint32_t)BOOT_FLASH_PAGE_SIZE; }
+
+		if (BootW25_Read(UP_STAGE_IMG_ADDR + off, s_page, n) == 0u) { return 0xFFFFu; }
+		for (i = 0u; i < n; i++)
+		{
+			crc = Up_CrcUpdate(crc, s_page[i]);
+		}
+		off += n;
+	}
+	return crc;
+}
+
+/*==============================================================================
+ *  ★ 把暂存区的整包搬进内部 Flash
+ *  ★ 顺序：先写 1..N-1 页 → 置 image_ok=0 → 最后写第 0 页
+ *    · 第 0 页是"新镜像生效"的提交点，必须最后
+ *    · 每页都是 擦→写→回读，错一页就整条中止
+ *  ★ 返回 0 = 成功
+ *============================================================================*/
+static uint8_t Up_InstallFromStage(uint32_t size)
+{
+	uint32_t pages = (size + BOOT_FLASH_PAGE_SIZE - 1u) / BOOT_FLASH_PAGE_SIZE;
+	uint32_t p;
+	uint8_t  e;
+
+	/* ★ 2026-11-07：第一步就把第 0 页擦掉
+	 *   · 它是"App 是否有效"的唯一判据（只看头两个字）
+	 *   · 不擦的话，搬到一半断电 ⇒ 老向量表 + 新代码的混合镜像
+	 *     ⇒ 下次开机判"有效"，直接跳进半新半旧的固件，比不跳还糟
+	 *   · 擦掉之后 App 必无效 ⇒ 开机命中"App 无效"
+	 *     ⇒ 要么被暂存区装回来，要么被金副本救回来，两条都行 */
+	e = BootFlash_ErasePage((uint32_t)APP_BASE);
+	if (e != BOOTFLASH_OK)
+	{
+		Serial_SendString("FAIL inst p0.r e=");
+		Serial_SendHex((uint32_t)e, 2u);
+		Serial_SendString("\r\n");
+		return 6u;
+	}
+
+	for (p = 1u; p < pages; p++)
+	{
+		uint32_t waddr = UP_STAGE_IMG_ADDR + (p * BOOT_FLASH_PAGE_SIZE);
+		uint32_t faddr = (uint32_t)APP_BASE + (p * BOOT_FLASH_PAGE_SIZE);
+
+		if (BootW25_Read(waddr, s_page, (uint32_t)BOOT_FLASH_PAGE_SIZE) == 0u) { return 1u; }
+
+		e = BootFlash_ErasePage(faddr);
+		if (e == BOOTFLASH_OK) { e = BootFlash_WritePage(faddr, s_page); }
+		if (e == BOOTFLASH_OK) { e = BootFlash_VerifyPage(faddr, s_page); }
+		if (e != BOOTFLASH_OK)
+		{
+			Serial_SendString("FAIL inst e=");
+			Serial_SendHex((uint32_t)e, 2u);
+			Serial_SendString(" pg=");
+			Serial_SendHex(p, 4u);
+			Serial_SendString("\r\n");
+			return 2u;
+		}
+	}
+
+	/* ★ 提交点之前先把 image_ok 置 0（和原来的顺序一致） */
+	if (Param_OnUpgrade() == 0u)
+	{
+		Serial_SendString("FAIL param\r\n");
+		return 3u;
+	}
+
+	if (BootW25_Read(UP_STAGE_IMG_ADDR, s_page, (uint32_t)BOOT_FLASH_PAGE_SIZE) == 0u) { return 1u; }
+
+	e = BootFlash_ErasePage((uint32_t)APP_BASE);
+	if (e == BOOTFLASH_OK) { e = BootFlash_WritePage((uint32_t)APP_BASE, s_page); }
+	if (e == BOOTFLASH_OK) { e = BootFlash_VerifyPage((uint32_t)APP_BASE, s_page); }
+	if (e != BOOTFLASH_OK)
+	{
+		Serial_SendString("FAIL pg0 e=");
+		Serial_SendHex((uint32_t)e, 2u);
+		Serial_SendString("\r\n");
+		return 4u;
+	}
+
+	if (Boot_IsAppValid() == 0u)
+	{
+		Serial_SendString("FAIL valid\r\n");
+		return 5u;
+	}
+
+	return 0u;
+}
+
+/*==============================================================================
+ *  ★ 把攒好的一页"落地"
+ *
+ *  ★ 两条路径：
+ *    · 暂存模式（有 W25）：写进 W25 暂存区 + 回读比对，内部 Flash 不动
+ *    · 老路径（没 W25）：第 0 页只暂存，其它页直接写内部 Flash
+ *
+ *  ★ 尾部补 0xFF（最后一页常常不满）
+ *    · 补在缓冲里，让"写"永远写满一页
+ *    · 而 CRC 天然不受影响（它是在收到的每个字节上边收边算的）
+ *
+ *  ★ 返回 1 = 这一页确认写对了；0 = 失败（已经打了 FAIL，调用者直接回 IDLE）
+ *============================================================================*/
 static uint8_t Up_FlushPage(void)
 {
 	uint16_t page = s_page_index;
@@ -243,10 +420,34 @@ static uint8_t Up_FlushPage(void)
 		s_page[i] = 0xFFu;
 	}
 
-	if (page == 0u)
+	if (s_stage != 0u)
+	{
+		/* ★ U3：只写 W25。s_page0 在这里当回读缓冲用（不再需要存第 0 页） */
+		uint32_t waddr = UP_STAGE_IMG_ADDR + ((uint32_t)page * BOOT_FLASH_PAGE_SIZE);
+
+		if (BootW25_Write(waddr, s_page, (uint32_t)BOOT_FLASH_PAGE_SIZE) == 0u)
+		{
+			Serial_SendString("FAIL stage wr\r\n");
+			return 0u;
+		}
+		if (BootW25_Read(waddr, s_page0, (uint32_t)BOOT_FLASH_PAGE_SIZE) == 0u)
+		{
+			Serial_SendString("FAIL stage rd\r\n");
+			return 0u;
+		}
+		for (i = 0u; i < (uint16_t)BOOT_FLASH_PAGE_SIZE; i++)
+		{
+			if (s_page0[i] != s_page[i])
+			{
+				Serial_SendString("FAIL stage cmp\r\n");
+				return 0u;
+			}
+		}
+	}
+	else if (page == 0u)
 	{
 		/* ★ 第 0 页只搬走，不写
-		 *   ★ 这就是整个安全模型的支点，见 boot_upgrade.h。 */
+		 *   ★ 这就是老路径安全模型的支点，见 boot_upgrade.h。 */
 		for (i = 0u; i < (uint16_t)BOOT_FLASH_PAGE_SIZE; i++)
 		{
 			s_page0[i] = s_page[i];
@@ -333,14 +534,40 @@ static void Up_HandleStart(uint16_t n)
 	 *   ★ 此刻起，App 必然无效
 	 *     → 之后无论发生什么（断电 / 拔线 / CRC 失败）
 	 *       都不可能跳到半成品 */
-	e = BootFlash_ErasePage((uint32_t)APP_BASE);
-	if (e != BOOTFLASH_OK)
+	/* ★ U3（2026-11-07）：有 W25 就先落盘，内部 App 一个字节都不动
+	 *   · 传输期间断电 ⇒ 旧固件照常能跑
+	 *   · 只有整包校验通过之后，才去动内部 Flash
+	 *   ★ 没有 W25 时退回老路径（先擦第 0 页） */
+	s_stage = (BootW25_Init() != 0u) ? 1u : 0u;
+
+	if (s_stage != 0u)
 	{
-		Serial_SendString("FAIL erase0 e=");
-		Serial_SendHex((uint32_t)e, 2u);
-		Serial_SendString("\r\n");
-		Up_Reset();
-		return;
+		uint32_t sectors = ((uint32_t)APP_SIZE + 4095u) / 4096u;
+		uint32_t k;
+
+		(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);   /* 旧的暂存作废 */
+
+		for (k = 0u; k < sectors; k++)
+		{
+			if (BootW25_EraseSector(UP_STAGE_IMG_ADDR + (k * 4096u)) == 0u)
+			{
+				Serial_SendString("FAIL stage erase\r\n");
+				Up_Reset();
+				return;
+			}
+		}
+	}
+	else
+	{
+		e = BootFlash_ErasePage((uint32_t)APP_BASE);
+		if (e != BOOTFLASH_OK)
+		{
+			Serial_SendString("FAIL erase0 e=");
+			Serial_SendHex((uint32_t)e, 2u);
+			Serial_SendString("\r\n");
+			Up_Reset();
+			return;
+		}
 	}
 
 	Up_Reset();
@@ -349,9 +576,17 @@ static void Up_HandleStart(uint16_t n)
 
 	Serial_SendString("E0\r\n");
 
+	/* ★ 这一行必须无条件打：暂存与否是两种完全不同的安全模型，
+	 *   测的时候要能一眼看出来走的哪条（UP_LOG 是编译期开关，靠不住） */
+	Serial_SendString("BOOT: staging=");
+	Serial_SendU32((uint32_t)s_stage);
+	Serial_SendString("\r\n");
+
 	UP_LOG("BOOT: expect len=");
 	Serial_SendU32(s_expect);
-	UP_LOG(" bytes; page0 ERASED -> App is now INVALID\r\n");
+	UP_LOG(" bytes; staging=");
+	Serial_SendU32((uint32_t)s_stage);
+	UP_LOG("\r\n");
 }
 
 
@@ -542,44 +777,76 @@ static void Up_HandleEnd(uint16_t n)
 		return;
 	}
 
-	/* ★ 2026-11-07：先把 image_ok 置 0，再写第 0 页。
-	 *   · 第 0 页 = "新镜像生效"的提交点；
-	 *   · 如果先写第 0 页、后写 image_ok，中间掉电会留下
-	 *     "新镜像有效 + image_ok 还是 1" ⇒ 绕过试用/回退。
-	 *   · 这里失败就中止升级，不写第 0 页。 */
-	if (Param_OnUpgrade() == 0u)
+	if (s_stage != 0u)
 	{
-		Up_SendFail("param");
-		Up_Reset();
-		return;
-	}
+		/* ★ U3：整包已经在 W25 暂存区里
+		 *   · 先写"就绪"头：从现在起，下次开机可以自动重装
+		 *   · 再搬进内部：搬到一半断电，头还在 ⇒ 开机自己装回去
+		 *   · 搬成功后清头：暂存已消费 */
+		uint8_t r;
 
-	/* ★ ③ 写第 0 页
-	 *   ★ 为什么还要再擦一次：
-	 *     · 它在 E 的时候就擦过了，理论上就是 0xFF
-	 *     · 但擦一个已经是 0xFF 的页是幂等的，不花钱（40ms）
-	 *     · 万一中间被什么写脏了，这一步顺手保证干净
-	 *       → 后面回读比对会把任何异常兜住。 */
-	e = BootFlash_ErasePage((uint32_t)APP_BASE);
-	if (e == BOOTFLASH_OK) { e = BootFlash_WritePage((uint32_t)APP_BASE, s_page0); }
-	if (e == BOOTFLASH_OK) { e = BootFlash_VerifyPage((uint32_t)APP_BASE, s_page0); }
-	if (e != BOOTFLASH_OK)
-	{
-		Serial_SendString("FAIL pg0 e=");
-		Serial_SendHex((uint32_t)e, 2u);
-		Serial_SendString("\r\n");
-		Up_Reset();
-		return;
-	}
+		if (Up_StageHdrWrite(UP_STAGE_READY, s_expect, (uint32_t)s_crc) == 0u)
+		{
+			Up_SendFail("stagehdr");
+			Up_Reset();
+			return;
+		}
 
-	/* ★ ⑤ 现在第 0 页才真正有效，用和 Bootloader 开头同一套判据再验一次
-	 *   ★ 为什么不用自己"重算一遍头两个字"：
-	 *     → 那会多一份实现，而两份判据迟早会不一致 */
-	if (Boot_IsAppValid() == 0u)
+		r = Up_InstallFromStage(s_expect);
+		if (r != 0u)
+		{
+			/* ★ 装失败：清头，不再自动重试（同一块 Flash 大概率还失败） */
+			(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);
+			Serial_SendString("FAIL install r=");
+			Serial_SendHex((uint32_t)r, 2u);
+			Serial_SendString("\r\n");
+			Up_Reset();
+			return;
+		}
+
+		(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);
+	}
+	else
 	{
-		Up_SendFail("valid");
-		Up_Reset();
-		return;
+		/* ★ 2026-11-07：先把 image_ok 置 0，再写第 0 页。
+		 *   · 第 0 页 = "新镜像生效"的提交点；
+		 *   · 如果先写第 0 页、后写 image_ok，中间掉电会留下
+		 *     "新镜像有效 + image_ok 还是 1" ⇒ 绕过试用/回退。
+		 *   · 这里失败就中止升级，不写第 0 页。 */
+		if (Param_OnUpgrade() == 0u)
+		{
+			Up_SendFail("param");
+			Up_Reset();
+			return;
+		}
+
+		/* ★ ③ 写第 0 页
+		 *   ★ 为什么还要再擦一次：
+		 *     · 它在 E 的时候就擦过了，理论上就是 0xFF
+		 *     · 但擦一个已经是 0xFF 的页是幂等的，不花钱（40ms）
+		 *     · 万一中间被什么写脏了，这一步顺手保证干净
+		 *       → 后面回读比对会把任何异常兜住。 */
+		e = BootFlash_ErasePage((uint32_t)APP_BASE);
+		if (e == BOOTFLASH_OK) { e = BootFlash_WritePage((uint32_t)APP_BASE, s_page0); }
+		if (e == BOOTFLASH_OK) { e = BootFlash_VerifyPage((uint32_t)APP_BASE, s_page0); }
+		if (e != BOOTFLASH_OK)
+		{
+			Serial_SendString("FAIL pg0 e=");
+			Serial_SendHex((uint32_t)e, 2u);
+			Serial_SendString("\r\n");
+			Up_Reset();
+			return;
+		}
+
+		/* ★ ⑤ 现在第 0 页才真正有效，用和 Bootloader 开头同一套判据再验一次
+		 *   ★ 为什么不用自己"重算一遍头两个字"：
+		 *     → 那会多一份实现，而两份判据迟早会不一致 */
+		if (Boot_IsAppValid() == 0u)
+		{
+			Up_SendFail("valid");
+			Up_Reset();
+			return;
+		}
 	}
 
 	/* ★ ⑥ 清标志 —— 到这一步才清是故意的
@@ -760,4 +1027,50 @@ void BootUpgrade_Run(void)
 				break;
 		}
 	}
+}
+
+/*==============================================================================
+ *  ★ 开机自愈：暂存区里有完整镜像、内部 App 又失效 ⇒ 直接重装
+ *
+ *  ★ 什么时候会走到这里：
+ *    · 升级装到一半断电（第 0 页还没写）⇒ 内部 App 无效
+ *    · 而 W25 里的暂存头还是"就绪" ⇒ 不用接电脑，自己装回去
+ *
+ *  ★ 为什么先验 CRC 再装：
+ *    · 暂存区也可能被写坏（掉电/坏块），装一个坏镜像比不装更糟
+ *    · 校验不过就清头，避免每次开机都白折腾 1.7 秒
+ *
+ *  ★ 返回值：1 = 已装好（调用者要重新判 App 是否有效）；0 = 没装
+ *============================================================================*/
+uint8_t Up_RecoverFromStage(void)
+{
+	UpStageHdr_t h;
+	uint16_t     crc;
+
+	if (BootW25_Init() == 0u) { return 0u; }
+	if (Up_StageHdrRead(&h) == 0u) { return 0u; }
+	if (h.state != UP_STAGE_READY) { return 0u; }
+
+	Serial_SendString("G: stage found -> verify\r\n");
+
+	crc = Up_StageCrc(h.size);
+	if (crc != (uint16_t)h.crc)
+	{
+		Serial_SendString("G: stage CRC bad -> drop\r\n");
+		(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);
+		return 0u;
+	}
+
+	Serial_SendString("G: stage ok -> installing\r\n");
+
+	if (Up_InstallFromStage(h.size) != 0u)
+	{
+		(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);
+		Serial_SendString("G: stage install FAILED\r\n");
+		return 0u;
+	}
+
+	(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);
+	Serial_SendString("G: stage installed -> retry boot\r\n");
+	return 1u;
 }

@@ -99,6 +99,28 @@
  *   · 页号 → 地址的换算全靠它，所以必须只有一份。 */
 #define BOOT_FLASH_PAGE_SIZE  1024u
 
+/* ---- 升级暂存区（W25Q64 尾部空闲区，2026-11-07 加）-----------------
+ *
+ *  ★ 做什么：升级时先把整包写进这里，校验通过后才动内部 Flash
+ *  ★ 为什么：原来 PC 直接往内部 Flash 写，传到一半断电
+ *    ⇒ 内部 App 区是半成品 ⇒ 下次开机 App 无效 ⇒ 只能接电脑救
+ *    ⇒ 改成"先落盘再切换"：传输期间内部 App 一个字节都不动
+ *
+ *  ★ 位置怎么定的：
+ *    · 掉卡缓存数据槽到 0x7A0FFF 结束（golden.h:156）
+ *    · 自检扇区在 0x7FF000
+ *    · 中间 0x7A1000~0x7FEFFF 是空的，放 112KB 绰绰有余
+ *    ⇒ 不占用、也不搬动任何现有区域
+ *
+ *  ★ 头单独一扇区：magic 最后写，写到一半断电 ⇒ 头无效 ⇒ 当没暂存
+ *    和内部参数区的 0xFF01 是同一个思路。 */
+#define UP_STAGE_HDR_ADDR     0x7B0000u
+#define UP_STAGE_IMG_ADDR     0x7B1000u
+#define UP_STAGE_HDR_MAGIC    0x31475453u     /* ★ "STG1" 小端 */
+#define UP_STAGE_NONE         0u
+#define UP_STAGE_READY        1u
+#define UP_STAGE_IMG_MAX      (108u * 1024u)
+
 /* ---- 看门狗（IWDG，2026-10-13 加）---------------------------------- */
 
 /* ★ 为什么Bootloader 必须喂狗

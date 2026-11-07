@@ -3,8 +3,14 @@
 #include "boot_w25.h"
 
 /*==============================================================================
- *  ★ Bootloader 的 W25Q64 只读驱动（2026-10-14 建）
- *    设计理由（为什么只有读）见 boot_w25.h
+ *  ★ Bootloader 的 W25Q64 驱动（2026-10-14 建，2026-11-07 加写/擦）
+ *
+ *  ★ 只读 → 可写，为什么变了：
+ *    · 原来所有"写 W25"的活都在 App 侧，Boot 只负责把金副本搬回内部
+ *    · 现在升级改成"先落盘再切换"：新固件先写进 W25 暂存区，
+ *      校验通过后才动内部 Flash ⇒ 传输中途断电不会把 App 弄坏
+ *    · 这条路径只能在 Boot 里做（那时 App 还没跑）
+ *    → 于是补上页写和扇区擦；引脚、时序、和 App 侧完全一致
  *
  *  ★ 软件 SPI（GPIO 手动打拍，mode 0）
  *    · 为什么不内联 BSRR，用 GPIO_WriteBit
@@ -27,7 +33,12 @@
 
 #define W25_INS_READ_DATA    0x03u
 #define W25_INS_JEDEC_ID     0x9Fu
+#define W25_INS_WRITE_ENABLE 0x06u
+#define W25_INS_PAGE_PROGRAM 0x02u
+#define W25_INS_SECTOR_ERASE 0x20u
+#define W25_INS_READ_STATUS1 0x05u
 #define W25_DUMMY            0xFFu
+#define W25_PAGE_SIZE        256u
 
 #define W25_SIZE             (8u * 1024u * 1024u)
 
@@ -90,6 +101,90 @@ uint8_t BootW25_Read(uint32_t addr, uint8_t *buf, uint32_t len)
 		buf[i] = W25_SwapByte(W25_DUMMY);
 	}
 	W25_CS(1u);
+	return 1u;
+}
+
+/*==============================================================================
+ *  ★ 写与擦（2026-11-07 加，给升级暂存区用）
+ *
+ *  ★ 为什么必须等 WIP：
+ *    · W25 的页写约 0.7ms、扇区擦约 45ms，期间除了读状态寄存器都不认命令
+ *    · 不等就发下一条命令，会被静默丢弃 —— 而且不报错
+ *    · 所以每次写完都轮询 status1 的 bit0，等它自己落下
+ *
+ *  ★ 为什么留 guard：
+ *    · 芯片不在位时 MISO 上拉读 0xFF，bit0 永远是 1
+ *      ⇒ 没有上限就是一个死循环，而 Bootloader 里死循环 = 变砖
+ * ============================================================================*/
+static void W25_WaitBusy(void)
+{
+	uint8_t  st;
+	uint32_t guard = 0u;
+
+	W25_CS(0u);
+	W25_SwapByte(W25_INS_READ_STATUS1);
+	do
+	{
+		st = W25_SwapByte(W25_DUMMY);
+		guard++;
+	} while (((st & 0x01u) != 0u) && (guard < 4000000u));
+	W25_CS(1u);
+}
+
+static void W25_WriteEnable(void)
+{
+	W25_CS(0u);
+	W25_SwapByte(W25_INS_WRITE_ENABLE);
+	W25_CS(1u);
+}
+
+uint8_t BootW25_EraseSector(uint32_t addr)
+{
+	if ((addr % 4096u) != 0u) { return 0u; }   /* 必须扇区对齐 */
+	if (addr >= W25_SIZE)     { return 0u; }
+
+	W25_WriteEnable();
+	W25_CS(0u);
+	W25_SwapByte(W25_INS_SECTOR_ERASE);
+	W25_SendAddr(addr);
+	W25_CS(1u);
+	W25_WaitBusy();
+
+	return 1u;
+}
+
+uint8_t BootW25_Write(uint32_t addr, const uint8_t *buf, uint32_t len)
+{
+	uint32_t i = 0u;
+
+	if ((addr + len) > W25_SIZE) { return 0u; }
+	if (len == 0u)               { return 1u; }
+
+	while (i < len)
+	{
+		uint32_t room;
+		uint32_t n;
+		uint32_t k;
+
+		/* ★ 一条 Page Program 不能跨 256B 页边界，这里自动切 */
+		room = W25_PAGE_SIZE - ((addr + i) & (W25_PAGE_SIZE - 1u));
+		n    = len - i;
+		if (n > room) { n = room; }
+
+		W25_WriteEnable();
+		W25_CS(0u);
+		W25_SwapByte(W25_INS_PAGE_PROGRAM);
+		W25_SendAddr(addr + i);
+		for (k = 0u; k < n; k++)
+		{
+			W25_SwapByte(buf[i + k]);
+		}
+		W25_CS(1u);
+		W25_WaitBusy();
+
+		i += n;
+	}
+
 	return 1u;
 }
 
