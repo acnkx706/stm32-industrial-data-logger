@@ -185,7 +185,7 @@ seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,
 
 | 项 | 值 |
 |---|---|
-| Flash | bin **69,816 B**；Code 65,812 / RO 3,932 / RW 548；App 区 108 KB ⇒ 余约 39.8 KB |
+| Flash | bin **69,892 B**；Code 65,888 / RO 3,932 / RW 548；App 区 108 KB ⇒ 余约 39.7 KB |
 | RAM（RW + ZI）| 548 + 16,092 = **16,640 B / 20,480** ⇒ 余约 3.75 KB |
 | 堆 | 64 B（名义值，静态分配后没有真正使用者）|
 | 栈峰值（实测）| ACQ 69 字 / PROC 206 / KEY 23 / DISP 150 / SD 324 / GOLD — |
@@ -272,4 +272,5 @@ UV4.exe -r Boot\Project.uvprojx -j0 -o build_boot.log # 全量
 
 应用层代码由作者与 AI 协作完成（架构约束、硬件、金副本规则、长跑与故障注入由作者负责）；
 FreeRTOS 与 FatFs 保持各自上游许可证，ST 标准库遵循其官方条款。
+
 
