@@ -19,7 +19,7 @@
 
 | 模块 | 接口 | 引脚 | 备注 |
 |---|---|---|---|
-| MCU | STM32F103CBT6 | — | 72 MHz / 20 KB RAM / **128 KB Flash**（Bootloader 占 16 KB，App 区 112 KB）|
+| MCU | STM32F103CBT6 | — | 72 MHz / 20 KB RAM / **128 KB Flash**（Bootloader 16 KB，App 108 KB，参数区 4 KB）|
 | 调试串口 | USART1 | **PA9(TX) / PA10(RX)** | 115200-8-N-1；RX 用于对时、升级、命令 |
 | OLED 0.96" | 软件 I2C | **PB10(SCL) / PB7(SDA)** | 2026-10-20 从 PB8/PB9 换过来（原插座 VCC/GND 打反，见 `OLED.c` 头注释）|
 | MPU6050 | 软件 I2C | PA2(SCL) / PA3(SDA) | 三轴加速度 + 角速度 + 片内温度 |
@@ -181,12 +181,12 @@ seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,
 > 早期文件（10-18~10-20）另有介质层异常：26101801.CSV 里混入了二进制垃圾（含 PNG 块头），
 > 154,605 行中有 55,600 行不是 CSV，详见 `evidence/longrun/findings.md`。
 
-### 资源占用（2026-11-06，ver 74）
+### 资源占用（2026-11-07，ver 74 + 参数区）
 
 | 项 | 值 |
 |---|---|
-| Flash | bin **68,644 B**；Code 64,644 / RO 3,932 / RW 540；App 区 112 KB ⇒ 余约 43 KB |
-| RAM（RW + ZI）| 540 + 15,068 = **15,608 B / 20,480** ⇒ 余约 4.8 KB |
+| Flash | bin **69,784 B**；Code 65,784 / RO 3,932 / RW 548；App 区 108 KB ⇒ 余约 39.9 KB |
+| RAM（RW + ZI）| 548 + 16,092 = **16,640 B / 20,480** ⇒ 余约 3.75 KB |
 | 堆 | 64 B（名义值，静态分配后没有真正使用者）|
 | 栈峰值（实测）| ACQ 69 字 / PROC 206 / KEY 23 / DISP 150 / SD 324 / GOLD — |
 

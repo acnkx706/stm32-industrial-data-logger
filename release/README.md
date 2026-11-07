@@ -1,16 +1,16 @@
 # Release v1.0（APP ver 74）
 
-> 构建：2026-11-06 13:58（未重编；hex 由同一次构建的 `Objects/Project.axf` 转出）
-> 目标：STM32F103CBT6，App 基地址 `0x08004000`，App 区 112 KB
+> 构建：2026-11-07 11:04 全量重编（`Rebuild target`，hex/bin 由同一次 `Objects/Project.axf` 转出）
+> 目标：STM32F103CBT6，App 基地址 `0x08004000`，App 区 108 KB，参数区 `0x0801F000`+4 KB
 > 固件横幅：`APP: ver 74 (2026-11-05 dsh: SD slow-write forensics)`
 
 ## 产物
 
 | 文件 | 说明 | 大小 |
 |---|---|---:|
-| `APP.hex` | Intel HEX，基地址 `0x08004000`，可直接用 ST-Link Utility / Keil 烧 | 193,139 B |
-| `APP.bin` | 原始二进制，与 `Objects/app.bin` 逐字节一致 | 68,644 B |
-| `build.log` | 2026-11-06 13:58 生产构建，0 Error / 0 Warning；已脱敏 | 1,858 B |
+| `APP.hex` | Intel HEX，基地址 `0x08004000`，可直接用 ST-Link Utility / Keil 烧 | 196,342 B |
+| `APP.bin` | 原始二进制，与 `Objects/app.bin` 逐字节一致 | 69,784 B |
+| `build.log` | 2026-11-07 11:04 全量构建，Code 65,784 / RO 3,932 / ZI 16,092，0 Error / 0 Warning；已脱敏 | 1,885 B |
 | `SHA256SUMS` | 上面三个文件的 SHA256 | — |
 
 ## 烧录
@@ -32,3 +32,4 @@ Get-Content .\SHA256SUMS
 
 这版的能力与未做项见 `../docs/evidence-matrix.md` 和 `../docs/limitations.md`。
 一句话：**拔卡/掉电之后还活着、丢多少、能恢复；不证明“永不丢/100 次 0 损坏”。**
+
