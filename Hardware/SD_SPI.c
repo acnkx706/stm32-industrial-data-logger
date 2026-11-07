@@ -82,8 +82,11 @@
 #define SD_FAST_SPEED       SPI_BaudRatePrescaler_8     /* 72M/8   = 9MHz              */
 
 #define SD_PWR_SETTLE_MS    10      /* 上电稳定等待（模块稳压 + 卡内上电时序） */
-#define SD_IDLE_RETRY       200     /* CMD0 重发次数上限（换卡瞬间/慢启动卡） */
-#define SD_INIT_TIMEOUT_MS  2000    /* ACMD41 timeout widened 1s->2s for marginal-contact debug */    /* ACMD41 总超时：规范典型 ~500ms，给一倍余量 */
+#define SD_IDLE_RETRY       300     /* CMD0 重发次数上限（换卡瞬间/慢启动卡） */
+#define SD_INIT_TIMEOUT_MS  3000    /* ACMD41 总超时：规范典型 ~500ms，给足余量
+                                     * ★ 2026-11-07 放宽 2000->3000：
+                                     *   实测冷启动后首次 ACMD41 要 156 次（约 1.5 秒），
+                                     *   原来 2 秒的预算只剩 25% 余量，边界上会判无卡 */
 #define SD_READ_TIMEOUT_MS  100     /* 读数据 token 等待（规范 NAC=100ms） */
 #define SD_BUSY_TIMEOUT_MS  500     /* 写 busy 等待（规范单块编程最长 250ms，留一倍） */
 /* ★ 2026-10-18 改：3 → 2 次 
@@ -765,8 +768,9 @@ SD_Result_t SD_Init(void)
 	Serial_Printf("SD: reset clocks done\r\n");
 
 	/* ② CMD0 复位进 IDLE：期望 R1=0x01。
-	 *    一次不成功很正常（卡刚上电还在走内部流程），最多重发 200 次；
-	 *    200 次都无响应 = 没插卡 / 接线错 / 接触不良 */
+	 *    一次不成功很正常（卡刚上电还在走内部流程），最多重发 300 次
+	 *    （2026-11-07：200 -> 300，冷启动后卡醒得慢）；
+	 *    300 次都无响应 = 没插卡 / 接线错 / 接触不良 */
 	for (i = 0; i < SD_IDLE_RETRY; i++)
 	{
 		r1 = SD_SendCmd(CMD0, 0);
