@@ -279,6 +279,8 @@ int main(void)
 	Serial_SendU32(prm.image_ok);
 	Serial_SendString(" boot=");
 	Serial_SendU32(prm.boot_count);
+	Serial_SendString(" seq=");
+	Serial_SendU32(prm.seq);
 	Serial_SendString(" flags=");
 	Serial_SendHex(prm.flags, 2u);
 	Serial_SendString("\r\n");
