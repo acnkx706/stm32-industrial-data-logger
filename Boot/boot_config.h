@@ -118,13 +118,14 @@
  *    · 每次升级预擦 27 个扇区 ⇒ 顺手抹掉约 296 条掉卡诊断事件
  *    · 当时只看到"数据槽到 0x7A0FFF 结束"就以为后面全空
  *      漏读了同一段注释下面三行：旧指针页 / 事件槽 / 指针日志
- *    ⇒ 现在按 0x7E0000 起排，和事件指针日志 B 刚好错开 4KB
+ *    ⇒ 现在按 0x7E0000 起排，紧挨着事件指针日志 B 之后，不碰它们
  *
  *  ★ 头单独一扇区：magic 最后写，写到一半断电 ⇒ 头无效 ⇒ 当没暂存
  *    和内部参数区的 0xFF01 是同一个思路。
  *
- *  ★ 怎么验证：烧完 Boot 走一次 E/D/X 升级，
- *    串口出现 "G: stage ok -> installing" 且重启后 App 正常即为通过。 */
+ *  ★ 怎么验证：烧完 Boot 走一次完整升级，
+ *    串口要看到 E0 → 逐块 K → PASS → "BOOT: upgrade OK -> jumping to App"，
+ *    重启后 APP: img ver=5 正常为止。 */
 #define UP_STAGE_HDR_ADDR     0x7E0000u
 #define UP_STAGE_IMG_ADDR     0x7E1000u
 #define UP_STAGE_HDR_MAGIC    0x31475453u     /* ★ "STG1" 小端 */
@@ -133,10 +134,13 @@
 #define UP_STAGE_IMG_MAX      (108u * 1024u)
 
 /* ---- 镜像元数据（U5 防回滚，2026-11-07）--------------------------
- *  ★ App 侧把 g_app_meta 用 at() 钉在 App 区起始 + 0x200
- *  ★ Boot 按同一个偏移去读，两边必须一致
- *    （App: User/app_meta.h 的 APP_META_ADDR / APP_META_MAGIC） */
-#define APP_META_OFFSET       0x200u
+ *  ★ 位置不固定：App 侧是一个普通 const 结构，跟着 .rodata 走
+ *    Boot 从暂存镜像里逐字节扫 "ATEM"（41 54 45 4D）把它找出来
+ *  ★ 为什么不用 at() 钉死地址：at 在本工程实测会让 App 启动后静默
+ *    （limitations 第 33 条）；扫描只在升级时做一次，约 1.7 秒
+ *  ★ 扫到之后还要过两道判别：version 在 1~100000、rsv 必须为 0
+ *    ⇒ 镜像里偶然撞上那 4 个字节也不会被当成元数据
+ *  ★ 契约：magic 和结构体布局两边必须一致（App: User/app_meta.h） */
 #define APP_META_MAGIC        0x4D455441u      /* ★ "ATEM" 小端 */
 
 /* ---- 看门狗（IWDG，2026-10-13 加）---------------------------------- */
