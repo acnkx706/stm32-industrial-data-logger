@@ -19,7 +19,7 @@
 | 5 | 掉电 8/8 进 App、0 次回滚、每次丢 1 个在途批 2~6 行 | `[实测-有限]` | `evidence/exp03/EXP03-结果-20261106.md`、`card_out/26110601.CSV`、`26110690.CSV` | 8 次，不是 100 次；给不出概率；只测数据窗口，不测金副本保存窗口 |
 | 6 | 运行中拔卡 6/6 不死机、6/6 恢复；代价 30 条 `no_buf` | `[实测-有限]` | `evidence/exp03/EXP03-结果-20261106.md`、`exp03_A_10pull.log` | 6 次；故障期缓存降采样到 1 条/秒，不是全分辨率；不给概率 |
 | 7 | 无卡启动 89 s → 回写 89 条；exFAT 跨重启 → 回写 276 条 | `[实测]` | `evidence/exp03/EXP03-结果-20261106.md`、`exp03_B1_nocard.log`、`exp03_B2_recover.log` | “坏卡”只指文件系统不可挂载（exFAT），不是物理坏块 |
-| 8 | 17 天账本：12,722,768 行 CRC 0 失败；干净 11 天 `storage_loss=0` | `[实测]` | `evidence/longrun/结论-EXP01.md`、`out/crc_summary.md`、`out/summary_clean11.md` | 10-29 tick 台阶未定案；52 行残差未解释；34 文件口径未证实 |
+| 8 | 17 天账本：可解析 **12,722,839** 行，其中 CRC 通过 12,722,768 / **不匹配 71**；另有 **368,220 行二进制垃圾无法解析**；事件文件记 LOST **19,426** 条（`no_buf` 12,091 + `sd_write` 7,435）；0 次重启、跨文件 seq 缺口 0 | `[实测]` | `evidence/longrun/SD分析-17天.md`（2026-11-08 用 `sd_analyze.py` 逐行重算）、`out/crc_summary.md`、`out/summary_clean11.md` | 垃圾行集中在 10-18/10-19 三个文件（`26101801` 110k、`26101901` 254k、`26101903` 3.3k），那两天正是拔卡/恢复实验期，卡本身处于异常状态——**不能拿"17 天"整体说"零损坏"**；71 行是逐行重算出来的，和旧口径"0 失败"差在这；10-29 tick 台阶仍未定案；34 文件口径仍未证实 |
 | 9 | 942 ms 单笔写只出现 1 次，20 万次未复现 | `[未定案]` | `evidence/EXP02b-结果-20261106.md`、`evidence/sd_latency/postburst/` | 不能写“已解决/已定位”；三个候选解释都没证明 |
 | 10 | 掉卡缓存：全速率 63 min / 降采样 1 条/秒 ~10.6 h | `[设计目标]` + 核算 | `docs/架构总览.md`、`golden.h:162`、`task_sd.c` 的 `Sd_DsPush` | 只测到 89 s / 276 条，没灌满；容量不是实测 |
 | 11 | 金副本：App 写、Boot 读；头最后写 | `[设计目标]` | `golden.c`、`Boot/`、`docs/架构总览.md` | 单槽保存窗口不是掉电安全；`app_ok` 失败后未重算；黑名单单槽；无回退标记 |
@@ -55,6 +55,7 @@
 | 升级：六个注入点矩阵 | `python exp/u3_upgrade_cut_matrix.py` |
 | 升级：空闲 30 s 自救 | `python exp/u3_idle_cancel.py` |
 | 升级：防回滚试用链 | `python exp/u5_v5_trial.py` |
+| 17 天账本复核 | `python 杂项文件\PC工具\sd_analyze.py <项目>\evidence\longrun --md 报告.md`（12.7M 行约 13 分钟） |
 
 ---
 
