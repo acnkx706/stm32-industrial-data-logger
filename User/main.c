@@ -157,6 +157,13 @@ static void App_InitUi(void)
 	 *     · SD 故障 → 持续间歇响（无人值守时唯一的"叫人"手段）
 	 *     · 按键反馈 → 短促一声 */
 	Buzz_Init();
+
+	/* ★ 2026-11-09：无人值守静音（开关在 ProbeConfig.h 的 TEST_MUTE_BUZZ）
+	 *   ★ 为什么：拔卡跑缓存灌满实验时 g_sd_error 恒为 1
+	 *     ⇒ 蜂鸣器 200ms 响 / 200ms 停，整夜不停，没法在桌上跑
+	 *   ★ 影响：只有声音没了；g_sd_error、屏上 E:03、串口 sd_err 全不变
+	 *   ★ 怎么验证：串口照常打 SD 错误日志，屏上照常有错误码，只是不响 */
+	if (TEST_MUTE_BUZZ != 0u) { Buzz_Silence(1u); }
 }
 
 /* ★ 2026-10-24 从 App_InitRtc 提出：时间不可信的双通道告警
