@@ -39,6 +39,12 @@
  *      SysTick_Handler()→ 我们再定义一次 = 重复符号，链接不过
  *      （更别说跳转前还要记得关掉它，平白多一份状态） */
 #define UP_IDLE_POLLS     5000000u    /* ★ 空闲态：约 2 秒没动静 → 打一次心跳。 */
+/* ★ 2026-11-08：空闲多久放弃升级、跳回 App
+ *   · 心跳是 2 秒一次，15 次 ≈ 30 秒
+ *   · 只在"IDLE + App 有效 + 暂存区没有就绪镜像"时才允许跳 —— 见 Up_CanBootInstead()
+ *   ★ 为什么需要它：U 设的升级标志只有"升级成功"或 C 才清，
+ *     传输阶段断线/断电后板子会一直停在升级模式；现场没人发 C 就再也不会跑。 */
+#define UP_IDLE_CANCEL_WAITS  15u
 #define UP_RECV_POLLS    10000000u    /* ★ 收数据态：约 4 秒收不满一行 → 判超时。 */
 
 /* ---- 状态 ------------------------------------------------------------------ */
@@ -1024,12 +1030,40 @@ uint8_t BootUpgrade_SelfTest(void)
 
 
 /*==============================================================================
+ *  ★ 空闲超时能不能直接跳回 App（2026-11-08 加）
+ *
+ *  ★ 三个条件全满足才允许：
+ *    ① App 仍是有效的（第 0 页没被擦 ⇒ 内部 Flash 一个字节都没动过）
+ *    ② 暂存区里没有"就绪"的镜像（有的话说明有个完整镜像等着装，别抢）
+ *    ③ 当前在 IDLE（还没收到 E）
+ *
+ *  ★ 为什么第一条就够安全：
+ *    · 有效判据只看第 0 页两个字；它没动，说明 App 区就是上次跑成功的那一份
+ *    · 这正好对应"传输阶段断线/断电"—— U3 之后那段确实不碰内部 Flash
+ *============================================================================*/
+static uint8_t Up_CanBootInstead(void)
+{
+	UpStageHdr_t h;
+
+	if (Boot_IsAppValid() == 0u) { return 0u; }
+
+	/* ★ 没有 W25 就没有暂存，直接允许 */
+	if (BootW25_Init() == 0u) { return 1u; }
+	if (Up_StageHdrRead(&h) == 0u) { return 1u; }
+	if (h.state != UP_STAGE_READY) { return 1u; }
+
+	return 0u;                          /* 有就绪镜像 ⇒ 交给自愈那条路 */
+}
+
+
+/*==============================================================================
  *  ★ 主循环（永不返回，出口只有"跳 App"）
  *============================================================================*/
 void BootUpgrade_Run(void)
 {
 	uint16_t n;
 	uint8_t  r;
+	uint32_t idle_waits = 0u;
 
 	/* ★ 开工前先验契约（理由见 boot_upgrade.h）
 	 *   ★ 对不上就绝对不许开始收固件
@@ -1067,6 +1101,21 @@ void BootUpgrade_Run(void)
 				/* ★ 心跳（让人知道"它还在等，没死"）
 				 *   ★ 只在 IDLE 打—— 传输中打会干扰 PC 的行解析 */
 				Serial_SendString("WAIT\r\n");
+				idle_waits++;
+
+				/* ★ 30 秒没人理就试着回 App（见 UP_IDLE_CANCEL_WAITS 的说明） */
+				if (idle_waits >= UP_IDLE_CANCEL_WAITS)
+				{
+					idle_waits = 0u;
+					if (Up_CanBootInstead() != 0u)
+					{
+						Serial_SendString("BOOT: idle, app still valid -> cancel & boot\r\n");
+						while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) { }
+						BootFlag_ClearUpgrade();
+						(void)Param_ClearFlags();
+						Boot_JumpToApp();        /* ★ 不会返回 */
+					}
+				}
 			}
 			continue;
 		}

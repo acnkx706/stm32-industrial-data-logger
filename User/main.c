@@ -55,7 +55,7 @@
 const AppMeta_t g_app_meta =
 {
 	APP_META_MAGIC,
-	2u,                        /* ★ 镜像版本（防回滚判据） */
+	5u,                        /* ★ 镜像版本（防回滚判据） */
 	20261107u,                 /* ★ 构建标识，只给人看 */
 	0u
 };
@@ -440,6 +440,7 @@ int main(void)
 		
     }
 }
+
 
 
 
