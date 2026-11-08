@@ -38,9 +38,9 @@
  *    · 而且不用 SysTick：stm32f10x_it.c 里已经有一个
  *      SysTick_Handler()→ 我们再定义一次 = 重复符号，链接不过
  *      （更别说跳转前还要记得关掉它，平白多一份状态） */
-#define UP_IDLE_POLLS     5000000u    /* ★ 空闲态：约 2 秒没动静 → 打一次心跳。 */
+#define UP_IDLE_POLLS     5000000u    /* ★ 空闲态：实测 1.67 秒没动静 → 打一次心跳（2026-11-08 串口计时）。 */
 /* ★ 2026-11-08：空闲多久放弃升级、跳回 App
- *   · 心跳是 2 秒一次，15 次 ≈ 30 秒
+ *   · 心跳实测 1.67 秒一次，15 次 = 25 秒（2026-11-08 实测 25 秒回 App）
  *   · 只在"IDLE + App 有效 + 暂存区没有就绪镜像"时才允许跳 —— 见 Up_CanBootInstead()
  *   ★ 为什么需要它：U 设的升级标志只有"升级成功"或 C 才清，
  *     传输阶段断线/断电后板子会一直停在升级模式；现场没人发 C 就再也不会跑。 */
@@ -91,7 +91,7 @@ static int8_t Up_HexVal(char c)
 /* ★ CRC-16/KERMIT增量更新
  *
  *  ★ 为什么要"增量"版：
- *    · 最终 CRC 是同一个值，但不能在最后"把 112KB 读一遍再算"
+ *    · 最终 CRC 是同一个值，但不能在最后"把 108KB 读一遍再算"
  *    · 边收边算→ 收完的那一刻 CRC 已经好了
  *
  *  ★ 算法和 App 的 Hardware\Crc16.c 一字不差的契约
@@ -698,7 +698,7 @@ static void Up_HandleData(uint16_t n)
 	/* ★ 块号不对 → 回 N<期望号>
 	 *   ★ 为什么必须有这个：只有整体 CRC，发现丢块要等到最后
 	 *   · 而丢一块之后后面的字节全都错位
-	 *     → 最后一定 FAIL，但112KB 已经白传了 */
+	 *     → 最后一定 FAIL，但整个镜像已经白传了 */
 	if (seq != s_seq)
 	{
 		Up_SendN(s_seq);
@@ -1074,7 +1074,7 @@ void BootUpgrade_Run(void)
 
 	/* ★ 开工前先验契约（理由见 boot_upgrade.h）
 	 *   ★ 对不上就绝对不许开始收固件
-	 *     → 否则收完 112KB 才在最后一步 FAIL，白折腾 */
+	 *     → 否则收完 108KB 才在最后一步 FAIL，白折腾 */
 	if (BootUpgrade_SelfTest() == 0u)
 	{
 		Serial_SendString("BOOT: CRC SELFTEST FAILED -> refusing to upgrade\r\n");
@@ -1113,7 +1113,7 @@ void BootUpgrade_Run(void)
 				Serial_SendString("WAIT\r\n");
 				idle_waits++;
 
-				/* ★ 30 秒没人理就试着回 App（见 UP_IDLE_CANCEL_WAITS 的说明） */
+				/* ★ 15 次心跳没人理就试着回 App（实测 25 秒，见 UP_IDLE_CANCEL_WAITS 的说明） */
 				if (idle_waits >= UP_IDLE_CANCEL_WAITS)
 				{
 					idle_waits = 0u;

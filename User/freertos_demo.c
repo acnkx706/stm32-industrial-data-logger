@@ -1289,7 +1289,7 @@ void task_KEY(void *pvParameters)
  *  ★ 为什么不做进度百分比（这是零成本的关键）：
  *    · 真正把固件搬进 Flash 的是Bootloader，它没有 OLED 驱动。
  *    · 但 SSD1306 的面板在复位后仍显示最后一帧。
- *      ⇒ 所以这里画好的"升级中"，在 Boot 搬 112KB 的整个过程中
+ *      ⇒ 所以这里画好的"升级中"，在 Boot 搬 108KB 的整个过程中
  *        一直显示着
  *    ★ 想要真进度条 ⇒ 要给 Boot 加 3KB 显示代码，先不做。
  *      （而且会成为"第二份 OLED 实现"，两份迟早不一致）*/
@@ -1478,7 +1478,7 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	if ((n == 1u) && (s[0] == 'R'))
 	{
 		/* ★ 2026-10-18 加：回退也画屏。
-		 *   ★ 回退同样是"复位 + Boot 搬 112KB"，同样不能断电*/
+		 *   ★ 回退同样是"复位 + Boot 搬 108KB"，同样不能断电*/
 		Ui_Msg("ROLLING BACK    ",
 		       "RESTORE BACKUP  ",
 		       "DO NOT POWER OFF",
