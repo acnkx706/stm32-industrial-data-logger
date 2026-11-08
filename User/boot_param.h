@@ -18,7 +18,9 @@
  *    0x0801FC00  预留
  *
  *  ★ 记录 52 字节：
- *    magic/seq/flags/boot_count/image_ok/iwdg_retry/version/rsv[5]/crc/valid
+ *    magic/seq/flags/boot_count/image_ok/iwdg_retry/version/img_min_ver/rsv[4]/crc/valid
+ *    （U5 从 rsv[5] 里拿走一个字做 img_min_ver，总长仍是 52 字节）
+ *    ★ 两份头（Boot/ 和 User/）必须一字不差，改一个就两个一起改
  *
  *  ★ 写序：擦非活动槽 → 写 1KB（valid=0xFFFF）→ 回读
  *          → 最后写半字 0xFF01 → 回读

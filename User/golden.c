@@ -44,9 +44,9 @@ typedef struct {
 	uint8_t  reserved[48];
 } GoldenMeta_t;
 
-#define GOLDEN_PAGES    (GOLDEN_APP_SIZE / W25_PAGE_SIZE)     /* ★ = 448 页
-                                                               *   （112KB / 256B
-                                                               *    原注释写 224，是旧 56KB 值） */
+#define GOLDEN_PAGES    (GOLDEN_APP_SIZE / W25_PAGE_SIZE)     /* ★ = 432 页
+                                                               *   （108KB / 256B
+                                                               *    原注释写 224/448，是旧 56KB/112KB 值） */
 #define GOLDEN_FAIL_MAX 3u                                    /* ★ 连续失败几次就放弃。*/
 
 static uint8_t  s_on      = 0u;     /* ★ W25Q64 在位？不在位就整个功能静默关闭。*/
@@ -198,8 +198,8 @@ static uint8_t Golden_WriteHdr(uint16_t crc)
  *          直到你要用它救命的时候才发现
  *
  *  ★ 所以按 GOLDEN_APP_SIZE 算出要擦几个块，循环擦
- *    · 现在就是 CBT6 / 112KB
- *      ceil((0x1000 + 112KB) / 64KB) = 2 块 
+ *    · 现在就是 CBT6 / 108KB
+ *      ceil((0x1000 + 108KB) / 64KB) = 2 块 
  *      （原注释分两句写"现在 1 块 / 换 CBT6 后 2 块"
  *        ★ 而板上早就是 CBT6了 ⇒ 两句都过期）
  *      → 这行代码自动跟着变，不用再改
@@ -329,7 +329,7 @@ static uint8_t Golden_WriteAll(uint8_t slow)
  *
  *  ★ W25 完整内存图（改地址前必须对着它看）：
  *      0x000000 4 KB 金副本头（GOLDEN_ADDR_HDR）
- *      0x001000 112 KB 金副本镜像（GOLDEN_ADDR_IMG，到 0x1D000 止）
+ *      0x001000 108 KB 金副本镜像（GOLDEN_ADDR_IMG，到 0x1C000 止）
  *      0x020000 4 KB 金副本元数据（GOLDEN_ADDR_META）
  *      0x021000 4 KB 缓存：数据指针日志 A（DC_DATA_HDR_A）
  *      0x022000 4 KB 缓存：数据指针日志 B（DC_DATA_HDR_B）
@@ -339,8 +339,15 @@ static uint8_t Golden_WriteAll(uint8_t slow)
  *      0x7A2000 240 KB 缓存：事件槽（960 × 256B）
  *      0x7DE000 4 KB 缓存：事件指针日志 A（DC_EVT_HDR_A）
  *      0x7DF000 4 KB 缓存：事件指针日志 B（DC_EVT_HDR_B）
- *      0x7E0000 124 KB 余量
+ *      0x7E0000 4 KB Boot 升级暂存头（UP_STAGE_HDR_ADDR，U3）
+ *      0x7E1000 108 KB Boot 升级暂存镜像（UP_STAGE_IMG_ADDR，到 0x7FC000 止）
+ *      0x7FC000 12 KB 留白
  *      0x7FF000 4 KB 自检扇区（W25_SELFTEST_ADDR，绝不许碰）
+ *
+ *    ⚠️ 2026-11-08 补：升级暂存区原来放在 0x7B0000，压在事件槽上，
+ *       每次升级会抹掉约 296 条掉卡诊断事件 ⇒ 挪到 0x7E0000 起。
+ *       这张图是唯一权威版：Boot 侧 boot_config.h 只是引用它，
+ *       别在别处另画一张（画了就会像这次一样互相矛盾）
  *
  *  ★ 为什么事件区要挪到高位：数据区要吃掉中间那 5.5 MB 空闲
  *    · 旧事件区（0x240000）正好落在新数据区里

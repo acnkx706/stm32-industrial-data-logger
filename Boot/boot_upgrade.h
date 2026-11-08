@@ -117,7 +117,7 @@ uint8_t BootUpgrade_SelfTest(void);
  *  ★ 全 Bootloader共用的 CRC-16/KERMIT（2026-10-14 导出）
  *
  *  ★ 为什么要把它拿出来共用：
- *    · 金副本回退（boot_golden.c）要算 112KB 的整段 CRC
+ *    · 金副本回退（boot_golden.c）要算 108KB 的整段 CRC
  *      （2026-10-19 改：原写 56KB，那是 C8T6 时代）
  *    · 而算法必须和这里一字不差
  *      → 图省事在自己文件里再抄一份

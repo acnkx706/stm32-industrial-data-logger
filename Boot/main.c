@@ -341,6 +341,14 @@ int main(void)
 			 *     装好了却又停回升级模式 —— 等于白装 */
 			by_flag = 0u;
 			BootFlag_ClearUpgrade();
+
+			/* ★ 2026-11-08：装回时 Param_OnUpgrade() 已经在内部写过一版参数
+			 *   · 本地 prm 还是本次开机开头那份（seq 旧、image_ok 可能还是 1）
+			 *   · 不重读有两个后果：
+			 *     ① 下面"试用计数"会拿旧 image_ok 判，第一轮试用被跳过
+			 *     ② 那个分支里 Param_Save(&prm) 用的是旧 seq+1，
+			 *        会和刚写进去的那条撞成同一个 seq，取哪条要看 A/B 顺序 */
+			(void)Param_Get(&prm);
 		}
 	}
 

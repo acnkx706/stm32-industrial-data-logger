@@ -376,6 +376,7 @@ static uint16_t Up_StageCrc(uint32_t size)
 			crc = Up_CrcUpdate(crc, s_page[i]);
 		}
 		off += n;
+		BOOT_FEED_IWDG();                       /* ★ 读满 108KB 约 1.7 秒，别让狗咬 */
 	}
 	return crc;
 }
@@ -427,6 +428,12 @@ static uint8_t Up_InstallFromStage(uint32_t size)
 			Serial_SendString("\r\n");
 			return 2u;
 		}
+
+		/* ★ 每页喂一次狗
+		 *   · 一页 = 擦 + 写 + 回读，约 25~45ms；108 页连起来 3~5 秒
+		 *   · 加上前面算 CRC 的 1.7 秒，离 IWDG 的 6.55 秒已经很近
+		 *   · 金副本恢复（boot_golden.c）一直是每页喂一次，这里原来漏了 */
+		BOOT_FEED_IWDG();
 	}
 
 	/* ★ 提交点之前先把 image_ok 置 0（和原来的顺序一致） */
@@ -1090,9 +1097,12 @@ void BootUpgrade_Run(void)
 		{
 			if (s_state == UP_ST_RECV)
 			{
-				/* ★ 收数据收到一半卡住→ 回 IDLE，让 PC 重来
-				 *   ★ 为什么敢回 IDLE：第 0 页已经擦了
-				 *     "App 无效"这条硬条件保证跳不出去 */
+				/* ★ 收数据收到一半卡住 → 回 IDLE，让 PC 重来
+				 *   ★ U3 之后为什么敢回 IDLE：
+				 *     传输期间只写 W25 暂存区，内部第 0 页一个字节都没动
+				 *     ⇒ App 仍然有效 ⇒ 回 IDLE 安全，甚至可以直接跳回 App
+				 *   ★ U3 之前不敢：那时 E 一进来就擦第 0 页
+				 *     ⇒ App 无效 ⇒ 只能停在升级模式等人接电脑 */
 				Up_SendFail("timeout");
 				Up_Reset();
 			}
@@ -1199,6 +1209,20 @@ uint8_t Up_RecoverFromStage(void)
 		(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);
 		Serial_SendString("G: stage install FAILED\r\n");
 		return 0u;
+	}
+
+	/* ★ 2026-11-08：自愈这条路也要抬防回滚下限
+	 *   · 串口升级那条路在 Up_HandleEnd 里抬，这里原本漏了
+	 *   · 漏的后果：装到一半断电 ⇒ 自愈把 v6 装好 ⇒ 下限还停在 v5
+	 *     ⇒ 之后 v5 又能装进来，防回滚被自愈绕过一次
+	 *   · 找不到元数据就跳过：镜像已经装好在跑，不该因为读不到版本再拒一次 */
+	{
+		UpMeta_t m;
+
+		if (Up_FindMeta(h.size, &m) != 0u)
+		{
+			(void)Param_SetMinVer(m.version);
+		}
 	}
 
 	(void)Up_StageHdrWrite(UP_STAGE_NONE, 0u, 0u);
