@@ -190,15 +190,46 @@ seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,
 | 堆 | 64 B（名义值，静态分配后没有真正使用者）|
 | 栈峰值（实测）| ACQ 69 字 / PROC 206 / KEY 23 / DISP 150 / SD 324 / GOLD — |
 
+## 5.5 拔卡之后：离线分析卡里的数据（2026-11-08 加）
+
+**做什么**：卡插到读卡器上，扫一遍 `YYMMDDNN.CSV`，给"这批数据能不能用"的结论，
+而不是只数行数。
+
+```powershell
+python 杂项文件\PC工具\sd_analyze.py E:\                 # 扫整张卡
+python 杂项文件\PC工具\sd_analyze.py E:\ --md 报告.md     # 导出 Markdown
+python 杂项文件\PC工具\sd_analyze.py --drives             # 先找哪个盘是卡
+```
+
+界面上也有：`recorder_gui.pyw` → **SD 卡分析** 页（选盘 → 开始分析 → 看明细 / 导出）。
+分析在后台线程跑，不用连串口。
+
+**查六件事**：
+
+| 项 | 判据 | 对应固件机制 |
+|---|---|---|
+| 行级 CRC | 逐行重算 CRC-16/KERMIT，统计坏行 | 记录行最后一个逗号前的文本 |
+| seq 缺口 | 按见过的最大 seq 算缺多少条 | 队列满 / 写卡失败 / 掉电在途批 |
+| 回写插入 | seq 变小但 rtc 变大 ⇒ 掉卡缓存把旧记录追加在后面 | `Sd_DsPush` + 回写 |
+| 板子重启 | tick 归零且 seq 继续变大 | IWDG 复位 / 手动复位 |
+| 通道异常 | 全程一个值 / 全无效值 | 传感器没接、I2C 掉线 |
+| 事件文件 | `YYMMDD90.CSV` 里的 `# LOST` / `# SD_REPLAY` / `# SD_RECOVER` | 掉卡事件 |
+
+**自检锚点**：`python sd_analyze.py --selftest` → `crc16("123456789") == 0x2189`。
+锚点不过就别看结论（CRC 参数错了整张报表都是假的）。
+
 ## 6. 串口升级（不需要 ST-Link）
 
-PC 侧：`杂项文件\PC工具\flash_app.py`（或双击 `升级固件.bat`）
+PC 侧：`杂项文件\PC工具\flash_app.py`（或双击 `升级固件.bat`；也可以开 `recorder_gui.pyw` 点"固件升级向导…"）
 
 ```text
 python flash_app.py              # 完整升级：探针 → 请求复位 → 传 → 校验 → 跳转
 python flash_app.py --check      # 只算体积和 CRC，不连串口
 python flash_app.py --stage data # 只发数据不发 X（验证写 Flash 那一段）
 ```
+
+> ⚠️ 升级模式里**空闲 30 秒会自己退回 App**（`UP_IDLE_CANCEL_WAITS`）。
+> 所以两条线之间别停太久；真被取消了就再发一次 `U`。
 
 协议（文本行，`\r\n` 结尾）：
 
