@@ -106,16 +106,27 @@
  *    ⇒ 内部 App 区是半成品 ⇒ 下次开机 App 无效 ⇒ 只能接电脑救
  *    ⇒ 改成"先落盘再切换"：传输期间内部 App 一个字节都不动
  *
- *  ★ 位置怎么定的：
- *    · 掉卡缓存数据槽到 0x7A0FFF 结束（golden.h:156）
- *    · 自检扇区在 0x7FF000
- *    · 中间 0x7A1000~0x7FEFFF 是空的，放 112KB 绰绰有余
- *    ⇒ 不占用、也不搬动任何现有区域
+ *  ★ 位置（2026-11-08 改过一版，原来放的 0x7B0000 是错的）：
+ *    · App 侧权威布局图在 golden.c:330，照它排地址
+ *    · 事件槽占 0x7A2000~0x7DDFFF（960 × 256B = 240KB）
+ *    · 事件指针日志 A/B 占 0x7DE000 / 0x7DF000
+ *    · 真正空着的是 0x7E0000~0x7FEFFF，共 124KB
+ *    ⇒ 头放 0x7E0000，镜像放 0x7E1000，108KB 到 0x7FBFFF 停
+ *
+ *  ★ 为什么原来那两行必须改：
+ *    · 旧地址 0x7B0000 正落在事件槽中间
+ *    · 每次升级预擦 27 个扇区 ⇒ 顺手抹掉约 296 条掉卡诊断事件
+ *    · 当时只看到"数据槽到 0x7A0FFF 结束"就以为后面全空
+ *      漏读了同一段注释下面三行：旧指针页 / 事件槽 / 指针日志
+ *    ⇒ 现在按 0x7E0000 起排，和事件指针日志 B 刚好错开 4KB
  *
  *  ★ 头单独一扇区：magic 最后写，写到一半断电 ⇒ 头无效 ⇒ 当没暂存
- *    和内部参数区的 0xFF01 是同一个思路。 */
-#define UP_STAGE_HDR_ADDR     0x7B0000u
-#define UP_STAGE_IMG_ADDR     0x7B1000u
+ *    和内部参数区的 0xFF01 是同一个思路。
+ *
+ *  ★ 怎么验证：烧完 Boot 走一次 E/D/X 升级，
+ *    串口出现 "G: stage ok -> installing" 且重启后 App 正常即为通过。 */
+#define UP_STAGE_HDR_ADDR     0x7E0000u
+#define UP_STAGE_IMG_ADDR     0x7E1000u
 #define UP_STAGE_HDR_MAGIC    0x31475453u     /* ★ "STG1" 小端 */
 #define UP_STAGE_NONE         0u
 #define UP_STAGE_READY        1u
