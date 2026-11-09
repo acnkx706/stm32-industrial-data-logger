@@ -704,9 +704,24 @@ void OLED_KeepAlive(void)
 {
 	if (s_oled_on == 0u) { return; }        /* ★ 主动黑屏期间不打扰。 */
 
-	OLED_WriteCommand(0x8D);                /* ① 电荷泵开 */
+	/* ★ 2026-11-09 补：不能只发"开显示"
+	 *   实测证据：保活只发 0x8D 0x14 + 0xAF 时，屏是亮了，但**画面上下颠倒**
+	 *   —— 因为面板复位把 0xA1(左右方向) / 0xC8(上下方向) 也恢复成出厂默认
+	 *   所以这里把"静态配置"整套重申一遍：都是幂等命令，不会影响正在显示的内容
+	 *   （不清显存、不改数据指针，只重设 寻址模式/方向/电荷泵/显示开关） */
+
+	OLED_WriteCommand(0x2E);                /* 停止硬件滚动（防上次失步残留） */
+	OLED_WriteCommand(0x20);                /* 页寻址模式（与 SetCursor 配套） */
+	OLED_WriteCommand(0x02);
+	OLED_WriteCommand(0xA1);                /* 左右方向：正常 */
+	OLED_WriteCommand(0xC8);                /* 上下方向：正常 */
+	OLED_WriteCommand(0xDA);                /* COM 引脚硬件配置 */
+	OLED_WriteCommand(0x12);
+	OLED_WriteCommand(0xA4);                /* 显示跟随显存 */
+	OLED_WriteCommand(0xA6);                /* 正常显示（非反色） */
+	OLED_WriteCommand(0x8D);                /* 电荷泵开 */
 	OLED_WriteCommand(0x14);
-	OLED_WriteCommand(0xAF);                /* ② 显示开 */
+	OLED_WriteCommand(0xAF);                /* 显示开 */
 }
 /*==============================================================================
  * ★ 面板点亮测试（2026-11-04 加，查"命令通道通了、屏还是黑"）
