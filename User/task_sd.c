@@ -181,6 +181,12 @@ uint8_t g_sd_buf[2][SD_BUF_SIZE];
 
 volatile uint8_t g_sd_error = 0;        /* 1=SD 故障（DISP/PROC 只读展示） */
 
+/* ★ 2026-11-09：串口"静默"总开关，定义在 freertos_demo.c
+ *   · 用途：关回显时把所有周期性诊断（SD 的 SLOW / W 行）一起压掉，
+ *     只留故障行（ERR / recovered / cache put FAILED）
+ *   · 故障行不判它，所以静默状态下仍然看得见出问题 */
+extern volatile uint8_t g_print_quiet;
+
 /* ★ Y2 修复（第 6 课）：最近一次失败的原因码（见 task_sd.h 的完整说明）。
  *   有了它 OLED 才能从"坏了"（g_sd_error=1）升级成"为什么坏了"：
  *   E:03=FR_NOT_READY（没插卡/接触不良）、E:01=FR_DISK_ERR（写中拔卡）、
@@ -2488,14 +2494,20 @@ void task_SD(void *pvParameters)
 				 */
 				if (dt >= 100000u)
 				{
+					/* ★ 2026-11-09：静默时不出（这是诊断，不是故障） */
+					if (g_print_quiet == 0u)
+					{
 					Serial_Printf("SD: SLOW batch=%lu us=%lu tick=%lu size=%lu\r\n",
 					              (unsigned long)s_w_cnt,
 					              (unsigned long)dt,
 					              (unsigned long)xTaskGetTickCount(),
 					              (unsigned long)f_size(&s_log_file));
+					}
 				}
 				if ((s_w_cnt % 100u) == 0u)
 				{
+					if (g_print_quiet == 0u)
+					{
 					Serial_Printf("SD: W n=%lu avg=%lu us max=%lu us ge100ms=%lu lwmax=%lu ms lwslow=%lu\r\n",
 						(unsigned long)s_w_cnt,
 						(unsigned long)(s_w_sum_us / s_w_cnt),
@@ -2503,6 +2515,7 @@ void task_SD(void *pvParameters)
 						(unsigned long)s_w_ge_100ms,
 						(unsigned long)DropCache_LockWaitMaxMs(),
 						(unsigned long)DropCache_LockWaitSlowCnt());
+					}
 				}
 			}
 

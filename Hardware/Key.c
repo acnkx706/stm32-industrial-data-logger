@@ -39,6 +39,9 @@
 #define KEY_PWR_PORT               GPIOA
 #define KEY_PWR_PIN                GPIO_Pin_0
 #define KEY_PWR_HOLD_TICKS         50u  /* ★ 20ms × 50 = 1 秒。 */
+#define KEY_PWR_SHORT_MIN_TICKS    3u   /* ★ 2026-11-09：20ms × 3 = 60ms。
+                                         *   短按下限：防抖动/碰一下就被当成一次按键。
+                                         *   上限就是上面那 50 拍，超过算长按。 */
 
 typedef struct {
     uint8_t state;      /* 当前状态：KEY_STATE_xxx */
@@ -51,6 +54,7 @@ static Key_Fsm_t fsm_key11;     /* PB11 */
 /* ★ 电源键的两个状态位（为什么不用上面那个结构体：见本节开头） */
 static uint8_t s_pwr_cnt   = 0u;    /* ★ 已经连续按下几拍。 */
 static uint8_t s_pwr_fired = 0u;    /* ★ 本轮按住已经报过事件，松手才复位。 */
+static uint8_t s_pwr_short = 0u;    /* ★ 2026-11-09：本轮按下已够短按门槛，等松手才报。 */
 
 /* 读一次电平。本板按键接 VCC、GPIO 配下拉输入(IPD)：按下 = 读到 1。
  * 若换接线（按键接 GND），只需把这里反过来，状态机一行都不用动
@@ -135,21 +139,36 @@ static uint8_t Key_PwrStep(void)
 {
     if (Key_Read(KEY_PWR_PORT, KEY_PWR_PIN) != 0u)     /* ★ 按下 = 读到 1。 */
     {
-        if (s_pwr_fired == 0u)
-        {
-            if (s_pwr_cnt < 255u) { s_pwr_cnt++; }
+        if (s_pwr_cnt < 255u) { s_pwr_cnt++; }          /* ★ 封顶防回绕。 */
 
-            if (s_pwr_cnt >= (uint8_t)KEY_PWR_HOLD_TICKS)
-            {
-                s_pwr_fired = 1u;                       /* ★ 本轮只报一次。 */
-                return (uint8_t)KEY_PWR_EVENT;
-            }
+        /* ★ 2026-11-09 加：够 3 拍（60ms）就算"真的按下了"
+         *   为什么要有这一条：短按必须在松手时才报，
+         *   而松手后 s_pwr_cnt 立刻清零，没法再判断"刚才到底按没按" */
+        if (s_pwr_cnt >= (uint8_t)KEY_PWR_SHORT_MIN_TICKS) { s_pwr_short = 1u; }
+
+        if ((s_pwr_fired == 0u) && (s_pwr_cnt >= (uint8_t)KEY_PWR_HOLD_TICKS))
+        {
+            s_pwr_fired = 1u;                           /* ★ 本轮只报一次。 */
+            s_pwr_short = 0u;                           /* ★ 已算长按，不许再报短按。 */
+            return (uint8_t)KEY_PWR_EVENT;
         }
     }
     else
     {
+        uint8_t ev = 0u;
+
+        /* ★ 2026-11-09 加：没到长按阈值就松手 ⇒ 报一次短按
+         *   两条都要判：s_pwr_short 保证按过足够久（防抖动/碰一下），
+         *   s_pwr_fired 保证没报过长按（防长短双报） */
+        if ((s_pwr_short != 0u) && (s_pwr_fired == 0u))
+        {
+            ev = (uint8_t)KEY_PWR_SHORT_EVENT;
+        }
+
         s_pwr_cnt   = 0u;                               /* ★ 松手：清零 + 重新武装。 */
         s_pwr_fired = 0u;
+        s_pwr_short = 0u;
+        return ev;
     }
 
     return 0u;

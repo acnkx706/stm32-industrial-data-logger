@@ -367,6 +367,24 @@ volatile int16_t g_dht_temp_x10 = 0;
  * 不发队列不发通知——状态随时可查，不占任何内核对象 */
 volatile uint8_t g_pause = 0;       /* 0=采集运行  1=采集暂停 */
 
+/* ★ 串口 REC 回显的编译期总开关（2026-11-09 从 task_PROC 上方挪到这里）
+ *   · 调试期 1（边跑边看数据长什么样），正式跑改 0
+ *   · 它和 g_rec_echo 是两层：这个决定"固件有没有这个能力"，
+ *     g_rec_echo 决定"这一次开不开"（PB1 短按 / 串口 P0 P1）
+ *   · 正式数据走卡不走串口，回显纯属人眼验收，还占带宽（最坏 220B×10Hz） */
+#define PROC_SERIAL_ECHO        1
+
+/* ★ 2026-11-09 加：串口 REC 回显的运行期开关
+ *   · 为什么不能只留 PROC_SERIAL_ECHO：那是编译期常量，
+ *     量产要安静、上位机要回显，同一个镜像没法两头兼顾
+ *   · 现在三层：PROC_SERIAL_ECHO（固件有没有这个能力）→ g_rec_echo（这次开不开）
+ *     → 谁改它：PB1 短按（本地）、串口命令 P0/P1（远程）
+ *   · 为什么不掉电保存：默认值本身就是"调试期开、量产关"，
+ *     保存反而会让"上次谁调过"变成不可预测的状态
+ *   ⚠️ 必须在 task_PROC 里读它，所以也要 volatile */
+volatile uint8_t g_rec_echo = (uint8_t)PROC_SERIAL_ECHO;
+volatile uint8_t g_echo_tip = 0u;   /* 屏上提示剩余拍数：50 拍 = 2 秒 */
+
 /* KEY2 → 打印统计：这是"一次性事件"，用任务通知（比队列/信号量都轻）。
  * PROC 收到后自己打印（KEY 任务栈小，打印不在它那儿做） */
 /* 通知配对：eSetBits 发 <-> xTaskNotifyWait 收（不能配 ulTaskNotifyTake） */
@@ -849,7 +867,7 @@ static uint16_t s_nrec  = 0;
 
 /* 串口 REC 回显开关：调试期 1（边跑边看数据长什么样），正式跑改 0 ——
  * 正式数据走卡不走串口，回显纯属人眼验收，还占带宽（最坏 220B×10Hz） */
-#define PROC_SERIAL_ECHO        1
+/* ★ 2026-11-09：这个宏挪到文件前面去了（g_rec_echo 的初值要用它），见 §按键通道 */
 
 /* task_PROC 五个要点（Y8+⑤ 改造后）：
  * ① receive 超时 500ms（用 portMAX_DELAY 的话通知唤不醒它）
@@ -991,7 +1009,10 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 
 #if PROC_SERIAL_ECHO
 	/* ---- 串口 REC 回显（调试用；正式跑把 PROC_SERIAL_ECHO 改 0）----
-	 * ★ 放在开关里：它和数据落卡互不相干，正式期只占带宽不产生价值 */
+	 * ★ 放在开关里：它和数据落卡互不相干，正式期只占带宽不产生价值
+	 * ★ 2026-11-09：外层再加 g_rec_echo 运行期开关（PB1 短按 / P0 P1 命令） */
+	if (g_rec_echo != 0u)
+	{
 	Serial_Printf("REC,seq<%lu>,tick<%lu>,press<%lu>,rtc<%lu>,"
 	              "ax<%d>,ay<%d>,az<%d>,gx<%d>,gy<%d>,gz<%d>,"
 	              "temp_ds<%d>,temp_chip<%d>,humi<%u>,light<%u>,vbat<%u>,crc<%u>\r\n",
@@ -1001,6 +1022,7 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 	              rec.gx, rec.gy, rec.gz,
 	              rec.temp_ds, rec.temp_chip,
 	              rec.humi, rec.light, rec.vbat, rec.crc);
+	}
 #endif
 }
 else
@@ -1086,6 +1108,12 @@ else
 	if (n >= 100)
 	{
 		n=0;
+		/* ★ 2026-11-09 加：周期性 STAT 受"静默"管（关回显时不出）
+		 *   · 为什么这样分：手动打统计（PB11 → EVENTBIT_KEY2）走的是另一条路，
+		 *     那条不判 quiet ⇒ "关了回显，按一下还是能看到统计"
+		 *   · 计数照常清零：否则重新开回显时会先憋出一次 */
+		if (g_print_quiet == 0u)
+		{
 		taskENTER_CRITICAL();
 		snap = g_stat;
 		taskEXIT_CRITICAL();
@@ -1116,6 +1144,7 @@ else
 				  g_i2c_us_last, g_i2c_us_max,
 				  (unsigned)g_sd_error, (unsigned)g_sd_last_err,
 				  (unsigned)uxTaskGetStackHighWaterMark(task_sd_handler));
+		}
 	}
 	
     }
@@ -1160,9 +1189,19 @@ void task_KEY(void *pvParameters)
 		 *    · 恢复记录是电源键长按的语义，两个键做同一件事只会乱。
 		 *    · 而且此时 SD 未必挂得回来 ⇒ 又是静默丢数据。
 		 *    ⇒ 关机态只认电源键 */
-		if ((ev & KEY1_EVENT) && (g_shutdown_req == 0u) && (g_shutdown_done == 0u))
+		/* ★ 2026-11-09 改：PB1 从"暂停采集"改成"串口回显开关"
+		 *   · 为什么换：暂停本来就能被"长按电源键关机"替代（而且关机可逆），
+		 *     而回显开关现场真用得上——没电脑时按一下就能确认采样还活着
+		 *   · 关机态下也让它生效：它只改打印，不碰采集状态，不会把记录偷偷拉起来 */
+		if (ev & KEY1_EVENT)
 		{
-			g_pause = !g_pause;
+			g_rec_echo = (uint8_t)((g_rec_echo != 0u) ? 0u : 1u);
+			/* ★ 2026-11-09：关回显 = 连"周期性诊断"一起静默（只剩故障行）
+			 *   · 复用现成的 g_print_quiet：IDLE / SONAR / DISP 已经在判它
+			 *   · 故障行（ERR / FAIL / LOST / recovered）不受它管，照样出
+			 *   · 手动打统计（PB11）也不受它管，按了就有 */
+			g_print_quiet = (uint8_t)((g_rec_echo != 0u) ? 0u : 1u);
+			g_echo_tip = 50u;                   /* ★ 屏上提示 50 拍 = 2 秒 */
 			/* ★ 按键反馈（2026-10-13 加）
 			 *   ★ 为什么可以在这里调：Buzz_Request 只置一个标志位。
 			 *     · 不打印，不阻塞，不碰 GPIO。
@@ -1191,6 +1230,17 @@ void task_KEY(void *pvParameters)
 		 *     · 只看 done：关机过程中的那 1 秒里再长按。
 		 *       会被当成"再关一次"，什么都不会发生，用户以为按键坏了
 		 *     → req 或 done 只要有一个在，就算"已关机"，再按就是恢复 */
+		/* ★ 2026-11-09 加：电源键短按 = 暂停 / 继续采集
+		 *   · 原来这个功能在 PB1 上，PB1 现在让给"串口回显开关"
+		 *   · 关机态下不理它：此刻 g_pause 恒为 1，
+		 *     翻了会让"已关机"状态下偷偷恢复采样（和原 KEY1 的屏蔽理由一样）
+		 *   · 长按仍然走下面的关机/恢复，两个事件由驱动保证互斥 */
+		if ((ev & KEY_PWR_SHORT_EVENT) && (g_shutdown_req == 0u) && (g_shutdown_done == 0u))
+		{
+			g_pause = (uint8_t)((g_pause != 0u) ? 0u : 1u);
+			Buzz_Request(BUZZ_EV_KEY);
+		}
+
 		if (ev & KEY_PWR_EVENT)
 		{
 			if ((g_shutdown_req != 0u) || (g_shutdown_done != 0u))
@@ -1524,6 +1574,18 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *    · 刚发过 B 之后再发 S，= 把刚作废的那版又存回去。
 	 *    · 正确顺序，B → 烧好版本→ 它会自己填进去
 	 *========================================================================*/
+	/* ★ 2026-11-09 加：P0 / P1 = 关 / 开串口 REC 回显
+	 *   · 为什么做成命令：上位机连上就发 P1、断开或超时再发 P0，
+	 *     同一份固件既能"量产安静"又能"案头调试"，不用改默认值重编
+	 *   · 只影响打印，不碰数据链路；屏幕同样给 2 秒提示 */
+	if ((n == 2u) && (s[0] == 'P') && ((s[1] == '0') || (s[1] == '1')))
+	{
+		g_rec_echo    = (uint8_t)((s[1] == '1') ? 1u : 0u);
+		g_print_quiet = (uint8_t)((g_rec_echo != 0u) ? 0u : 1u);   /* ★ 同上：连诊断一起静默 */
+		g_echo_tip    = 50u;
+		Serial_Printf("ECHO: %s\r\n", (g_rec_echo != 0u) ? "ON" : "OFF");
+	}
+
 	if ((n == 1u) && (s[0] == 'S'))
 	{
 		/* ★ 2026-10-18 加：存备份也要画屏。
@@ -1777,6 +1839,10 @@ void task_DISP(void *pvParameters)
 		/* ★ 帧计时从这里开始*/
 		t0 = DWT->CYCCNT;
 		did_refresh = 0u;   
+
+		/* ★ 2026-11-09 加：回显提示倒计时（每帧 200ms，50 拍 = 2 秒）
+		 *   · 放帧首、不参与计时：它只有一次减法，成本可以忽略 */
+		if (g_echo_tip != 0u) { g_echo_tip--; }
 		/* ① 快照 */
 		taskENTER_CRITICAL();
 		snap = g_stat;
@@ -2109,6 +2175,14 @@ void task_DISP(void *pvParameters)
 			if (g_pause != 0u)
 			{
 				OLED_ShowString(3, 1, "** PAUSED **    ");
+			}
+			/* ★ 2026-11-09 加：回显开关的 2 秒提示（PB1 / P0 P1 之后）
+			 *   · 为什么放这一行：它是"刚刚按了一下"的即时反馈，
+			 *     不能常驻（会盖掉时间），所以用 g_echo_tip 倒计时 */
+			else if (g_echo_tip != 0u)
+			{
+				OLED_ShowString(3, 1, (g_rec_echo != 0u) ? "ECHO ON         "
+				                                        : "ECHO OFF        ");
 			}
 			else if (MyRTC_IsTrusted() == 0u)
 			{
