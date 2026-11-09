@@ -83,6 +83,12 @@
 
 #define SD_PWR_SETTLE_MS    10      /* 上电稳定等待（模块稳压 + 卡内上电时序） */
 #define SD_IDLE_RETRY       300     /* CMD0 重发次数上限（换卡瞬间/慢启动卡） */
+
+/* ★ 临时诊断开关（2026-11-09 加，查"无卡时初始化不打印"那条，见 CMD0 循环里的注释）
+ *   · 1 = 在 CMD0 重试循环里逐轮打印耗时，且最多跑 41 轮就停
+ *   · 查完必须改回 0：正式固件不允许带它（会污染串口时序）
+ *   · 验证：置 1 后无卡上电，应当在几秒内看到 "DBG: try ..." 若干行 */
+#define SD_DBG_INIT         0
 #define SD_INIT_TIMEOUT_MS  3000    /* ACMD41 总超时：规范典型 ~500ms，给足余量
                                      * ★ 2026-11-07 放宽 2000->3000：
                                      *   实测冷启动后首次 ACMD41 要 156 次（约 1.5 秒），
@@ -729,6 +735,9 @@ SD_Result_t SD_Init(void)
 	/* 后面所有毫秒级等待全走 DWT（调度器启动后调用本函数也安全） */
 	DWT_Delay_Init();
 	SD_LowLevelInit();
+#if SD_DBG_INIT
+	Serial_Printf("DBG: lowlevel ok\r\n");
+#endif
 	DWT_Delay_ms(SD_PWR_SETTLE_MS);     /* 模块稳压/卡上电需要几毫秒稳定期 */
 
 	/* ★ 诊断（2026-10-05）：进门先打一次 Vref，这样即使 CMD0 就失败也能看到电压
@@ -770,7 +779,41 @@ SD_Result_t SD_Init(void)
 	/* ② CMD0 复位进 IDLE：期望 R1=0x01。
 	 *    一次不成功很正常（卡刚上电还在走内部流程），最多重发 300 次
 	 *    （2026-11-07：200 -> 300，冷启动后卡醒得慢）；
-	 *    300 次都无响应 = 没插卡 / 接线错 / 接触不良 */
+	 *    300 次都无响应 = 没插卡 / 接线错 / 接触不良。
+	 *
+	 *  ★ 临时诊断 SD_DBG_INIT（2026-11-09 加，查"无卡时初始化不打印"那条）：
+	 *    · 每轮打一次累计毫秒数，用来区分"单条命令慢"还是"轮数多"
+	 *    · 查完改回 0，正式固件不允许带它 */
+#if SD_DBG_INIT
+	{
+		uint32_t t_dbg = DWT->CYCCNT;
+		Serial_Printf("DBG: enter CMD0 loop\r\n");
+		for (i = 0; i < SD_IDLE_RETRY; i++)
+		{
+			r1 = SD_SendCmd(CMD0, 0);
+			SD_Release();
+			if ((i % 100u) == 0u || i < 3u)
+			{
+				Serial_Printf("DBG: try %u r1=0x%02X total=%lu ms\r\n",
+				              (unsigned)i, r1,
+				              (unsigned long)((DWT->CYCCNT - t_dbg) / 72000u));
+			}
+			if (r1 == R1_IDLE)
+			{
+				break;
+			}
+			{
+				uint16_t k;
+				SD_CS(1);
+				for (k = 0; k < 32u; k++) { (void)SD_SwapByte(SD_DUMMY); }
+			}
+			DWT_Delay_ms(1);
+		}
+		Serial_Printf("DBG: CMD0 loop exit i=%u r1=0x%02X total=%lu ms\r\n",
+		              (unsigned)i, r1,
+		              (unsigned long)((DWT->CYCCNT - t_dbg) / 72000u));
+	}
+#else
 	for (i = 0; i < SD_IDLE_RETRY; i++)
 	{
 		r1 = SD_SendCmd(CMD0, 0);
@@ -786,6 +829,7 @@ SD_Result_t SD_Init(void)
 		}
 		DWT_Delay_ms(1);
 	}
+#endif
 	if (r1 != R1_IDLE)
 	{
 		/* ★ 诊断：CMD0 失败也要给出重试次数 + 当时的电压。 */
@@ -793,6 +837,10 @@ SD_Result_t SD_Init(void)
 		              r1, (unsigned)i, (unsigned)AD_ReadVrefint());
 		return SD_ERR_NO_CARD;
 	}
+
+#if SD_DBG_INIT
+	Serial_Printf("DBG: pass CMD0 -> CMD8\r\n");
+#endif
 
 	/* ③ CMD8 探卡型：参数 0x1AA（电压窗 2.7-3.6V + 校验字 0xAA）。
 	 *    ★ 三种应答必须分开处理（2026-10-09 修复，T2.6③ 演练抓到），
