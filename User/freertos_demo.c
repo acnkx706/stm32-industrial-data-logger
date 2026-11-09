@@ -1586,6 +1586,17 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 		Serial_Printf("ECHO: %s\r\n", (g_rec_echo != 0u) ? "ON" : "OFF");
 	}
 
+	/* ★ 2026-11-09 加：L1 = 整屏重新初始化 OLED
+	 *   · 用途：屏自己黑掉、保活（每 5 秒补发 0xAF）也救不回来那种
+	 *     （面板复位把寻址模式/方向也弄乱了）
+	 *   · 会重跑一遍 OLED_Init（含 100ms 上电延时），下一帧自动整屏重画
+	 *   · 只在 task_DISP 里执行，一次性开销 */
+	if ((n == 2u) && (s[0] == 'L') && (s[1] == '1'))
+	{
+		OLED_Init();
+		Serial_Printf("OLED: reinit done\r\n");
+	}
+
 	if ((n == 1u) && (s[0] == 'S'))
 	{
 		/* ★ 2026-10-18 加：存备份也要画屏。
@@ -1763,6 +1774,9 @@ void task_DISP(void *pvParameters)
 	static uint8_t  s_blanked   = 0u;
 	static uint8_t  s_need_full = 0u;
 
+	/* ★ 2026-11-09：面板保活的分频计数（25 帧 ≈ 5 秒补发一次点亮命令）*/
+	static uint16_t ka_tick     = 0u;
+
 	DWT_Delay_Init();       /* ★ 保险：确保周期计数器在跑（重复调用无害）*/
 
 	for (;;)
@@ -1937,6 +1951,23 @@ void task_DISP(void *pvParameters)
 				g_oled_blanked = 0u;
 				s_need_full = 1u;
 				Serial_Printf("OLED: wake\r\n");
+			}
+
+			/* ★ 2026-11-09 加：面板保活（每 5 秒补发一次"开电荷泵 + 开显示"）
+			 *   ★ 为什么需要（实测两次）：屏幕自己黑掉，而固件这边
+			 *     DISP 在正常刷、blank=0（以为亮着），整机只能靠复位才恢复
+			 *   ★ 机理判断：面板被干扰复位 / 瞬时掉电后 SSD1306 回到默认态
+			 *     （显示关 + 电荷泵关），而 s_oled_on 还停在 1
+			 *     ⇒ OLED_DisplayOn() 里那句 if (s_oled_on != 0) return 永远早退
+			 *     ⇒ 固件再也不会发 0xAF，直到整机复位
+			 *   ★ 为什么是"补发"而不是"改状态机"：面板状态读不回来，
+			 *     只能周期性重申；3 条命令、无副作用、幂等
+			 *   ★ 未覆盖：若复位把寻址/方向也弄乱，保活救不回来，
+			 *     要用串口命令 L1 整屏重新初始化 */
+			ka_tick++;
+			if ((ka_tick % 25u) == 0u)          /* 25 帧 × 200ms ≈ 5 秒 */
+			{
+				if ((s_blank == 0u) && (s_blanked == 0u)) { OLED_KeepAlive(); }
 			}
 		}
 

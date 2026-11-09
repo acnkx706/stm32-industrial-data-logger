@@ -20,6 +20,12 @@ void    OLED_DisplayOff(void);
 void    OLED_DisplayOn(void);
 uint8_t OLED_IsOn(void);
 
+/* ★ 2026-11-09 加：面板保活
+ *   · 周期发"开电荷泵 + 开显示"，救"屏自己黑掉、固件以为亮着"那种状态
+ *   · 幂等：主动黑屏（DisplayOff）时直接返回，不打扰
+ *   · 救不回来时用串口命令 L1（内部 OLED_Init 整屏重init） */
+void    OLED_KeepAlive(void);
+
 /* ★ 2026-11-04 加：面板点亮测试（查"总线 ACK 全 1 但屏黑"）
  *   · 发 0xA5 强制全屏点亮 3 秒，再发 0xA4 回到显存
  *   · 白屏出现 = 面板与电荷泵是好的，问题在数据通道 */
