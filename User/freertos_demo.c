@@ -385,6 +385,18 @@ volatile uint8_t g_pause = 0;       /* 0=采集运行  1=采集暂停 */
 volatile uint8_t g_rec_echo = (uint8_t)PROC_SERIAL_ECHO;
 volatile uint8_t g_echo_tip = 0u;   /* 屏上提示剩余拍数：50 拍 = 2 秒 */
 
+/* ★ 2026-11-09 加：OLED 多页显示（PA0 短按翻页）
+ *   · g_page：当前页 0=实时数据 1=存储 2=运行
+ *   · g_page_next：按键只置这个标志（task_KEY 不许直接画屏）
+ *   · 由 task_DISP 在帧首消费：翻页 + 标记整屏重画 */
+volatile uint8_t g_page      = 0u;
+volatile uint8_t g_page_next = 0u;
+
+/* ★ 2026-11-09：task_SD 发布的存储信息（只有它碰得了 FatFs） */
+extern volatile char     g_sd_name[13];
+extern volatile uint32_t g_sd_file_kb;
+extern volatile uint32_t g_sd_free_mb;
+
 /* KEY2 → 打印统计：这是"一次性事件"，用任务通知（比队列/信号量都轻）。
  * PROC 收到后自己打印（KEY 任务栈小，打印不在它那儿做） */
 /* 通知配对：eSetBits 发 <-> xTaskNotifyWait 收（不能配 ulTaskNotifyTake） */
@@ -1230,14 +1242,14 @@ void task_KEY(void *pvParameters)
 		 *     · 只看 done：关机过程中的那 1 秒里再长按。
 		 *       会被当成"再关一次"，什么都不会发生，用户以为按键坏了
 		 *     → req 或 done 只要有一个在，就算"已关机"，再按就是恢复 */
-		/* ★ 2026-11-09 加：电源键短按 = 暂停 / 继续采集
-		 *   · 原来这个功能在 PB1 上，PB1 现在让给"串口回显开关"
-		 *   · 关机态下不理它：此刻 g_pause 恒为 1，
-		 *     翻了会让"已关机"状态下偷偷恢复采样（和原 KEY1 的屏蔽理由一样）
-		 *   · 长按仍然走下面的关机/恢复，两个事件由驱动保证互斥 */
-		if ((ev & KEY_PWR_SHORT_EVENT) && (g_shutdown_req == 0u) && (g_shutdown_done == 0u))
+		/* ★ 2026-11-09 改：电源键短按 = 翻页（原"暂停采集"已删）
+		 *   · 为什么删暂停：它只停记录、不停测量（传感器在 task_sensor 独立跑），
+		 *     屏上数字照变，使用者看不出差别 —— 没有独立价值
+		 *   · 翻页的用途：把"只有串口能看"的状态搬到屏上（存储/运行两页）
+		 *   · 关机态下也允许翻页：只影响显示，不碰采集状态 */
+		if (ev & KEY_PWR_SHORT_EVENT)
 		{
-			g_pause = (uint8_t)((g_pause != 0u) ? 0u : 1u);
+			g_page_next = 1u;
 			Buzz_Request(BUZZ_EV_KEY);
 		}
 
@@ -1738,6 +1750,65 @@ static void Clk_CalibOnce(void)
  * ③ 第4行的心跳数字用来区分暂停和卡死——没有它这个验收项无法判定
  * ④ 第4行 13~16 列是 SD 错误码 E:xx（Y2）——OLED 从"坏了"升级到"为什么"
  * ★ 2026-10-17 加 ⑤：时间不可信时第 4 行常驻显示 T?*/
+/*==============================================================================
+ * ★ 状态页绘制（2026-11-09 加，PA0 短按翻页）
+ *
+ * ★ 做了什么：把"只有串口能看的数"搬到屏上——现场不连电脑也能判读
+ *   · 第 1 页 存储：卡状态 / 文件名 / 文件大小 / 缓存批数 / 剩余空间
+ *   · 第 2 页 运行：采集与处理条数 / 队列满次数 / 队列最大积压 / I2C 耗时
+ *
+ * ★ 为什么不用 sprintf：本任务栈 224 字（896B），printf 家族一次吃 100~150B
+ *   ⇒ 全部用 OLED_ShowNum / OLED_ShowString 逐段画（和原来 4 行同样的手法）
+ *
+ * ★ 影响什么：只写屏，不碰数据链路。卡信息来自 task_SD 发布的变量
+ *   （FatFs 只有 task_SD 能碰，屏任务不能直接调 f_size / f_getfree）
+ *
+ * ★ 怎么验证：PA0 短按循环 数据→存储→运行→数据；
+ *   存储页的 CACHE / 文件名 / E 与串口 STAT、SD: log 行对得上
+ *============================================================================*/
+static void Ui_DrawPage(uint8_t page)
+{
+	if (page == 1u)
+	{
+		/* ---- 存储页 ---- */
+		OLED_ShowString(1, 1, "SD ");
+		OLED_ShowString(1, 4, (g_sd_error != 0u) ? "ERR" : "OK ");
+		OLED_ShowString(1, 8, (char *)g_sd_name);         /* 12 字符 */
+
+		OLED_ShowString(2, 1, "SIZE ");
+		OLED_ShowNum   (2, 6, g_sd_file_kb, 6);
+		OLED_ShowString(2, 12, "KB   ");
+
+		OLED_ShowString(3, 1, "CACHE ");
+		OLED_ShowNum   (3, 7, (uint32_t)DropCache_PendingBatches(), 4);
+		OLED_ShowString(3, 11, "b     ");
+
+		OLED_ShowString(4, 1, "FREE ");
+		OLED_ShowNum   (4, 6, g_sd_free_mb, 6);
+		OLED_ShowString(4, 12, "MB   ");
+	}
+	else
+	{
+		/* ---- 运行页 ---- */
+		OLED_ShowString(1, 1, "ACQ ");
+		OLED_ShowNum   (1, 5, g_stat.acq_count, 7);
+		OLED_ShowString(1, 12, "    ");
+
+		OLED_ShowString(2, 1, "PROC ");
+		OLED_ShowNum   (2, 6, g_stat.proc_count, 7);
+		OLED_ShowString(2, 13, "   ");
+
+		OLED_ShowString(3, 1, "DROPFULL ");
+		OLED_ShowNum   (3, 10, g_stat.queue_full, 4);
+		OLED_ShowString(3, 14, "  ");
+
+		OLED_ShowString(4, 1, "QMAX ");
+		OLED_ShowNum   (4, 6, g_stat.q_max_depth, 2);
+		OLED_ShowString(4, 8, " I2C ");
+		OLED_ShowNum   (4, 13, g_i2c_us_last, 3);
+	}
+}
+
 void task_DISP(void *pvParameters)
 {
 	Stat_t snap;
@@ -1857,6 +1928,16 @@ void task_DISP(void *pvParameters)
 		/* ★ 2026-11-09 加：回显提示倒计时（每帧 200ms，50 拍 = 2 秒）
 		 *   · 放帧首、不参与计时：它只有一次减法，成本可以忽略 */
 		if (g_echo_tip != 0u) { g_echo_tip--; }
+
+		/* ★ 2026-11-09 加：翻页请求（PA0 短按置位，这里消费）
+		 *   · 0=实时数据 1=存储 2=运行，循环切换
+		 *   · 切页后必须整屏重画：旧页残留会和新页混在一起 */
+		if (g_page_next != 0u)
+		{
+			g_page_next = 0u;
+			g_page = (uint8_t)((g_page + 1u) % 3u);
+			s_need_full = 1u;
+		}
 		/* ① 快照 */
 		taskENTER_CRITICAL();
 		snap = g_stat;
@@ -2118,6 +2199,17 @@ void task_DISP(void *pvParameters)
 			 *    L4  RUN 00123 E:00
 			 *========================================================*/
 
+			/* ★ 2026-11-09 加：多页显示分流
+			 *   · g_page == 0 ⇒ 原来的实时数据页（下面这一大段）
+			 *   · 否则 ⇒ Ui_DrawPage 画存储/运行页
+			 *   · 只在这里分流，下面那段一个字节都不用动 */
+			if (g_page != 0u)
+			{
+				Ui_DrawPage(g_page);
+			}
+			else
+			{
+
 			/* ---- L1：温度 + 湿度（固定列宽，正负都不移位）----
 			 *   ★ 2026-10-21 修（实物上看到的 T+02.3C）：
 			 *     · 原写法 OLED_ShowSignedNum(1, 2, ti, 3)
@@ -2298,6 +2390,8 @@ void task_DISP(void *pvParameters)
 				OLED_ShowString(1, 1, "  CARD FULL !   ");
 				OLED_ShowString(2, 1, " REPLACE CARD   ");
 			}
+			}   /* ★ 结束：else（g_page == 0 的实时数据页）*/
+
 			did_refresh = 1u;                            /* ★ 正常画面每 3 帧刷一次*/
 			s_need_full = 0u;                            /* ★ 重画完了 ⇒ 清标记*/
 			}

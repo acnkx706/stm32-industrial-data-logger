@@ -187,6 +187,16 @@ volatile uint8_t g_sd_error = 0;        /* 1=SD 故障（DISP/PROC 只读展示�
  *   · 故障行不判它，所以静默状态下仍然看得见出问题 */
 extern volatile uint8_t g_print_quiet;
 
+/* ★ 2026-11-09 加：给 OLED 状态页用的三个"发布变量"
+ *   · 为什么从这里发布：文件名/大小/剩余空间只有 task_SD 碰得到 FatFs，
+ *     屏任务不能直接调 f_size/f_getfree（FatFs 不是可重入的）
+ *   · 更新时机：挂载成功时填名字、每轮检查文件大小时更新大小、
+ *     sd_space_check 算出剩余空间时更新（该函数自带日限频）
+ *   · 显示端只读，不写 */
+volatile char     g_sd_name[13]  = "------------";   /* "26110901.CSV" 12 字符 + 结束符 */
+volatile uint32_t g_sd_file_kb   = 0u;               /* 当前文件大小（KB） */
+volatile uint32_t g_sd_free_mb   = 0u;               /* 卡剩余空间（MB） */
+
 /* ★ Y2 修复（第 6 课）：最近一次失败的原因码（见 task_sd.h 的完整说明）。
  *   有了它 OLED 才能从"坏了"（g_sd_error=1）升级成"为什么坏了"：
  *   E:03=FR_NOT_READY（没插卡/接触不良）、E:01=FR_DISK_ERR（写中拔卡）、
@@ -1316,6 +1326,16 @@ static FRESULT sd_mount_and_open(uint32_t *pidx)
 	{
 		Serial_Printf("SD: log = %s  size=%lu\r\n",
 		              name, (unsigned long)f_size(&s_log_file));
+
+		/* ★ 2026-11-09：发布给 OLED 状态页
+		 *   · 名字形如 "0:26110901.CSV" ⇒ 跳过 "0:" 拷 12 个字符
+		 *   · 大小同时发布，免得屏那边等到下一轮才有值 */
+		{
+			uint8_t k;
+			for (k = 0u; k < 12u; k++) { g_sd_name[k] = name[k + 2u]; }
+			g_sd_name[12] = '\0';
+			g_sd_file_kb  = (uint32_t)(f_size(&s_log_file) / 1024u);
+		}
 #if SD_DEBUG_ROLL_MINUTE
 		/* ★ 醒目警告（2026-10-11）：调试开关没关
 		 *   它的效果是"每分钟换一个文件"—— 正式使用会导致文件数爆炸。
@@ -1470,6 +1490,7 @@ static void sd_space_check(void)
 
 	csize   = (uint32_t)s_fs->csize;                          /* 每簇扇区数 */
 	free_mb = (uint32_t)(((nclst >> 10) * csize) >> 1);       /* 簇→MB（=×512B÷1MB）*/
+	g_sd_free_mb = free_mb;                                   /* ★ 2026-11-09：发布给 OLED */
 
 	if (free_mb >= SD_FREE_WARN_MB)
 	{
@@ -2286,6 +2307,12 @@ void task_SD(void *pvParameters)
 		 *      ⇒ 自动试下一个 NN（复用现成逻辑，不写新代码）
 		 *  ★ 注意：这里的 continue 是跳过本轮收批，不影响数据。
 		 *    （PROC 侧的缓冲还在队列里，下一轮照收）*/
+
+		/* ★ 2026-11-09：每轮把文件大小发布给 OLED 状态页
+		 *   · f_size 只是读 FIL.fsize 缓存字段，不是真 IO（下面那段注释也这么说）
+		 *   · 放在超限判断之前，保证"刚刚超过上限"那一刻屏上也是新值 */
+		g_sd_file_kb = (uint32_t)(f_size(&s_log_file) / 1024u);
+
 		if (f_size(&s_log_file) >= (FSIZE_t)SD_FILE_SIZE_LIMIT)
 		{
 			Serial_Printf("SD: file over %uMB -> roll to next NN\r\n",
