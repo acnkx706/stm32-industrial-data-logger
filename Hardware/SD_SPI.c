@@ -721,9 +721,27 @@ static SD_Result_t SD_WriteRaw(const uint8_t *buf, uint32_t sector, uint32_t cou
   * @param  无
   * @retval SD_Result_t
   */
+/* ★ 2026-11-09：两个旋钮，用途见 SD_SPI.h */
+static uint16_t s_idle_retry_budget = SD_IDLE_RETRY;
+static uint8_t  s_verbose           = 1u;
+
+void SD_SetRetryBudget(uint16_t n)
+{
+	s_idle_retry_budget = (n == 0u) ? SD_IDLE_RETRY : n;
+}
+
+void SD_SetVerbose(uint8_t on)
+{
+	s_verbose = (on != 0u) ? 1u : 0u;
+}
+
 SD_Result_t SD_Init(void)
 {
-	uint8_t     r1, i;
+	uint8_t     r1;
+	uint16_t    i;                     /* ★ 必须是 16 位：下面 CMD0 重试上限是 300
+	                                    *   用 uint8_t 会永远小于 300 ⇒ 死循环（2026-11-09 修）
+	                                    *   症状：无卡时卡在 CMD0 循环，一行都不打印，
+	                                    *   256 轮后 i 回绕到 0，看起来像"每隔 0.6 秒重新开始" */
 	uint8_t     is_sd2 = 0;
 	uint8_t     ocr[4];
 	uint32_t    t_start;
@@ -742,8 +760,11 @@ SD_Result_t SD_Init(void)
 
 	/* ★ 诊断（2026-10-05）：进门先打一次 Vref，这样即使 CMD0 就失败也能看到电压
 	 *   （上一版把打印都放在 CMD0 成功之后，-> 卡失步时一行都看不到，那样诊断等于没有） */
-	Serial_Printf("SD: begin, Vref=%u (1489=3.3V, bigger=lower)\r\n",
-	              (unsigned)AD_ReadVrefint());
+	if (s_verbose != 0u)
+	{
+		Serial_Printf("SD: begin, Vref=%u (1489=3.3V, bigger=lower)\r\n",
+		              (unsigned)AD_ReadVrefint());
+	}
 
 	/* ① 预热：CS 保持高（不选中）连发 ≥74 个时钟。
 	 *    这是规范要求的上电序列 —— 卡靠这 74+ 个时钟同步内部状态机，
@@ -774,7 +795,10 @@ SD_Result_t SD_Init(void)
 
 	/* ★ 2026-10-12 加打印（诊断）：确认软复位这段过没过
 	 *   （上一版卡在这里，而它一句打印都没有→ 只能靠猜） */
-	Serial_Printf("SD: reset clocks done\r\n");
+	if (s_verbose != 0u)
+	{
+		Serial_Printf("SD: reset clocks done\r\n");
+	}
 
 	/* ② CMD0 复位进 IDLE：期望 R1=0x01。
 	 *    一次不成功很正常（卡刚上电还在走内部流程），最多重发 300 次
@@ -788,7 +812,7 @@ SD_Result_t SD_Init(void)
 	{
 		uint32_t t_dbg = DWT->CYCCNT;
 		Serial_Printf("DBG: enter CMD0 loop\r\n");
-		for (i = 0; i < SD_IDLE_RETRY; i++)
+		for (i = 0; i < s_idle_retry_budget; i++)
 		{
 			r1 = SD_SendCmd(CMD0, 0);
 			SD_Release();
@@ -814,7 +838,7 @@ SD_Result_t SD_Init(void)
 		              (unsigned long)((DWT->CYCCNT - t_dbg) / 72000u));
 	}
 #else
-	for (i = 0; i < SD_IDLE_RETRY; i++)
+	for (i = 0; i < s_idle_retry_budget; i++)
 	{
 		r1 = SD_SendCmd(CMD0, 0);
 		SD_Release();

@@ -37,6 +37,8 @@
 #include "task_sd.h"
 #include "MyRTC.h"
 #include "DWT_Delay.h"           /* DWT->CYCCNT 计时（本工程 CMSIS 没带 DWT，shim 在这里）*/
+#include "SD_SPI.h"              /* ★ 2026-11-09：SD_SetRetryBudget / SD_SetVerbose 的声明在这里
+                                  *   （原来只靠隐式声明能过编译，但返回类型会被当成 int）*/
 /* ★ 2026-10-18 加：掉卡缓存 API（实现在 golden.c，W25 归它所有）
  *   ★ 不加这一行 ⇒ 编译器隐式声明，返回类型全按 int 处理
  *     → 参数/返回值都不校验 ⇒ 出错时查不出来 */
@@ -1905,6 +1907,12 @@ void task_SD(void *pvParameters)
 	uint8_t  mounted      = 0;                  /* 0=未挂载态 1=挂载态 */
 	uint8_t  fail_streak  = 0;                  /* 连续写失败批数 */
 
+	/* ★ 2026-11-09 加：连续"挂载失败"次数
+	 *   · 第 0 次失败（刚掉卡）⇒ 用完整预算 + 完整诊断，一次看够
+	 *   · 之后一直没卡 ⇒ 每次只花约 50 ms（24 轮 CMD0）+ 一行日志
+	 *   · 卡插回来那一次必须重新用完整预算，否则慢启动卡会被判成没卡 */
+	uint16_t mount_fail   = 0;
+
 	/* ★ 2026-10-18 加：本次关机请求是否已经处理过
 	 *
 	 *  ★ 为什么必须有（这是我自己改出来的 bug，实测抓到的）：
@@ -2130,6 +2138,23 @@ void task_SD(void *pvParameters)
 			/* ★ 抽干队列（实现见 Sd_DrainToCache）*/
 			(void)Sd_DrainToCache();
 
+			/* ★ 2026-11-09 加：重挂的"预算"和"啰嗦程度"跟着失败次数走
+			 *   · 第一次失败：300 轮 CMD0 + 完整诊断（够看清是没卡还是坏卡）
+			 *   · 之后每次：24 轮 + 只打关键行
+			 *     实测 300 轮要 0.65 秒，这段时间 SD 任务不抽队列
+			 *     ⇒ PROC 被拖住 ⇒ xQueueRec 满 ⇒ ACQ 丢数据
+			 *     （2026-11-09 实测 drop=235 就是这个） */
+			if (mount_fail == 0u)
+			{
+				SD_SetVerbose(1u);              /* 完整诊断。 */
+				SD_SetRetryBudget(0u);          /* 0 = 用默认 300 轮。 */
+			}
+			else
+			{
+				SD_SetVerbose(0u);              /* 只打关键失败行。 */
+				SD_SetRetryBudget(24u);         /* 约 50 ms 就放弃。 */
+			}
+
 			fr = sd_mount_and_open(&file_idx);
 			if (fr == FR_OK)
 			{
@@ -2175,6 +2200,9 @@ void task_SD(void *pvParameters)
 				 *   ★ 放在挂载成功后、且是 task_SD 里 —— 全工程只有这里能碰 f_xxx */
 				sd_space_check();
 				fail_streak = 0;
+				mount_fail  = 0u;           /* ★ 2026-11-09：挂上就复位，下次掉卡还算"第一次"。*/
+				SD_SetVerbose(1u);
+				SD_SetRetryBudget(0u);
 				g_sd_error  = 0;            /* 复位故障标志：DISP 上摘掉报警 */
 				g_sd_last_err = 0;          /* ★ 屏上语义仍是 E:00 = 当前无错。*/
 
@@ -2184,6 +2212,7 @@ void task_SD(void *pvParameters)
 			}
 			else
 			{
+				if (mount_fail < 0xFFFFu) { mount_fail++; }   /* ★ 2026-11-09：下一轮开始省着试。 */
 				g_sd_error = 1;             /* 无卡/坏卡：亮错误标志（OLED 验收项） */
 				/* ★ Y2：把 FRESULT 原码留给 OLED —— 没插卡时 f_mount 会触发
 				 *   disk_initialize=完整 SD_Init，失败返回 FR_NOT_READY(3)，

@@ -70,4 +70,13 @@ void SD_FakeCardProbe(void);
 #if (TEST_SD_ON)
 void SD_BootTest(void);               /* ★ 2026-10-24 从 main.c 搬来：上电测试（MBR/写读回/假卡） */
 #endif
+
+/* ★ 2026-11-09 加：给"没卡时反复重挂"用的两个旋钮
+ *   · SD_SetRetryBudget：一次 SD_Init 最多重发几次 CMD0。
+ *     首次上电用 300（照顾慢启动卡）；之后的失败重试用 24，
+ *     避免每次重挂都白白阻塞 0.65 秒（实测 300 轮耗时）
+ *   · SD_SetVerbose：0 = 只打关键失败行，1 = 打完整诊断。
+ *     卡一直不在时，每 3 秒刷 10 行对现场毫无价值，只会把串口占死 */
+void SD_SetRetryBudget(uint16_t n);
+void SD_SetVerbose(uint8_t on);
 #endif
