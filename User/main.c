@@ -55,8 +55,12 @@
 const AppMeta_t g_app_meta =
 {
 	APP_META_MAGIC,
-	5u,                        /* ★ 镜像版本（防回滚判据） */
-	20261107u,                 /* ★ 构建标识，只给人看 */
+	6u,                        /* ★ 镜像版本（防回滚判据）
+	                            *   2026-11-09：5 -> 6
+	                            *   为什么要升：参数区 img_min_ver 已经被实验抬到 6，
+	                            *   源码若还是 5，串口升级会被 FAIL downgrade 拦住
+	                            *   （板子/源码/发布物 三者版本必须一致） */
+	20261109u,                 /* ★ 构建标识，只给人看 */
 	0u
 };
 #include "ProbeConfig.h"
@@ -80,7 +84,7 @@ const AppMeta_t g_app_meta =
 /* ★ 2026-11-06（EXP-02）：测试固件版本串带后缀，串口一眼可分辨 */
 #define APP_VER_STR   "APP: ver 74-EXP02 (2026-11-06 dsh: SD latency + stall)"
 #else
-#define APP_VER_STR   "APP: ver 74 (2026-11-05 dsh: SD slow-write forensics)"
+#define APP_VER_STR   "APP: ver 75 (2026-11-09 dsh: SD loop fix + keys + OLED pages)"
 #endif
 /*==============================================================================
  *  ★ 2026-10-22 main() 拆分（纯搬代码，不改任何逻辑）
