@@ -201,10 +201,9 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff)
 /*-----------------------------------------------------------------------
 / get_fattime：FatFs 写目录项/文件时间戳时调用（_FS_NORTC=0 启用）
 /
-/  ★ 阶段 2：没有 RTC，返回固定值 2026-01-01 00:00:00 ——
-/    文件时间不真实但合法（年份 ≥1980 才被 FAT 接受，给了 1970/0 会拒写）。
-/  ★ 阶段 3（执行表 T3.1）：接上 RTC 后把返回值换成真实时间即可，
-/    本函数是唯一落点，ffconf.h / ff.c 都不用再动。
+/  ★ 阶段 3 已接上 RTC：返回真实时间，且用本地时区（2026-11-10 改）。
+/    年份 <1980 时返回 0（FAT 起点是 1980，给 1970 会被拒写）。
+/  ★ 本函数是文件时间戳的唯一落点，ffconf.h / ff.c 都不用动。
 /
 /  FAT 时间位布局：bit31:25=年-1980  bit24:21=月  bit20:16=日  bit15:11=时
 /                  bit10:5 =分      bit4:0 =秒/2
@@ -213,7 +212,11 @@ DWORD get_fattime (void)
 {
 RTC_DateTime_t dt;
 
-	MyRTC_GetDateTime(&dt);
+	/* ★ 2026-11-10 改：UTC → 本地时间
+	 *   文件名（YYMMDDNN）本来就是本地日期，这里原来写 UTC
+	 *   ⇒ 卡插到 PC 上，文件名 11-10、修改时间却是 11-09 16:00
+	 *   FAT 没有时区概念，写本地时间才是 PC 看到"对"的唯一办法 */
+	MyRTC_GetLocalDateTime(&dt);
 	if (dt.year < 1980u) { return 0u; }              /* ★ FAT 起点是 1980。 */
 
 	return ((DWORD)(dt.year - 1980u) << 25)

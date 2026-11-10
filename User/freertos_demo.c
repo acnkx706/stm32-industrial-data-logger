@@ -1609,6 +1609,17 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 		Serial_Printf("OLED: reinit done\r\n");
 	}
 
+	/* ★ 2026-11-10 加：M1 / M0 = 蜂鸣器静音开关（台面调试用）
+	 *   卡一拔 g_sd_error=1，蜂鸣器就一直响，读卡、拷数据期间没法工作。
+	 *   状态存进 BKP_DR4（有电池）⇒ 复位、重烧、断电都记得，不用每次重发。
+	 *   只关声音，g_sd_error / 屏上 E:xx / 串口 sd_err 全不变 */
+	if ((n == 2u) && (s[0] == 'M') && ((s[1] == '0') || (s[1] == '1')))
+	{
+		Buzz_SilencePersist((s[1] == '1') ? 1u : 0u);
+		Serial_Printf("APP: buzz %s (saved)\r\n", (s[1] == '1') ? "MUTED" : "ON");
+		return;
+	}
+
 	if ((n == 1u) && (s[0] == 'S'))
 	{
 		/* ★ 2026-10-18 加：存备份也要画屏。
@@ -2464,7 +2475,11 @@ void task_DISP(void *pvParameters)
 		 *     · 新阈值 120ms 的依据。
 		 *        常态 max ≈ 84~98 ms，留约 25% 余量 ⇒ 120 ms。
 		 *        （超过它 = 真的被谁拖了，值得看一眼）*/
-		if ((dt_us > 120000u) && (g_print_quiet == 0u))
+		/* ★ 2026-11-10 改：阈值 120ms → 180ms
+		 *   11-09 加多页显示 + 面板保活后，实测常态帧 117~124 ms
+		 *   （上面的 64~84 ms 已作废）⇒ 120 ms 落在噪声里，三分之一帧都触发
+		 *   180 ms = 124 × 1.45，只有真被拖住才报 */
+		if ((dt_us > 180000u) && (g_print_quiet == 0u))
 		{
 			Serial_Printf("DISP: SLOW frame %u us !\r\n", (unsigned)dt_us);
 		}

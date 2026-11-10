@@ -1651,6 +1651,10 @@ static uint16_t s_ds_len = 0u;
  *     · 缓存真写失败时，要能把"这几条"如实记成 # LOST
  *       而不是一声不吭地丢 */
 static uint16_t s_ds_lines = 0u;
+/* ★ 2026-11-10 加：攒批"停顿"计数
+ *   一批不到 4 条 = 5 秒窗口只等到 1~3 条（正常应 5~6 条）
+ *   用途：查"每批 3.67 条"那个异常；也能验证 s_ds_t0 的修复是否生效 */
+static uint32_t s_ds_stall = 0u;
 /* ★ 2026-10-19 加：攒批的起点时刻，用来做"超时刷"。
  *   ★ 为什么需要（用户提出的窗口问题）：
  *     · 攒批缓冲在 RAM 里，若一直没攒满、卡又没回来 ⇒
@@ -1729,14 +1733,15 @@ static uint16_t Sd_DrainToCache(void)
 		 *   · 改后：每 256 条记录才擦一次 ⇒ 掉卡几分钟只涨 0~1 
 		 *   ⇒ 这两个数按秒在涨= 没走日志路径，立刻回头看。
 		 *     （专门留的观测点，不用接调试器）*/
-		Serial_Printf("SD: drained %u batch (stored %u, ram=%u recs) pending=%u ovr=%u hdrer=%u evter=%u\r\n",
+		Serial_Printf("SD: drained %u batch (stored %u, ram=%u recs) pending=%u ovr=%u hdrer=%u evter=%u stall=%lu\r\n",
 		              (unsigned)n,
 		              (unsigned)stored,
 		              (unsigned)s_ds_lines,
 		              (unsigned)DropCache_PendingBatches(),
 		              (unsigned)DropCache_OverflowCount(),
 		              (unsigned)DropCache_HdrErases(),
-		              (unsigned)DropCache_EvtHdrErases());
+		              (unsigned)DropCache_EvtHdrErases(),
+		              (unsigned long)s_ds_stall);
 	}
 	return n;
 }
@@ -1792,12 +1797,33 @@ static uint32_t s_ds_last_rtc = 0u;
  *      replay done 30 batches / 168 recs 与 12 batches / 70 recs。
  *      ⇒ 平均 5.6 ~ 5.8 条 / 批（不是写死的 5 条）
  *    · 降采样后进缓存的速率实测约 1.03 ~ 1.14 条/秒。
- *    · ⇒ 容量 = 7616 槽 × 5.7 条 ÷ 1.1 条/秒 ≈ 39,000 秒 ≈ 10.8 小时 
- *      （与上面 10.6 小时吻合，所以这个注释现在算实测值）
- *    · 注意，它取决于平均行宽（数值位数一变就变）
- *      想更准就按 replay done 那行反算，别信估的 
- *      （行宽 = 512 B ÷ 5.7 条 ≈ 90 B/条）
+ *    · 2026-11-10 实测校正：5.72 条/批、1.0 条/秒
+ *      ⇒ 容量 ≈ 43,500 秒 ≈ 12.1 小时（原估 10.8 小时，错在把速率当成 1.1 条/秒）
+ *    · 它取决于平均行宽（数值位数一变就变），想更准就按 replay done 那行反算
  *============================================================================*/
+/* ★ 2026-11-10 诊断：这一批几条、多少字节、为什么刷
+ *   三次实测 4.75 / 3.67 / 6.0 条一批，按代码推不出这么大的差异
+ *   判据：why=full 且 len≈511 正常；why=timeout 且 len 三百多 = 提前刷
+ *   影响：只多一行串口，缓存逻辑一字未改 */
+#if (TEST_CACHE_STATS != 0)
+static void Sd_DsLogPut(uint16_t len, uint16_t lines, uint8_t why)
+{
+	Serial_Printf("SD: put n=%u len=%u why=%s\r\n",
+	              (unsigned)lines, (unsigned)len,
+	              (why == 1u) ? "full" : "timeout");
+}
+#else
+#define Sd_DsLogPut(a, b, c)   do { } while (0)
+#endif
+
+/* ★ 2026-11-10 加：记一次"这批算不算停顿"
+ *   阈值 4：正常装满 5~6 条，低于 4 说明 5 秒窗口里没等到数据
+ *   不写进 Sd_DsLogPut，因为那个开关关掉之后就不再被调用了 */
+static void Sd_DsCountPut(uint16_t lines)
+{
+	if (lines < 4u) { s_ds_stall++; }
+}
+
 static uint16_t Sd_DsPush(const uint8_t *src, uint16_t len)
 {
 	uint16_t i     = 0u;
@@ -1847,6 +1873,8 @@ static uint16_t Sd_DsPush(const uint8_t *src, uint16_t len)
 				 *       （单位是"条"，所以要用 s_ds_lines，不是 s_ds_len）*/
 				if (s_ds_len != 0u)
 				{
+					Sd_DsLogPut(s_ds_len, s_ds_lines, 1u);     /* ★ why=full */
+					Sd_DsCountPut(s_ds_lines);
 					if (DropCache_PutBatch(s_ds_buf, s_ds_len) == 1u)
 					{
 						saved++;
@@ -1860,6 +1888,11 @@ static uint16_t Sd_DsPush(const uint8_t *src, uint16_t len)
 				}
 				s_ds_len   = 0u;
 				s_ds_lines = 0u;
+				/* ★ 2026-11-10 修：装满刷也必须复位计时起点
+				 *   不复位 ⇒ 下一条进来时 t0 还是旧的
+				 *   ⇒ 100ms 后巡检判"已超 5 秒" ⇒ 单条成批
+				 *   （实测 17 次 full 全都紧跟一个 n=1，白占一个槽）*/
+				s_ds_t0    = 0u;
 			}
 
 			if ((uint16_t)(s_ds_len + need) <= SD_BUF_SIZE)
@@ -1910,6 +1943,9 @@ static uint16_t Sd_DsFlush(void)
 	 *   · 而调用方 Sd_DrainToCache() 里的 stored
 	 *     只累计了 Sd_DsPush() 的返回 ⇒ 恒为 0 
 	 *   · 所以本函数必须把战果返给调用者。*/
+	Sd_DsLogPut(s_ds_len, s_ds_lines, 2u);                  /* ★ why=timeout */
+	Sd_DsCountPut(s_ds_lines);
+
 	if (DropCache_PutBatch(s_ds_buf, s_ds_len) != 1u)
 	{
 		Loss_Add(LOSS_SD_WRITE, s_ds_lines);

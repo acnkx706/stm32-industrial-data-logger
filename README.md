@@ -6,7 +6,7 @@ STM32F103CBT6 + FreeRTOS + FatFs 的数据记录板。板上接 MPU6050、BMP280
 设计目标是：掉电最多丢最后一批、已经 `f_sync` 过的数据不会写坏、卡拔下来能直接当 CSV 打开。
 做到了多少见第 5 节，没做到的在第 10 节。
 
-板上现在跑 APP ver 75（镜像版本 6），带 Bootloader，升级走串口，不需要 ST-Link。
+板上现在跑 APP ver 76（镜像版本 7），带 Bootloader，升级走串口，不需要 ST-Link。
 
 ## 1. 硬件
 

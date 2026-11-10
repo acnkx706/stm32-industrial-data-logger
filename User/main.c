@@ -55,12 +55,11 @@
 const AppMeta_t g_app_meta =
 {
 	APP_META_MAGIC,
-	6u,                        /* ★ 镜像版本（防回滚判据）
-	                            *   2026-11-09：5 -> 6
-	                            *   为什么要升：参数区 img_min_ver 已经被实验抬到 6，
-	                            *   源码若还是 5，串口升级会被 FAIL downgrade 拦住
-	                            *   （板子/源码/发布物 三者版本必须一致） */
-	20261109u,                 /* ★ 构建标识，只给人看 */
+	7u,                        /* ★ 镜像版本（防回滚判据）
+	                            *   2026-11-10：6 -> 7（FAT 本地时间 + M0/M1 静音）
+	                            *   只增不减，小于参数区 img_min_ver 会被拒绝安装
+	                            *   板子 / 源码 / 发布物 三者必须同时改 */
+	20261110u,                 /* ★ 构建标识，只给人看 */
 	0u
 };
 #include "ProbeConfig.h"
@@ -84,7 +83,7 @@ const AppMeta_t g_app_meta =
 /* ★ 2026-11-06（EXP-02）：测试固件版本串带后缀，串口一眼可分辨 */
 #define APP_VER_STR   "APP: ver 74-EXP02 (2026-11-06 dsh: SD latency + stall)"
 #else
-#define APP_VER_STR   "APP: ver 75 (2026-11-09 dsh: SD loop fix + keys + OLED pages)"
+#define APP_VER_STR   "APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)"
 #endif
 /*==============================================================================
  *  ★ 2026-10-22 main() 拆分（纯搬代码，不改任何逻辑）
@@ -161,6 +160,7 @@ static void App_InitUi(void)
 	 *     · SD 故障 → 持续间歇响（无人值守时唯一的"叫人"手段）
 	 *     · 按键反馈 → 短促一声 */
 	Buzz_Init();
+	Buzz_Restore();              /* ★ 2026-11-10：从 BKP_DR4 恢复静音状态 */
 
 	/* ★ 2026-11-09：无人值守静音（开关在 ProbeConfig.h 的 TEST_MUTE_BUZZ）
 	 *   ★ 为什么：拔卡跑缓存灌满实验时 g_sd_error 恒为 1

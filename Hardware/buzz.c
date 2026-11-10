@@ -1,5 +1,6 @@
 #include "stm32f10x.h"                  // Device header
 #include "buzz.h"
+#include "Serial.h"                     /* ★ 2026-11-10：Buzz_Restore 要打一行状态 */
 
 void Buzz_Init(void)
 {
@@ -110,6 +111,45 @@ void Buzz_Silence(uint8_t on)
 uint8_t Buzz_IsSilent(void)
 {
 	return s_silent;
+}
+
+/*==============================================================================
+ *  ★ 静音状态持久化（2026-11-10 加）
+ *
+ *  ★ 为什么：M1/M0 原来是纯 RAM 标志，复位 / 重烧 / 断电就失效。
+ *    台面调试拔卡时蜂鸣器一直响，每次烧录都要重发一次 M1。
+ *
+ *  ★ 存在哪：BKP_DR4（备份域有电池 ⇒ 断电也记得）
+ *    DR1=RTC 魔数 DR2=升级标志 DR3=回退标志 DR5=对时魔数 ⇒ DR4 空闲。
+ *
+ *  ★ 为什么要自己解锁备份域：本函数可能在 MyRTC_Init 之前被调用
+ *    （Buzz_Init 在 App_InitUi 里，而 RTC 在下一步）。
+ *============================================================================*/
+#define BUZZ_BKP_DR      BKP_DR4
+#define BUZZ_BKP_MAGIC   0x5A6Bu      /* ★ 任意非 0、非 0xFFFF 的值。 */
+
+static void Buzz_BkpUnlock(void)
+{
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
+	PWR_BackupAccessCmd(ENABLE);
+}
+
+void Buzz_Restore(void)
+{
+	Buzz_BkpUnlock();
+	if (BKP_ReadBackupRegister(BUZZ_BKP_DR) == BUZZ_BKP_MAGIC)
+	{
+		Buzz_Silence(1u);
+		/* ★ 必须打一行：不然"静音了"和"没恢复"在串口上分不出来 */
+		Serial_Printf("BUZZ: silent (restored from BKP_DR4)\r\n");
+	}
+}
+
+void Buzz_SilencePersist(uint8_t on)
+{
+	Buzz_BkpUnlock();
+	Buzz_Silence(on);
+	BKP_WriteBackupRegister(BUZZ_BKP_DR, (on != 0u) ? BUZZ_BKP_MAGIC : 0u);
 }
 
 void Buzz_Poll(void)

@@ -12,6 +12,12 @@
 
 static SemaphoreHandle_t s_ser_lock = NULL;
 
+/* ★ 2026-11-10 加：静态控制块
+ *   原因：configTOTAL_HEAP_SIZE 只有 64 B，xSemaphoreCreateMutex() 必然失败
+ *   ⇒ s_ser_lock 一直是 NULL ⇒ "整行原子打印"从没真正生效
+ *   ⇒ 多个任务同时打印时，一条消息会被别的任务的字节插进中间 */
+static StaticSemaphore_t s_ser_cb;
+
 void Serial_Init(void)
 {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);
@@ -67,15 +73,15 @@ void Serial_Init(void)
 
 	USART_Cmd(USART1,ENABLE);
 
-	/* ★ 2026-10-17 加：为"整行原子打印"建互斥量 
-	 *   ★ 为什么在这里建：Serial_Init 跑在调度器启动之前
-	 *     而 FreeRTOS 允许在启动前创建内核对象
-	 *   ★ 失败（堆不够）⇒ 句柄保持 NULL
-	 *     ⇒ Serial_Printf 会退化成不加锁，但绝不崩
-	 *   ★ 代价：约 80~88 字节堆
-	 *     （本工程堆余量本来就紧，heapmin 1456 ⇒ 判据要跟着调
-	 *       见 长稳验收报告.md §七 第 ⑧ 条） */
-	s_ser_lock = xSemaphoreCreateMutex();
+	/* ★ 2026-10-17 加：为"整行原子打印"建互斥量
+	 *   为什么在这里建：Serial_Init 跑在调度器启动之前，
+	 *   而 FreeRTOS 允许在启动前创建内核对象。
+	 *
+	 * ★ 2026-11-10 改：动态 → 静态
+	 *   原来 xSemaphoreCreateMutex() 要 ~80 B 堆，而 configTOTAL_HEAP_SIZE
+	 *   只有 64 B ⇒ 必然返回 NULL ⇒ 这把锁从建的那天起就没生效过
+	 *   （打印会被别的任务插进字节流中间）。改静态后控制块进 .bss。 */
+	s_ser_lock = xSemaphoreCreateMutexStatic(&s_ser_cb);
 }
 
 

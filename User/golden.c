@@ -353,9 +353,10 @@ static uint8_t Golden_WriteAll(uint8_t slow)
  *    · 旧事件区（0x240000）正好落在新数据区里
  *    · 所以把它整体挪到 0x7A1000，数据区一口气吃到 0x7A1000 
  *
- *  ★ 容量换算（实测批大小）：
- *    · 实测6 条/批，7616 批 × 6 = 45,696 条
- *    · 记录率 10 条/秒 ⇒ 约 76 分钟（旧版只有 20 分钟）
+ *  ★ 容量换算（2026-11-10 实测校正，原注释的"6 条/批"已作废）
+ *    · 实测 5.72 条/批（603 个样本，`SD: put n= len=` 统计）
+ *    · 7616 × 5.72 ≈ 43,500 条；降采样 1 条/秒 ⇒ 约 12.1 小时
+ *    · 满环回写实测 72 分钟（7,616 批 / 27,935 条，2026-11-10）
  *  ★ 环形覆盖：满了丢最旧的，保住"最近的"
  *    · 取舍说清楚：宁可丢 2 小时前的，也要保住刚才的 
  *      （断卡场景下"最近的数据"才是要救的）
@@ -973,6 +974,7 @@ uint8_t DropCache_Init(void)
 uint8_t DropCache_PutBatch(const uint8_t *p, uint16_t len)
 {
 	uint8_t r;
+
 	if (Dc_Lock() == 0u) { return 0u; }
 	r = Dc_Put(DC_DATA_HDR_A, DC_DATA_HDR_B, &s_log_d, DC_DATA_BASE,
 	           (uint16_t)DC_DATA_SLOTS, (uint16_t)DC_DATA_ITEM, &s_dc_d, p, len, 1u);

@@ -41,4 +41,10 @@ void    Buzz_Poll(void);             /* ★ 由 task_DISP 每帧调用，产生�
 void    Buzz_Silence(uint8_t on);    /* ★ 静音开关，1=静音。 */
 uint8_t Buzz_IsSilent(void);
 
+/* ★ 2026-11-10 加：静音状态持久化（存 BKP_DR4，有电池 ⇒ 断电也记得）
+ *   为什么：M1/M0 原来只有 RAM 标志，复位/重烧就失效，台面调试时反复响。
+ *   用法：开机 Buzz_Init() 之后调 Buzz_Restore()；M1/M0 用 Buzz_SilencePersist()。 */
+void    Buzz_Restore(void);
+void    Buzz_SilencePersist(uint8_t on);
+
 #endif
