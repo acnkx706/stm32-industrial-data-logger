@@ -1,0 +1,955 @@
+#CAP,1793952732,start port=COM12 secs=120
+
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=44D4
+BOOT: no upgrade request -> normal boot
+BOOT: app valid -> jumping
+=== boot ===
+APP: ver 74 (2026-11-05 dsh: SD slow-write forensics)
+CRC: KERMIT=0x2189(want 2189)  XMODEM=0x31C3(want 31C3)
+VREFINT raw=1475 cal=65535 (CAL invalid -> use direction only)
+  raw up = VDD down: 1489=3.3V ok / 1800=2.73V / 2185=2.25V brownout!
+OLED: found 1, ACK addr=1 ctrl=1 cmd=1
+OLED: stress 8x128 bytes, lost ACK = 0
+W25Q64: JEDEC = 0xEF4017 (expect 0xEF4017) -> PRESENT
+W25Q64: pins SCK=PA8  MISO=PA11  MOSI=PA12  CS=PB13
+
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=44D4
+BOOT: no upgrade request -> normal boot
+BOOT: app valid ­
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=44D4
+BOOT: no upgrade request -> normal boot
+BOOT: app valid -> jumping
+=== boot ===
+APP: ver 74 (2026-11-05 dsh: SD slow-write forensics)
+CRC: KERMIT=0x2189(want 2189)  XMODEM=0x31C3(want 31C3)
+VREFINT raw=1481 cal=65535 (CAL invalid -> use direction only)
+  raw up = VDD down: 14ø
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF Sú
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=44D4
+BOOT: no upgò
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup 
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=44D4
+BOOT: no upgrade request -> normal boot
+BOOT: app valid -> jumping
+=== boot ===
+APP: ver 74 (2026-11-05 dsh: SD slow-write forensics)
+CRC: KERMIT=0x2189(want 2189)  XMODEM=0x31C3(want 31C3)
+VREFINT raw=1475 cal=65535 (CAL invalid -> use direction only)
+  raw up = VDD down: 1489=3.3V ok / 1800=2.73V / 2185=2.25V brownout!
+OLED: found 1, ACK addr=1 ctrl=1 cmd=1
+OLED: stress 8x128 bytes, lost ACK = 0
+W25Q64: JEDEC = 0xEF4017 (expect 0xEF4017) -> PRESENT
+W25Q64: pins SCK=PA8  MISO=PA11  MOSI=PA12  CS=PB13
+MyRTC: BDCR=0x00008103 (bit0 LSEON / bit1 LSERDY / bit2 LSEBYP)
+MyRTC: already configured (BKP magic hit) -> keep counter
+RTC now = 2026-11-06 08:12:28   (unix=1793952748)
+  ^^ NOTE: this self-check only proves the counter ROUND-TRIPS,
+         NOT that the time is correct. The real check is on the PC:
+         time_sync.py asserts |diff| <= 2 s against the PC clock.
+MPU ID = 68 (expect 68)
+BMP280 init = 0 (0=OK / 1=ID wrong / 2=no bus)
+BMP280 selftest: T=2508 (expect 2508)  P=100653 (expect 100653)
+BMP280 selftest: PASS
+BMP280 raw : press=692390 (x10Pa)  temp=2329 (x100C)
+BMP280 real: press=692.3 hPa   temp=23.29 C
+  ^^ compare temp with DS18B20 above (expect within ~1C)
+gyro calibrating, keep still for 2s ...
+
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=44D4
+BOOT: no upgrade request -> normal boot
+BOOT: app valid -> jumping
+=== boot ===
+APP: ver 74 (2026-11-05 dsh: SD slow-write forensics)
+CRC: KERMIT=0x2189(want 2189)  XMODEM=0x31C3(want 31C3)
+VREFINT raw=1473 cal=65535 (CAL invalid -> use direction only)
+  raw up = VDD down: 1489=3.3V ok / 1800=2.73V / 2185=2.25V brownout!
+OLED: found 1, ACK addr=1 ctrl=1 cmd=1
+OLED: stress 8x128 bytes, lost ACK = 0
+W25Q64: JEDEC = 0xEF4017 (expect 0xEF4017) -> PRESENT
+W25Q64: pins SCK=PA8  MISO=PA11  MOSI=PA12  CS=PB13
+MyRTC: BDCR=0x00008103 (bit0 LSEON / bit1 LSERDY / bit2 LSEBYP)
+MyRTC: already configured (BKP magic hit) -> keep counter
+RTC now = 2026-11-06 08:12:43   (unix=1793952763)
+  ^^ NOTE: this self-check only proves the counter ROUND-TRIPS,
+         NOT that the time is correct. The real check is on the PC:
+         time_sync.py asserts |diff| <= 2 s against the PC clock.
+MPU ID = 68 (expect 68)
+BMP280 init = 0 (0=OK / 1=ID wrong / 2=no bus)
+BMP280 selftest: T=2508 (expect 2508)  P=100653 (expect 100653)
+BMP280 selftest: PASS
+BMP280 raw : press=692390 (x10Pa)  temp=2329 (x100C)
+BMP280 real: press=692.3 hPa   temp=23.29 C
+  ^^ compare temp with DS18B20 above (expect within ~1C)
+gyro calibrating, keep still for 2s ...
+MPU OFF acc=(70,-43,-160) fixed, gyro=(-1,14,-49) boot-cal
+GYRO residual=(3,-5,28)  (abs>5 = calibration NOT trustworthy)
+AD init: light=1828 vbat=2091 (raw 0-4095)
+DHT22: humi=52.5 %RH  temp=21.7 C
+DHT22: (compare with DS18B20 below; DHT22 self-heats a bit)
+WIRE: PB14 float 0/8 ipu 8/8 | PB15 float 8/8 ipu 8/8
+WIRE: DS18B20 presence = 124 us (60..240=ok 0=no ack 65535=stuck low)
+SD: begin, Vref=1474 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1473
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x01
+SD: ACMD41 #5 R1=0x01
+SD: ACMD41 ready after 159 tries
+---- SD test ----
+SD_Init=0 (OK) cardtype=4 (1=V1 2=V2 4=SDHC)
+read sector0 = 0 (OK)
+sector0[0..15]: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+MBR sig = 55 AA (expect 55 AA)
+part1 type=0x0C start=8192 sec, sectors=7736320 (~3777 MB)
+write sec 8191 [before-part] = 0 (OK)
+  [dbg] write ok, blanking buffer...
+  [dbg] calling SD_ReadBlocks(sec=8191)...
+  [dbg] SD_ReadBlocks returned 0
+  read back = 0 (OK)
+  verify: PASS
+=== Init Done ===
+queue ok: item=44 bytes
+DROP: log d=134/0 e=0/0  pending=48/0
+GOLD: my image crc=0x44D4  blacklist=0x0283
+GOLD: backup already matches this image -> nothing to do
+SD: begin, Vref=1474 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1472
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x01
+SD: ACMD41 #5 R1=0x01
+SD: ACMD41 ready after 6 tries
+REC,seq<1>,tick<101>,press<1024300>,rtc<1793952766>,ax<850>,ay<-22>,az<1840>,gx<5>,gy<-12>,gz<24>,temp_ds<-32768>,temp_chip<2257>,humi<65535>,light<1790>,vbat<2093>,crc<34013>
+SD: [1] f_mount OK
+SD: [2] date = 2026-11-06
+SD: [3] nn=1 trying 0:26110601.CSV
+SD: [4] opened 0:26110601.CSV  size=0
+SD: [5] lseek(end) fr=0
+SD: [6] lseek(sz-1) fr=0
+SD: [7] read1 fr=0 br=1 last=0x0A
+SD: last_rtc=0  now=1793952766  diff=-1793952766s
+SD: log = 0:26110601.CSV  size=85
+SD: [8] mount exit fr=0
+REC,seq<2>,tick<201>,press<1024300>,rtc<1793952766>,ax<852>,ay<-23>,az<1845>,gx<3>,gy<-10>,gz<21>,temp_ds<-32768>,temp_chip<2257>,humi<65535>,light<1783>,vbat<2097>,crc<11264>
+SD: cache restored 1 batch (left=47)
+REC,seq<3>,tick<301>,press<1024300>,rtc<1793952766>,ax<850>,ay<-21>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<-32768>,temp_chip<2258>,humi<65535>,light<1778>,vbat<2083>,crc<62929>
+REC,seq<4>,tick<401>,press<1024300>,rtc<1793952766>,ax<850>,ay<-22>,az<1844>,gx<6>,gy<-15>,gz<30>,temp_ds<-32768>,temp_chip<2258>,humi<65535>,light<1778>,vbat<2088>,crc<18082>
+REC,seq<5>,tick<501>,press<1024300>,rtc<1793952767>,ax<852>,ay<-21>,az<1844>,gx<5>,gy<-13>,gz<27>,temp_ds<-32768>,temp_chip<2258>,humi<65535>,light<1770>,vbat<2079>,crc<39907>
+REC,seq<6>,tick<601>,press<1024300>,rtc<1793952767>,ax<852>,ay<-22>,az<1842>,gx<5>,gy<-12>,gz<25>,temp_ds<-32768>,temp_chip<2259>,humi<65535>,light<1770>,vbat<2085>,crc<33570>
+REC,seq<7>,tick<701>,press<1024300>,rtc<1793952767>,ax<851>,ay<-23>,az<1844>,gx<5>,gy<-13>,gz<27>,temp_ds<-32768>,temp_chip<2258>,humi<65535>,light<1768>,vbat<2091>,crc<46031>
+SD: cache restored 1 batch (left=46)
+REC,seq<8>,tick<801>,press<1024300>,rtc<1793952767>,ax<851>,ay<-21>,az<1845>,gx<6>,gy<-14>,gz<29>,temp_ds<-32768>,temp_chip<2259>,humi<65535>,light<1768>,vbat<2104>,crc<41852>
+REC,seq<9>,tick<901>,press<1024300>,rtc<1793952767>,ax<849>,ay<-23>,az<1838>,gx<5>,gy<-15>,gz<27>,temp_ds<-32768>,temp_chip<2260>,humi<65535>,light<1764>,vbat<2085>,crc<58996>
+REC,seq<10>,tick<1001>,press<1024300>,rtc<1793952767>,ax<851>,ay<-23>,az<1843>,gx<5>,gy<-13>,gz<27>,temp_ds<-32768>,temp_chip<2260>,humi<65535>,light<1768>,vbat<2091>,crc<64477>
+REC,seq<11>,tick<1101>,press<1024300>,rtc<1793952767>,ax<849>,ay<-23>,az<1841>,gx<5>,gy<-15>,gz<27>,temp_ds<-32768>,temp_chip<2261>,humi<65535>,light<1766>,vbat<2093>,crc<38613>
+IDLE: 550/1000 ms  hook 651/s  blank 0
+REC,seq<12>,tick<1201>,press<1024300>,rtc<1793952767>,ax<849>,ay<-22>,az<1843>,gx<5>,gy<-14>,gz<28>,temp_ds<-32768>,temp_chip<2261>,humi<65535>,light<1764>,vbat<2091>,crc<21981>
+SONAR: 105 mm (pulse 614 us, edges 3)
+REC,seq<13>,tick<1301>,press<1024290>,rtc<1793952767>,ax<849>,ay<-21>,az<1842>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2262>,humi<65535>,light<1766>,vbat<2096>,crc<15775>
+SD: cache restored 1 batch (left=45)
+REC,seq<14>,tick<1401>,press<1024290>,rtc<1793952767>,ax<852>,ay<-21>,az<1845>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2262>,humi<65535>,light<1760>,vbat<2104>,crc<20249>
+REC,seq<15>,tick<1501>,press<1024290>,rtc<1793952768>,ax<851>,ay<-22>,az<1842>,gx<5>,gy<-13>,gz<27>,temp_ds<2131>,temp_chip<2262>,humi<65535>,light<1762>,vbat<2087>,crc<33223>
+REC,seq<16>,tick<1601>,press<1024290>,rtc<1793952768>,ax<848>,ay<-23>,az<1840>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2262>,humi<65535>,light<1764>,vbat<2085>,crc<9059>
+REC,seq<17>,tick<1701>,press<1024290>,rtc<1793952768>,ax<850>,ay<-23>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2262>,humi<65535>,light<1768>,vbat<2091>,crc<12679>
+REC,seq<18>,tick<1801>,press<1024290>,rtc<1793952768>,ax<848>,ay<-22>,az<1840>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2263>,humi<65535>,light<1768>,vbat<2093>,crc<21155>
+SD: cache restored 1 batch (left=44)
+REC,seq<19>,tick<1901>,press<1024290>,rtc<1793952768>,ax<848>,ay<-21>,az<1840>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2263>,humi<65535>,light<1766>,vbat<2096>,crc<14021>
+REC,seq<20>,tick<2001>,press<1024290>,rtc<1793952768>,ax<850>,ay<-23>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2263>,humi<65535>,light<1776>,vbat<2093>,crc<53588>
+REC,seq<21>,tick<2101>,press<1024290>,rtc<1793952768>,ax<849>,ay<-21>,az<1841>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2264>,humi<65535>,light<1784>,vbat<2098>,crc<2568>
+REC,seq<22>,tick<2201>,press<1024290>,rtc<1793952768>,ax<851>,ay<-23>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2264>,humi<65535>,light<1766>,vbat<2095>,crc<30720>
+IDLE: 638/1000 ms  hook 711/s  blank 0REC,seq<23>,tick<2301>,press<1024290>,rtc<1793952768>,ax<850>,ay<-21>,az<1845>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2264>,humi<65535>,light<1768>,vbat<2079>,crc<36913>
+
+SONAR: 105 mm (pulse 614 us, edges 5)
+SD: cache restored 1 batch (left=43)
+REC,seq<24>,tick<2401>,press<1024290>,rtc<1793952768>,ax<851>,ay<-20>,az<1849>,gx<5>,gy<-13>,gz<27>,temp_ds<2131>,temp_chip<2266>,humi<525>,light<1774>,vbat<2088>,crc<46385>
+REC,seq<25>,tick<2501>,press<1024290>,rtc<1793952769>,ax<849>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2266>,humi<525>,light<1762>,vbat<2079>,crc<58176>
+REC,seq<26>,tick<2601>,press<1024290>,rtc<1793952769>,ax<849>,ay<-22>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2266>,humi<525>,light<1762>,vbat<2089>,crc<4560>
+REC,seq<27>,tick<2701>,press<1024290>,rtc<1793952769>,ax<848>,ay<-23>,az<1842>,gx<6>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2266>,humi<525>,light<1766>,vbat<2095>,crc<44299>
+REC,seq<28>,tick<2801>,press<1024290>,rtc<1793952769>,ax<851>,ay<-23>,az<1843>,gx<5>,gy<-16>,gz<29>,temp_ds<2131>,temp_chip<2266>,humi<525>,light<1772>,vbat<2087>,crc<39817>
+REC,seq<29>,tick<2901>,press<1024290>,rtc<1793952769>,ax<847>,ay<-21>,az<1846>,gx<5>,gy<-13>,gz<28>,temp_ds<2131>,temp_chip<2266>,humi<525>,light<1766>,vbat<2091>,crc<64267>
+SD: cache restored 1 batch (left=42)
+REC,seq<30>,tick<3001>,press<1024290>,rtc<1793952769>,ax<848>,ay<-19>,az<1841>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2267>,humi<525>,light<1768>,vbat<2094>,crc<17631>
+---- Task table (8) ----
+PROC     RUN prio=2 stkfree=118
+IDLE     RDY prio=0 stkfree=44
+KEY      BLK prio=2 stkfree=41
+ACQ      BLK prio=6 stkfree=59
+DISP     BLK prio=1 stkfree=92
+sensor   BLK prio=1 stkfree=193
+SD       BLK prio=1 stkfree=146
+GOLD     BLK prio=1 stkfree=171
+REC,seq<31>,tick<3101>,press<1024290>,rtc<1793952769>,ax<849>,ay<-20>,az<1842>,gx<6>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2265>,humi<525>,light<1764>,vbat<2095>,crc<14010>
+REC,seq<32>,tick<3201>,press<1024290>,rtc<1793952769>,ax<851>,ay<-24>,az<1850>,gx<5>,gy<-12>,gz<28>,temp_ds<2131>,temp_chip<2267>,humi<525>,light<1754>,vbat<2086>,crc<1760>
+REC,seq<33>,tick<3301>,press<1024290>,rtc<1793952769>,ax<847>,ay<-22>,az<1841>,gx<5>,gy<-16>,gz<28>,temp_ds<2131>,temp_chip<2267>,humi<525>,light<1754>,vbat<2093>,crc<22045>
+SONAR: 105 mm (pulse 614 us, edges 7)
+REC,seq<34>,tick<3401>,press<1024290>,rtc<1793952769>,ax<850>,ay<-21>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2266>,humi<525>,light<1762>,vbat<2093>,crc<55446>
+IDLE: 603/1000 ms  hook 688/s  blank 0
+REC,seq<35>,tick<3501>,press<1024290>,rtc<1793952770>,ax<847>,ay<-20>,az<1845>,gx<5>,gy<-14>,gz<27>,temp_ds<2125>,temp_chip<2268>,humi<525>,light<1756>,vbat<2099>,crc<40258>
+SD: cache restored 1 batch (left=41)
+REC,seq<36>,tick<3601>,press<1024290>,rtc<1793952770>,ax<847>,ay<-20>,az<1840>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2267>,humi<525>,light<1758>,vbat<2112>,crc<18478>
+REC,seq<37>,tick<3701>,press<1024290>,rtc<1793952770>,ax<848>,ay<-20>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2268>,humi<525>,light<1752>,vbat<2087>,crc<34906>
+REC,seq<38>,tick<3801>,press<1024290>,rtc<1793952770>,ax<848>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2268>,humi<525>,light<1754>,vbat<2091>,crc<23024>
+REC,seq<39>,tick<3901>,press<1024290>,rtc<1793952770>,ax<849>,ay<-21>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2270>,humi<525>,light<1746>,vbat<2095>,crc<26590>
+REC,seq<40>,tick<4001>,press<1024290>,rtc<1793952770>,ax<847>,ay<-22>,az<1842>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2269>,humi<525>,light<1740>,vbat<2083>,crc<28239>
+REC,seq<41>,tick<4101>,press<1024290>,rtc<1793952770>,ax<847>,ay<-22>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2271>,humi<525>,light<1744>,vbat<2095>,crc<19060>
+SD: cache restored 1 batch (left=40)
+REC,seq<42>,tick<4201>,press<1024290>,rtc<1793952770>,ax<848>,ay<-21>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2269>,humi<525>,light<1751>,vbat<2086>,crc<43327>
+REC,seq<43>,tick<4301>,press<1024290>,rtc<1793952770>,ax<848>,ay<-21>,az<1843>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2271>,humi<525>,light<1750>,vbat<2096>,crc<56686>
+SONAR: 105 mm (pulse 614 us, edges 9)
+REC,seq<44>,tick<4401>,press<1024300>,rtc<1793952770>,ax<848>,ay<-22>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2271>,humi<525>,light<1742>,vbat<2091>,crc<62803>
+REC,seq<45>,tick<4501>,press<1024300>,rtc<1793952771>,ax<849>,ay<-19>,az<1844>,gx<5>,gy<-14>,gz<27>,temp_ds<2125>,temp_chip<2271>,humi<525>,light<1742>,vbat<2083>,crc<60305>
+IDLE: 636/1000 ms  hook 709/s  blank 0
+REC,seq<46>,tick<4601>,press<1024300>,rtc<1793952771>,ax<851>,ay<-20>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2271>,humi<525>,light<1754>,vbat<2098>,crc<55246>
+REC,seq<47>,tick<4701>,press<1024300>,rtc<1793952771>,ax<849>,ay<-19>,az<1849>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2271>,humi<525>,light<1750>,vbat<2085>,crc<22235>
+SD: cache restored 1 batch (left=39)
+REC,seq<48>,tick<4801>,press<1024300>,rtc<1793952771>,ax<850>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2270>,humi<525>,light<1754>,vbat<2087>,crc<43041>
+REC,seq<49>,tick<4901>,press<1024300>,rtc<1793952771>,ax<849>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2271>,humi<525>,light<1754>,vbat<2092>,crc<20455>
+REC,seq<50>,tick<5001>,press<1024300>,rtc<1793952771>,ax<846>,ay<-23>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2272>,humi<525>,light<1756>,vbat<2094>,crc<48157>
+REC,seq<51>,tick<5101>,press<1024300>,rtc<1793952771>,ax<848>,ay<-18>,az<1843>,gx<5>,gy<-15>,gz<27>,temp_ds<2125>,temp_chip<2273>,humi<525>,light<1754>,vbat<2095>,crc<16524>
+REC,seq<52>,tick<5201>,press<1024300>,rtc<1793952771>,ax<850>,ay<-20>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2272>,humi<525>,light<1754>,vbat<2097>,crc<21371>
+REC,seq<53>,tick<5301>,press<1024300>,rtc<1793952771>,ax<848>,ay<-20>,az<1848>,gx<5>,gy<-14>,gz<27>,temp_ds<2125>,temp_chip<2273>,humi<525>,light<1746>,vbat<2093>,crc<36006>
+SD: cache restored 1 batch (left=38)
+REC,seq<54>,tick<5401>,press<1024300>,rtc<1793952771>,ax<847>,ay<-20>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2273>,humi<525>,light<1746>,vbat<2096>,crc<1951>
+SONAR: 105 mm (pulse 614 us, edges 11)
+DISP: SLOW frame 147553 us !
+REC,seq<55>,tick<5501>,press<1024290>,rtc<1793952772>,ax<848>,ay<-21>,az<1843>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2273>,humi<525>,light<1746>,vbat<2087>,crc<37991>
+REC,seq<56>,tick<5601>,press<1024290>,rtc<1793952772>,ax<849>,ay<-18>,az<1842>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2273>,humi<525>,light<1752>,vbat<2099>,crc<42581>
+IDLE: 640/1000 ms  hook 736/s  blank 0
+REC,seq<57>,tick<5701>,press<1024290>,rtc<1793952772>,ax<849>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2273>,humi<525>,light<1752>,vbat<2093>,crc<52060>
+REC,seq<58>,tick<5801>,press<1024290>,rtc<1793952772>,ax<846>,ay<-20>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2274>,humi<525>,light<1750>,vbat<2095>,crc<40193>
+REC,seq<59>,tick<5901>,press<1024290>,rtc<1793952772>,ax<849>,ay<-21>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2274>,humi<525>,light<1752>,vbat<2097>,crc<6851>
+SD: cache restored 1 batch (left=37)
+REC,seq<60>,tick<6001>,press<1024290>,rtc<1793952772>,ax<846>,ay<-20>,az<1842>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2275>,humi<525>,light<1756>,vbat<2098>,crc<3523>
+REC,seq<61>,tick<6101>,press<1024290>,rtc<1793952772>,ax<849>,ay<-19>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2275>,humi<525>,light<1754>,vbat<2097>,crc<44534>
+REC,seq<62>,tick<6201>,press<1024290>,rtc<1793952772>,ax<849>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2275>,humi<525>,light<1744>,vbat<2085>,crc<10677>
+REC,seq<63>,tick<6301>,press<1024290>,rtc<1793952772>,ax<849>,ay<-21>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2276>,humi<525>,light<1752>,vbat<2087>,crc<21086>
+REC,seq<64>,tick<6401>,press<1024290>,rtc<1793952772>,ax<847>,ay<-22>,az<1845>,gx<5>,gy<-13>,gz<27>,temp_ds<2131>,temp_chip<2277>,humi<525>,light<1748>,vbat<2087>,crc<40351>
+SONAR: 105 mm (pulse 614 us, edges 13)
+REC,seq<65>,tick<6501>,press<1024290>,rtc<1793952773>,ax<846>,ay<-18>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2275>,humi<525>,light<1752>,vbat<2092>,crc<61676>
+SD: cache restored 1 batch (left=36)
+REC,seq<66>,tick<6601>,press<1024290>,rtc<1793952773>,ax<847>,ay<-21>,az<1842>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2276>,humi<525>,light<1758>,vbat<2081>,crc<12681>
+DISP: SLOW frame 164174 us !
+REC,seq<67>,tick<6701>,press<1024290>,rtc<1793952773>,ax<846>,ay<-18>,az<1846>,gx<6>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2276>,humi<525>,light<1746>,vbat<2091>,crc<9108>
+REC,seq<68>,tick<6801>,press<1024290>,rtc<1793952773>,ax<847>,ay<-23>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2276>,humi<525>,light<1748>,vbat<2087>,crc<48864>
+IDLE: 639/1000 ms  hook 749/s  blank 0
+REC,seq<69>,tick<6901>,press<1024290>,rtc<1793952773>,ax<847>,ay<-19>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2276>,humi<525>,light<1748>,vbat<2095>,crc<36580>
+REC,seq<70>,tick<7001>,press<1024290>,rtc<1793952773>,ax<848>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2276>,humi<525>,light<1752>,vbat<2085>,crc<51637>
+REC,seq<71>,tick<7101>,press<1024290>,rtc<1793952773>,ax<843>,ay<-21>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2276>,humi<525>,light<1750>,vbat<2085>,crc<59887>
+SD: cache restored 1 batch (left=35)
+REC,seq<72>,tick<7201>,press<1024290>,rtc<1793952773>,ax<845>,ay<-19>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2277>,humi<525>,light<1748>,vbat<2080>,crc<38710>
+REC,seq<73>,tick<7301>,press<1024290>,rtc<1793952773>,ax<849>,ay<-19>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1754>,vbat<2093>,crc<64579>
+REC,seq<74>,tick<7401>,press<1024290>,rtc<1793952773>,ax<846>,ay<-19>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1750>,vbat<2084>,crc<7704>
+REC,seq<75>,tick<7501>,press<1024300>,rtc<1793952774>,ax<847>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1748>,vbat<2083>,crc<57385>
+SONAR: 105 mm (pulse 614 us, edges 15)
+REC,seq<76>,tick<7601>,press<1024300>,rtc<1793952774>,ax<849>,ay<-20>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2276>,humi<525>,light<1750>,vbat<2091>,crc<56729>
+REC,seq<77>,tick<7701>,press<1024300>,rtc<1793952774>,ax<850>,ay<-17>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1754>,vbat<2099>,crc<53376>
+SD: cache restored 1 batch (left=34)
+REC,seq<78>,tick<7801>,press<1024300>,rtc<1793952774>,ax<848>,ay<-22>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2277>,humi<525>,light<1750>,vbat<2088>,crc<41409>
+DISP: SLOW frame 165198 us !
+REC,seq<79>,tick<7901>,press<1024300>,rtc<1793952774>,ax<849>,ay<-21>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1744>,vbat<2085>,crc<22158>
+REC,seq<80>,tick<8001>,press<1024300>,rtc<1793952774>,ax<846>,ay<-20>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1748>,vbat<2091>,crc<49201>
+IDLE: 641/1000 ms  hook 750/s  blank 0
+REC,seq<81>,tick<8101>,press<1024300>,rtc<1793952774>,ax<848>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1752>,vbat<2099>,crc<29819>
+REC,seq<82>,tick<8201>,press<1024300>,rtc<1793952774>,ax<846>,ay<-20>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2279>,humi<525>,light<1752>,vbat<2087>,crc<48932>
+REC,seq<83>,tick<8301>,press<1024300>,rtc<1793952774>,ax<847>,ay<-21>,az<1841>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1754>,vbat<2093>,crc<51866>
+SD: cache restored 1 batch (left=33)
+REC,seq<84>,tick<8401>,press<1024300>,rtc<1793952774>,ax<846>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1752>,vbat<2109>,crc<45955>
+REC,seq<85>,tick<8501>,press<1024300>,rtc<1793952775>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1752>,vbat<2099>,crc<63706>
+SONAR: 105 mm (pulse 613 us, edges 17)
+REC,seq<86>,tick<8601>,press<1024310>,rtc<1793952775>,ax<849>,ay<-20>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2280>,humi<525>,light<1744>,vbat<2083>,crc<52834>
+REC,seq<87>,tick<8701>,press<1024310>,rtc<1793952775>,ax<847>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2279>,humi<525>,light<1750>,vbat<2085>,crc<44747>
+REC,seq<88>,tick<8801>,press<1024310>,rtc<1793952775>,ax<848>,ay<-20>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2279>,humi<525>,light<1748>,vbat<2081>,crc<51153>
+REC,seq<89>,tick<8901>,press<1024310>,rtc<1793952775>,ax<846>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2279>,humi<525>,light<1746>,vbat<2087>,crc<34847>
+DISP: SLOW frame 125408 us !
+DISP: avg=129030 us  max=165198 us  (per refresh)
+SD: cache restored 1 batch (left=32)
+REC,seq<90>,tick<9001>,press<1024310>,rtc<1793952775>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2279>,humi<525>,light<1754>,vbat<2087>,crc<29266>
+REC,seq<91>,tick<9101>,press<1024310>,rtc<1793952775>,ax<848>,ay<-20>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2279>,humi<525>,light<1752>,vbat<2091>,crc<9326>
+IDLE: 654/1000 ms  hook 749/s  blank 0
+REC,seq<92>,tick<9201>,press<1024310>,rtc<1793952775>,ax<846>,ay<-21>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2279>,humi<525>,light<1744>,vbat<2083>,crc<11910>
+REC,seq<93>,tick<9301>,press<1024310>,rtc<1793952775>,ax<845>,ay<-21>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2278>,humi<525>,light<1752>,vbat<2095>,crc<49561>
+REC,seq<94>,tick<9401>,press<1024310>,rtc<1793952775>,ax<847>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2279>,humi<525>,light<1744>,vbat<2081>,crc<4234>
+REC,seq<95>,tick<9501>,press<1024310>,rtc<1793952776>,ax<848>,ay<-22>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2280>,humi<525>,light<1748>,vbat<2091>,crc<35077>
+SONAR: 105 mm (pulse 614 us, edges 19)
+SD: cache restored 1 batch (left=31)
+REC,seq<96>,tick<9601>,press<1024310>,rtc<1793952776>,ax<847>,ay<-21>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1758>,vbat<2093>,crc<36770>
+REC,seq<97>,tick<9701>,press<1024310>,rtc<1793952776>,ax<847>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1748>,vbat<2091>,crc<55063>
+REC,seq<98>,tick<9801>,press<1024310>,rtc<1793952776>,ax<844>,ay<-18>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1752>,vbat<2089>,crc<49739>
+REC,seq<99>,tick<9901>,press<1024310>,rtc<1793952776>,ax<848>,ay<-18>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1744>,vbat<2096>,crc<19351>
+REC,seq<100>,tick<10001>,press<1024310>,rtc<1793952776>,ax<847>,ay<-21>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1746>,vbat<2079>,crc<55887>
+STAT acq=100 proc=100 full=0 qmax=1 drop=0 i2c=1462 i2c_max=1513 sd_err=0 sd_last=0 sdstk=146
+REC,seq<101>,tick<10101>,press<1024310>,rtc<1793952776>,ax<845>,ay<-20>,az<1844>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2282>,humi<525>,light<1752>,vbat<2090>,crc<26623>
+REC,seq<102>,tick<10201>,press<1024310>,rtc<1793952776>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1752>,vbat<2112>,crc<204>
+IDLE: 530/1000 ms  hook 594/s  blank 0
+REC,seq<103>,tick<10301>,press<1024310>,rtc<1793952776>,ax<844>,ay<-20>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1754>,vbat<2096>,crc<23288>
+REC,seq<104>,tick<10401>,press<1024310>,rtc<1793952776>,ax<844>,ay<-21>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2282>,humi<525>,light<1752>,vbat<2087>,crc<16173>
+REC,seq<105>,tick<10501>,press<1024310>,rtc<1793952777>,ax<845>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1754>,vbat<2092>,crc<30342>
+SD: cache restored 1 batch (left=30)
+SONAR: 105 mm (pulse 614 us, edges 21)
+REC,seq<106>,tick<10601>,press<1024320>,rtc<1793952777>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2282>,humi<525>,light<1750>,vbat<2085>,crc<15258>
+REC,seq<107>,tick<10701>,press<1024320>,rtc<1793952777>,ax<847>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2281>,humi<525>,light<1748>,vbat<2091>,crc<31555>
+SD: cache restored 1 batch (left=29)
+REC,seq<108>,tick<10801>,press<1024320>,rtc<1793952777>,ax<849>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<525>,light<1748>,vbat<2097>,crc<38201>
+REC,seq<109>,tick<10901>,press<1024320>,rtc<1793952777>,ax<843>,ay<-19>,az<1843>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<525>,light<1748>,vbat<2091>,crc<52544>
+REC,seq<110>,tick<11001>,press<1024320>,rtc<1793952777>,ax<847>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<525>,light<1750>,vbat<2093>,crc<756>
+REC,seq<111>,tick<11101>,press<1024320>,rtc<1793952777>,ax<848>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<525>,light<1746>,vbat<2081>,crc<44444>
+SD: cache restored 1 batch (left=28)
+REC,seq<112>,tick<11201>,press<1024320>,rtc<1793952777>,ax<846>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2282>,humi<525>,light<1742>,vbat<2084>,crc<8378>
+DISP: SLOW frame 165316 us !
+REC,seq<113>,tick<11301>,press<1024320>,rtc<1793952777>,ax<845>,ay<-20>,az<1844>,gx<6>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<525>,light<1750>,vbat<2089>,crc<8821>
+REC,seq<114>,tick<11401>,press<1024320>,rtc<1793952777>,ax<849>,ay<-16>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<525>,light<1752>,vbat<2095>,crc<35920>
+IDLE: 445/1000 ms  hook 525/s  blank 0
+REC,seq<115>,tick<11501>,press<1024320>,rtc<1793952778>,ax<848>,ay<-20>,az<1848>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2284>,humi<525>,light<1756>,vbat<2095>,crc<9510>
+REC,seq<116>,tick<11601>,press<1024320>,rtc<1793952778>,ax<846>,ay<-22>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<525>,light<1746>,vbat<2085>,crc<65103>
+SONAR: 105 mm (pulse 614 us, edges 23)
+SD: cache restored 1 batch (left=27)
+REC,seq<117>,tick<11701>,press<1024320>,rtc<1793952778>,ax<846>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<524>,light<1756>,vbat<2101>,crc<20128>
+REC,seq<118>,tick<11801>,press<1024320>,rtc<1793952778>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1746>,vbat<2093>,crc<38735>
+REC,seq<119>,tick<11901>,press<1024320>,rtc<1793952778>,ax<847>,ay<-21>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2283>,humi<524>,light<1748>,vbat<2091>,crc<11468>
+REC,seq<120>,tick<12001>,press<1024320>,rtc<1793952778>,ax<845>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2284>,humi<524>,light<1754>,vbat<2099>,crc<6711>
+REC,seq<121>,tick<12101>,press<1024320>,rtc<1793952778>,ax<846>,ay<-20>,az<1841>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1752>,vbat<2097>,crc<48989>
+SD: cache restored 1 batch (left=26)
+REC,seq<122>,tick<12201>,press<1024320>,rtc<1793952778>,ax<848>,ay<-21>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2284>,humi<524>,light<1754>,vbat<2101>,crc<28639>
+REC,seq<123>,tick<12301>,press<1024320>,rtc<1793952778>,ax<847>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1746>,vbat<2098>,crc<12740>
+REC,seq<124>,tick<12401>,press<1024320>,rtc<1793952778>,ax<847>,ay<-20>,az<1843>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1754>,vbat<2086>,crc<1664>
+REC,seq<125>,tick<12501>,press<1024320>,rtc<1793952779>,ax<846>,ay<-18>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2284>,humi<524>,light<1754>,vbat<2094>,crc<25386>
+IDLE: 632/1000 ms  hook 702/s  blank 0
+REC,seq<126>,tick<12601>,press<1024320>,rtc<1793952779>,ax<845>,ay<-21>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2284>,humi<524>,light<1750>,vbat<2085>,crc<41071>
+SONAR: 105 mm (pulse 613 us, edges 25)
+SD: cache restored 1 batch (left=25)
+REC,seq<127>,tick<12701>,press<1024330>,rtc<1793952779>,ax<847>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1758>,vbat<2097>,crc<544>
+REC,seq<128>,tick<12801>,press<1024330>,rtc<1793952779>,ax<847>,ay<-21>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2286>,humi<524>,light<1756>,vbat<2087>,crc<20815>
+REC,seq<129>,tick<12901>,press<1024330>,rtc<1793952779>,ax<845>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1750>,vbat<2091>,crc<26037>
+REC,seq<130>,tick<13001>,press<1024330>,rtc<1793952779>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2286>,humi<524>,light<1752>,vbat<2081>,crc<54023>
+REC,seq<131>,tick<13101>,press<1024330>,rtc<1793952779>,ax<846>,ay<-21>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1752>,vbat<2093>,crc<16826>
+SD: cache restored 1 batch (left=24)
+REC,seq<132>,tick<13201>,press<1024330>,rtc<1793952779>,ax<847>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2286>,humi<524>,light<1756>,vbat<2087>,crc<64491>
+REC,seq<133>,tick<13301>,press<1024330>,rtc<1793952779>,ax<846>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2284>,humi<524>,light<1748>,vbat<2087>,crc<2103>
+REC,seq<134>,tick<13401>,press<1024330>,rtc<1793952779>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1750>,vbat<2085>,crc<31276>
+REC,seq<135>,tick<13501>,press<1024330>,rtc<1793952780>,ax<847>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1760>,vbat<2087>,crc<39785>
+REC,seq<136>,tick<13601>,press<1024330>,rtc<1793952780>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2285>,humi<524>,light<1748>,vbat<2083>,crc<62195>
+SD: cache restored 1 batch (left=23)
+IDLE: 599/1000 ms  hook 665/s  blSONAR: 105ank 0
+ mm (pulse 613 us, edges 27)
+REC,seq<137>,tick<13701>,press<1024330>,rtc<1793952780>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2286>,humi<524>,light<1756>,vbat<2085>,crc<22418>
+REC,seq<138>,tick<13801>,press<1024330>,rtc<1793952780>,ax<847>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2286>,humi<524>,light<1750>,vbat<2095>,crc<22154>
+REC,seq<139>,tick<13901>,press<1024330>,rtc<1793952780>,ax<846>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2286>,humi<524>,light<1754>,vbat<2095>,crc<30638>
+REC,seq<140>,tick<14001>,press<1024330>,rtc<1793952780>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2287>,humi<524>,light<1752>,vbat<2087>,crc<30531>
+REC,seq<141>,tick<14101>,press<1024330>,rtc<1793952780>,ax<845>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2287>,humi<524>,light<1752>,vbat<2093>,crc<42884>
+SD: cache restored 1 batch (left=22)
+REC,seq<142>,tick<14201>,press<1024330>,rtc<1793952780>,ax<846>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2287>,humi<524>,light<1752>,vbat<2085>,crc<37859>
+REC,seq<143>,tick<14301>,press<1024330>,rtc<1793952780>,ax<848>,ay<-20>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2286>,humi<524>,light<1750>,vbat<2089>,crc<45130>
+REC,seq<144>,tick<14401>,press<1024330>,rtc<1793952780>,ax<843>,ay<-21>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2286>,humi<524>,light<1754>,vbat<2096>,crc<21683>
+REC,seq<145>,tick<14501>,press<1024330>,rtc<1793952781>,ax<848>,ay<-20>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2125>,temp_chip<2286>,humi<524>,light<1756>,vbat<2087>,crc<27448>
+REC,seq<146>,tick<14601>,press<1024330>,rtc<1793952781>,ax<846>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2125>,temp_chip<2286>,humi<524>,light<1756>,vbat<2087>,crc<58043>
+SD: cache restored 1 batch (left=21)
+REC,seq<147>,tick<14701>,press<1024330>,rtc<1793952781>,ax<847>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2287>,humi<524>,light<1759>,vbat<2087>,crc<17192>
+SONAR: 105 mm (pulse 614 us, edges 29)
+IDLE: 631/1000 ms  hook 703/s  blank 0
+REC,seq<148>,tick<14801>,press<1024330>,rtc<1793952781>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2287>,humi<523>,light<1756>,vbat<2087>,crc<29405>
+REC,seq<149>,tick<14901>,press<1024330>,rtc<1793952781>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2287>,humi<523>,light<1758>,vbat<2081>,crc<24505>
+REC,seq<150>,tick<15001>,press<1024330>,rtc<1793952781>,ax<845>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2287>,humi<523>,light<1756>,vbat<2096>,crc<15527>
+REC,seq<151>,tick<15101>,press<1024330>,rtc<1793952781>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2287>,humi<523>,light<1756>,vbat<2085>,crc<58375>
+SD: cache restored 1 batch (left=20)
+REC,seq<152>,tick<15201>,press<1024330>,rtc<1793952781>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2287>,humi<523>,light<1754>,vbat<2097>,crc<23170>
+REC,seq<153>,tick<15301>,press<1024330>,rtc<1793952781>,ax<846>,ay<-19>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2287>,humi<523>,light<1760>,vbat<2089>,crc<10313>
+REC,seq<154>,tick<15401>,press<1024330>,rtc<1793952781>,ax<845>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2288>,humi<523>,light<1756>,vbat<2097>,crc<56275>
+REC,seq<155>,tick<15501>,press<1024330>,rtc<1793952782>,ax<847>,ay<-20>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2287>,humi<523>,light<1752>,vbat<2083>,crc<46596>
+REC,seq<156>,tick<15601>,press<1024330>,rtc<1793952782>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2288>,humi<523>,light<1752>,vbat<2085>,crc<15540>
+SD: cache restored 1 batch (left=19)
+REC,seq<157>,tick<15701>,press<1024330>,rtc<1793952782>,ax<846>,ay<-20>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2288>,humi<523>,light<1758>,vbat<2091>,crc<812>
+SONAR: 105 mm (pulse 613 us, edges 31)
+DISP: SLOW frame 175796 us !
+REC,seq<158>,tick<15801>,press<1024330>,rtc<1793952782>,ax<846>,ay<-17>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2288>,humi<523>,light<1754>,vbat<2093>,crc<28118>
+REC,seq<159>,tick<15901>,press<1024330>,rtc<1793952782>,ax<846>,ay<-18>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2288>,humi<523>,light<1754>,vbat<2091>,crc<46858>
+IDLE: 641/1000 ms  hook 758/s  blank 0
+REC,seq<160>,tick<16001>,press<1024330>,rtc<1793952782>,ax<845>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2288>,humi<523>,light<1752>,vbat<2099>,crc<27824>
+REC,seq<161>,tick<16101>,press<1024330>,rtc<1793952782>,ax<846>,ay<-19>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1748>,vbat<2089>,crc<47328>
+SD: cache restored 1 batch (left=18)
+REC,seq<162>,tick<16201>,press<1024330>,rtc<1793952782>,ax<846>,ay<-22>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1750>,vbat<2084>,crc<27642>
+REC,seq<163>,tick<16301>,press<1024330>,rtc<1793952782>,ax<845>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1754>,vbat<2093>,crc<8085>
+REC,seq<164>,tick<16401>,press<1024330>,rtc<1793952782>,ax<845>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1754>,vbat<2104>,crc<26377>
+REC,seq<165>,tick<16501>,press<1024330>,rtc<1793952783>,ax<846>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2290>,humi<523>,light<1752>,vbat<2091>,crc<1100>
+REC,seq<166>,tick<16601>,press<1024330>,rtc<1793952783>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1752>,vbat<2097>,crc<6178>
+SD: cache restored 1 batch (left=17)
+REC,seq<167>,tick<16701>,press<1024330>,rtc<1793952783>,ax<847>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1760>,vbat<2090>,crc<40320>
+SONAR: 105 mm (pulse 614 us, edges 33)
+REC,seq<168>,tick<16801>,press<1024320>,rtc<1793952783>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2288>,humi<523>,light<1750>,vbat<2089>,crc<25769>
+REC,seq<169>,tick<16901>,press<1024320>,rtc<1793952783>,ax<845>,ay<-17>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1754>,vbat<2097>,crc<63289>
+REC,seq<170>,tick<17001>,press<1024320>,rtc<1793952783>,ax<847>,ay<-20>,az<1843>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1760>,vbat<2090>,crc<22233>
+IDLE: 638/1000 ms  hook 714/s  blank 0
+REC,seq<171>,tick<17101>,press<1024320>,rtc<1793952783>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1750>,vbat<2095>,crc<63521>
+SD: cache restored 1 batch (left=16)
+REC,seq<172>,tick<17201>,press<1024320>,rtc<1793952783>,ax<844>,ay<-21>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2289>,humi<523>,light<1752>,vbat<2104>,crc<44972>
+REC,seq<173>,tick<17301>,press<1024320>,rtc<1793952783>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2290>,humi<523>,light<1750>,vbat<2089>,crc<19250>
+REC,seq<174>,tick<17401>,press<1024320>,rtc<1793952783>,ax<846>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2290>,humi<523>,light<1754>,vbat<2095>,crc<26640>
+REC,seq<175>,tick<17501>,press<1024320>,rtc<1793952784>,ax<845>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2290>,humi<523>,light<1748>,vbat<2087>,crc<46953>
+REC,seq<176>,tick<17601>,press<1024320>,rtc<1793952784>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<523>,light<1756>,vbat<2091>,crc<63080>
+SD: cache restored 1 batch (left=15)
+REC,seq<177>,tick<17701>,press<1024320>,rtc<1793952784>,ax<844>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<523>,light<1752>,vbat<2079>,crc<15872>
+REC,seq<178>,tick<17801>,press<1024320>,rtc<1793952784>,ax<847>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<523>,light<1754>,vbat<2099>,crc<19436>
+SONAR: 105 mm (pulse 614 us, edges 35)
+REC,seq<179>,tick<17901>,press<1024320>,rtc<1793952784>,ax<846>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2290>,humi<524>,light<1758>,vbat<2095>,crc<5983>
+REC,seq<180>,tick<18001>,press<1024320>,rtc<1793952784>,ax<846>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2290>,humi<524>,light<1762>,vbat<2105>,crc<52807>
+DISP: SLOW frame 127904 us !
+DISP: avg=127948 us  max=175796 us  (per refresh)
+REC,seq<181>,tick<18101>,press<1024320>,rtc<1793952784>,ax<846>,ay<-21>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2290>,humi<524>,light<1754>,vbat<2091>,crc<51549>
+SD: cache restored 1 batch (left=14)
+REC,seq<182>,tick<18201>,press<1024320>,rtc<1793952784>,ax<845>,ay<-21>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1752>,vbat<2085>,crc<63397>
+IDLE: 584/1000 ms  hook 667/s  blank 0
+REC,seq<183>,tick<18301>,press<1024320>,rtc<1793952784>,ax<848>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1742>,vbat<2086>,crc<50248>
+REC,seq<184>,tick<18401>,press<1024320>,rtc<1793952784>,ax<847>,ay<-21>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1750>,vbat<2093>,crc<15819>
+REC,seq<185>,tick<18501>,press<1024320>,rtc<1793952785>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1748>,vbat<2095>,crc<48300>
+REC,seq<186>,tick<18601>,press<1024320>,rtc<1793952785>,ax<844>,ay<-21>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1756>,vbat<2089>,crc<62396>
+REC,seq<187>,tick<18701>,press<1024320>,rtc<1793952785>,ax<845>,ay<-18>,az<1843>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2290>,humi<524>,light<1756>,vbat<2083>,crc<11268>
+REC,seq<188>,tick<18801>,press<1024320>,rtc<1793952785>,ax<846>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1768>,vbat<2079>,crc<44958>
+SD: cache restored 1 batch (left=13)
+SONAR: 105 mm (pulse 614 us, edges 37)
+REC,seq<189>,tick<18901>,press<1024320>,rtc<1793952785>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1752>,vbat<2095>,crc<41053>
+REC,seq<190>,tick<19001>,press<1024320>,rtc<1793952785>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1752>,vbat<2085>,crc<41999>
+REC,seq<191>,tick<19101>,press<1024320>,rtc<1793952785>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<524>,light<1754>,vbat<2095>,crc<46452>
+DISP: SLOW frame 131472 us !
+REC,seq<192>,tick<19201>,press<1024320>,rtc<1793952785>,ax<845>,ay<-22>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<524>,light<1752>,vbat<2083>,crc<56096>
+REC,seq<193>,tick<19301>,press<1024320>,rtc<1793952785>,ax<844>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1750>,vbat<2079>,crc<65204>
+IDLE: 391/1000 ms  hook 445/s  blank 0
+SD: cache restored 1 batch (left=12)
+REC,seq<194>,tick<19401>,press<1024320>,rtc<1793952785>,ax<847>,ay<-21>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1756>,vbat<2112>,crc<13824>
+REC,seq<195>,tick<19501>,press<1024320>,rtc<1793952786>,ax<846>,ay<-20>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1752>,vbat<2087>,crc<60402>
+REC,seq<196>,tick<19601>,press<1024320>,rtc<1793952786>,ax<846>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1752>,vbat<2096>,crc<4837>
+SD: cache restored 1 batch (left=11)
+REC,seq<197>,tick<19701>,press<1024320>,rtc<1793952786>,ax<845>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2291>,humi<524>,light<1750>,vbat<2096>,crc<64938>
+REC,seq<198>,tick<19801>,press<1024320>,rtc<1793952786>,ax<845>,ay<-19>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<524>,light<1754>,vbat<2085>,crc<46984>
+SONAR: 105 mm (pulse 613 us, edges 39)
+REC,seq<199>,tick<19901>,press<1024320>,rtc<1793952786>,ax<844>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<524>,light<1750>,vbat<2112>,crc<12694>
+REC,seq<200>,tick<20001>,press<1024320>,rtc<1793952786>,ax<847>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<524>,light<1748>,vbat<2087>,crc<18832>
+STAT acq=200 proc=200 full=0 qmax=1 drop=0 i2c=1455 i2c_max=1694 sd_err=0 sd_last=0 sdstk=146
+REC,seq<201>,tick<20101>,press<1024320>,rtc<1793952786>,ax<847>,ay<-19>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<524>,light<1756>,vbat<2089>,crc<59846>
+SD: cache restored 1 batch (left=10)
+REC,seq<202>,tick<20201>,press<1024320>,rtc<1793952786>,ax<847>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<524>,light<1754>,vbat<2091>,crc<34842>
+REC,seq<203>,tick<20301>,press<1024320>,rtc<1793952786>,ax<846>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<524>,light<1750>,vbat<2091>,crc<52542>
+REC,seq<204>,tick<20401>,press<1024320>,rtc<1793952786>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<524>,light<1748>,vbat<2089>,crc<30377>
+IDLE: 621/1000 ms  hook 694/s  blank 0
+REC,seq<205>,tick<20501>,press<1024320>,rtc<1793952787>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<524>,light<1758>,vbat<2085>,crc<59061>
+REC,seq<206>,tick<20601>,press<1024320>,rtc<1793952787>,ax<847>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<524>,light<1756>,vbat<2093>,crc<50906>
+SD: cache restored 1 batch (left=9)
+REC,seq<207>,tick<20701>,press<1024320>,rtc<1793952787>,ax<846>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<524>,light<1750>,vbat<2087>,crc<18949>
+REC,seq<208>,tick<20801>,press<1024320>,rtc<1793952787>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<524>,light<1754>,vbat<2095>,crc<9058>
+REC,seq<209>,tick<20902>,press<1024310>,rtc<1793952787>,ax<847>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<524>,light<1752>,vbat<2089>,crc<38562>
+SONAR: 105 mm (pulse 613 us, edges 41)
+REC,seq<210>,tick<21001>,press<1024310>,rtc<1793952787>,ax<847>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1758>,vbat<2089>,crc<4903>
+REC,seq<211>,tick<21101>,press<1024310>,rtc<1793952787>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<523>,light<1756>,vbat<2097>,crc<52510>
+SD: cache restored 1 batch (left=8)
+REC,seq<212>,tick<21201>,press<1024310>,rtc<1793952787>,ax<845>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1760>,vbat<2097>,crc<42956>
+REC,seq<213>,tick<21301>,press<1024310>,rtc<1793952787>,ax<847>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1748>,vbat<2083>,crc<5001>
+REC,seq<214>,tick<21401>,press<1024310>,rtc<1793952787>,ax<846>,ay<-19>,az<1849>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2292>,humi<523>,light<1750>,vbat<2083>,crc<58326>
+REC,seq<215>,tick<21501>,press<1024310>,rtc<1793952788>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1756>,vbat<2087>,crc<53241>
+IDLE: 649/1000 ms  hook 723/s  blank 0
+REC,seq<216>,tick<21601>,press<1024310>,rtc<1793952788>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1756>,vbat<2102>,crc<14070>
+SD: cache restored 1 batch (left=7)
+REC,seq<217>,tick<21701>,press<1024310>,rtc<1793952788>,ax<847>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1759>,vbat<2085>,crc<42181>
+REC,seq<218>,tick<21801>,press<1024310>,rtc<1793952788>,ax<846>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1750>,vbat<2083>,crc<46781>
+REC,seq<219>,tick<21901>,press<1024310>,rtc<1793952788>,ax<847>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1750>,vbat<2079>,crc<37672>
+SONAR: 105 mm (pulse 613 us, edges 43)
+REC,seq<220>,tick<22001>,press<1024310>,rtc<1793952788>,ax<843>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1756>,vbat<2104>,crc<58749>
+REC,seq<221>,tick<22101>,press<1024310>,rtc<1793952788>,ax<846>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1754>,vbat<2083>,crc<53793>
+SD: cache restored 1 batch (left=6)
+REC,seq<222>,tick<22201>,press<1024310>,rtc<1793952788>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1762>,vbat<2091>,crc<13887>
+REC,seq<223>,tick<22301>,press<1024310>,rtc<1793952788>,ax<842>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1754>,vbat<2091>,crc<31466>
+REC,seq<224>,tick<22401>,press<1024310>,rtc<1793952788>,ax<845>,ay<-20>,az<1849>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1770>,vbat<2091>,crc<25468>
+REC,seq<225>,tick<22501>,press<1024310>,rtc<1793952789>,ax<844>,ay<-19>,az<1841>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1760>,vbat<2104>,crc<21356>
+DISP: SLOW frame 128012 us !
+REC,seq<226>,tick<22601>,press<1024310>,rtc<1793952789>,ax<845>,ay<-21>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1758>,vbat<2093>,crc<51902>
+SD: cache restored 1 batch (left=5)
+REC,seq<227>,tick<22701>,press<1024310>,rtc<1793952789>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1760>,vbat<2088>,crc<9015>
+IDLE: 580/1000 ms  hook 660/s  blank 0
+REC,seq<228>,tick<22801>,press<1024310>,rtc<1793952789>,ax<845>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1750>,vbat<2085>,crc<55783>
+REC,seq<229>,tick<22901>,press<1024310>,rtc<1793952789>,ax<844>,ay<-18>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1758>,vbat<2086>,crc<62294>
+SONAR: 105 mm (pulse 614 us, edges 45)
+REC,seq<230>,tick<23001>,press<1024320>,rtc<1793952789>,ax<843>,ay<-23>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1762>,vbat<2088>,crc<45175>
+REC,seq<231>,tick<23101>,press<1024320>,rtc<1793952789>,ax<845>,ay<-18>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1760>,vbat<2091>,crc<19540>
+SD: cache restored 1 batch (left=4)
+REC,seq<232>,tick<23201>,press<1024320>,rtc<1793952789>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1760>,vbat<2091>,crc<52337>
+REC,seq<233>,tick<23301>,press<1024320>,rtc<1793952789>,ax<847>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1760>,vbat<2077>,crc<4138>
+REC,seq<234>,tick<23401>,press<1024320>,rtc<1793952789>,ax<846>,ay<-22>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1760>,vbat<2089>,crc<18377>
+REC,seq<235>,tick<23501>,press<1024320>,rtc<1793952790>,ax<847>,ay<-18>,az<1843>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1766>,vbat<2095>,crc<26154>
+REC,seq<236>,tick<23601>,press<1024320>,rtc<1793952790>,ax<845>,ay<-18>,az<1843>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1766>,vbat<2087>,crc<21029>
+DISP: SLOW frame 122393 us !
+SD: cache restored 1 batch (left=3)
+REC,seq<237>,tick<23701>,press<1024320>,rtc<1793952790>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1762>,vbat<2092>,crc<10475>
+REC,seq<238>,tick<23801>,press<1024320>,rtc<1793952790>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1758>,vbat<2081>,crc<34800>
+IDLE: 641/1000 ms  hook 726/s  blank 0
+REC,seq<239>,tick<23901>,press<1024320>,rtc<1793952790>,ax<846>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1758>,vbat<2091>,crc<61682>
+SONAR: 105 mm (pulse 613 us, edges 47)
+REC,seq<240>,tick<24001>,press<1024330>,rtc<1793952790>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1758>,vbat<2084>,crc<42052>
+REC,seq<241>,tick<24101>,press<1024330>,rtc<1793952790>,ax<845>,ay<-19>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1762>,vbat<2091>,crc<28203>
+SD: cache restored 1 batch (left=2)
+REC,seq<242>,tick<24201>,press<1024330>,rtc<1793952790>,ax<844>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1760>,vbat<2096>,crc<4569>
+REC,seq<243>,tick<24301>,press<1024330>,rtc<1793952790>,ax<847>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1766>,vbat<2094>,crc<29509>
+REC,seq<244>,tick<24401>,press<1024330>,rtc<1793952790>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1760>,vbat<2087>,crc<25301>
+REC,seq<245>,tick<24501>,press<1024330>,rtc<1793952791>,ax<847>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1764>,vbat<2095>,crc<49612>
+REC,seq<246>,tick<24601>,press<1024330>,rtc<1793952791>,ax<847>,ay<-18>,az<1844>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1760>,vbat<2095>,crc<8799>
+SD: cache restored 1 batch (left=1)
+REC,seq<247>,tick<24701>,press<1024330>,rtc<1793952791>,ax<845>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2293>,humi<523>,light<1764>,vbat<2103>,crc<60873>
+REC,seq<248>,tick<24801>,press<1024330>,rtc<1793952791>,ax<844>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1760>,vbat<2088>,crc<65372>
+REC,seq<249>,tick<24901>,press<1024330>,rtc<1793952791>,ax<845>,ay<-21>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1760>,vbat<2094>,crc<53233>
+IDLE: 636/1000 ms  hook 711/s  blank 0
+REC,seq<250>,tick<25001>,press<1024330>,rtc<1793952791>,ax<845>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1760>,vbat<2079>,crc<21163>
+SONAR: 105 mm (pulse 613 us, edges 49)
+REC,seq<251>,tick<25101>,press<1024330>,rtc<1793952791>,ax<846>,ay<-19>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2294>,humi<523>,light<1768>,vbat<2090>,crc<52902>
+SD: replay done 48 batches / 276 recs
+REC,seq<252>,tick<25201>,press<1024330>,rtc<1793952791>,ax<846>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1770>,vbat<2113>,crc<26484>
+REC,seq<253>,tick<25301>,press<1024330>,rtc<1793952791>,ax<844>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1764>,vbat<2085>,crc<31093>
+REC,seq<254>,tick<25401>,press<1024330>,rtc<1793952791>,ax<846>,ay<-20>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1762>,vbat<2085>,crc<33232>
+REC,seq<255>,tick<25501>,press<1024330>,rtc<1793952792>,ax<844>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2297>,humi<523>,light<1760>,vbat<2081>,crc<14232>
+REC,seq<256>,tick<25601>,press<1024330>,rtc<1793952792>,ax<845>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1764>,vbat<2089>,crc<24335>
+REC,seq<257>,tick<25701>,press<1024330>,rtc<1793952792>,ax<847>,ay<-20>,az<1843>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1768>,vbat<2097>,crc<65117>
+REC,seq<258>,tick<25801>,press<1024330>,rtc<1793952792>,ax<844>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1766>,vbat<2095>,crc<63989>
+REC,seq<259>,tick<25901>,press<1024330>,rtc<1793952792>,ax<848>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1768>,vbat<2091>,crc<12691>
+REC,seq<260>,tick<26001>,press<1024330>,rtc<1793952792>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1766>,vbat<2085>,crc<46912>
+SONAR: 105 mm (pulse 613 us, edges 51)
+IDLE: 634/1000 ms  hook 708/s  blank 0
+REC,seq<261>,tick<26101>,press<1024340>,rtc<1793952792>,ax<845>,ay<-19>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1766>,vbat<2097>,crc<43388>
+REC,seq<262>,tick<26201>,press<1024340>,rtc<1793952792>,ax<848>,ay<-20>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1770>,vbat<2092>,crc<35364>
+REC,seq<263>,tick<26301>,press<1024340>,rtc<1793952792>,ax<844>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2295>,humi<523>,light<1764>,vbat<2085>,crc<29940>
+REC,seq<264>,tick<26401>,press<1024340>,rtc<1793952792>,ax<845>,ay<-18>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<523>,light<1770>,vbat<2085>,crc<6022>
+REC,seq<265>,tick<26501>,press<1024340>,rtc<1793952793>,ax<844>,ay<-19>,az<1842>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1766>,vbat<2093>,crc<7391>
+REC,seq<266>,tick<26601>,press<1024340>,rtc<1793952793>,ax<844>,ay<-18>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1766>,vbat<2095>,crc<26070>
+REC,seq<267>,tick<26701>,press<1024340>,rtc<1793952793>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1770>,vbat<2095>,crc<46636>
+REC,seq<268>,tick<26801>,press<1024340>,rtc<1793952793>,ax<844>,ay<-21>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1762>,vbat<2087>,crc<38975>
+REC,seq<269>,tick<26901>,press<1024340>,rtc<1793952793>,ax<846>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<523>,light<1770>,vbat<2097>,crc<8309>
+DISP: avg=115457 us  max=175796 us  (per refresh)
+REC,seq<270>,tick<27001>,press<1024340>,rtc<1793952793>,ax<844>,ay<-23>,az<1849>,gx<4>,gy<-17>,gz<30>,temp_ds<2131>,temp_chip<2297>,humi<523>,light<1766>,vbat<2104>,crc<44321>
+SONAR: 105 mm (pulse 614 us, edges 53)
+REC,seq<271>,tick<27101>,press<1024330>,rtc<1793952793>,ax<843>,ay<-24>,az<1852>,gx<6>,gy<-13>,gz<30>,temp_ds<2131>,temp_chip<2296>,humi<524>,light<1762>,vbat<2091>,crc<42405>
+IDLE: 666/1000 ms  hook 745/s  blank 0
+REC,seq<272>,tick<27201>,press<1024330>,rtc<1793952793>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<29>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1784>,vbat<2091>,crc<766>
+REC,seq<273>,tick<27301>,press<1024330>,rtc<1793952793>,ax<846>,ay<-17>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1774>,vbat<2091>,crc<14740>
+REC,seq<274>,tick<27401>,press<1024330>,rtc<1793952793>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-16>,gz<27>,temp_ds<2131>,temp_chip<2296>,humi<524>,light<1769>,vbat<2099>,crc<45609>
+REC,seq<275>,tick<27501>,press<1024330>,rtc<1793952794>,ax<845>,ay<-20>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1774>,vbat<2095>,crc<25285>
+REC,seq<276>,tick<27601>,press<1024330>,rtc<1793952794>,ax<844>,ay<-22>,az<1849>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<524>,light<1768>,vbat<2084>,crc<50073>
+REC,seq<277>,tick<27701>,press<1024330>,rtc<1793952794>,ax<846>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<524>,light<1766>,vbat<2092>,crc<4803>
+REC,seq<278>,tick<27801>,press<1024330>,rtc<1793952794>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1772>,vbat<2087>,crc<64834>
+REC,seq<279>,tick<27901>,press<1024330>,rtc<1793952794>,ax<844>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1776>,vbat<2089>,crc<4521>
+REC,seq<280>,tick<28001>,press<1024330>,rtc<1793952794>,ax<847>,ay<-19>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1776>,vbat<2093>,crc<9008>
+SONAR: 105 mm (pulse 614 us, edges 55)
+REC,seq<281>,tick<28101>,press<1024340>,rtc<1793952794>,ax<846>,ay<-20>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1770>,vbat<2104>,crc<53656>
+DISP: SLOW frame 150306 us !
+REC,seq<282>,tick<28201>,press<1024340>,rtc<1793952794>,ax<845>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1774>,vbat<2091>,crc<50520>
+REC,seq<283>,tick<28301>,press<1024340>,rtc<1793952794>,ax<844>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1770>,vbat<2088>,crc<45363>
+IDLE: 676/1000 ms  hook 782/s  blank 0
+REC,seq<284>,tick<28401>,press<1024340>,rtc<1793952794>,ax<846>,ay<-21>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1774>,vbat<2087>,crc<12233>
+REC,seq<285>,tick<28501>,press<1024340>,rtc<1793952795>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1770>,vbat<2091>,crc<45275>
+REC,seq<286>,tick<28601>,press<1024340>,rtc<1793952795>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2296>,humi<524>,light<1768>,vbat<2101>,crc<29398>
+REC,seq<287>,tick<28701>,press<1024340>,rtc<1793952795>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1770>,vbat<2085>,crc<21363>
+REC,seq<288>,tick<28801>,press<1024340>,rtc<1793952795>,ax<844>,ay<-21>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1762>,vbat<2085>,crc<23260>
+REC,seq<289>,tick<28901>,press<1024340>,rtc<1793952795>,ax<844>,ay<-22>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1764>,vbat<2087>,crc<27228>
+REC,seq<290>,tick<29001>,press<1024340>,rtc<1793952795>,ax<844>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1764>,vbat<2089>,crc<19900>
+REC,seq<291>,tick<29101>,press<1024340>,rtc<1793952795>,ax<845>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1766>,vbat<2091>,crc<23374>
+SONAR: 105 mm (pulse 614 us, edges 57)
+REC,seq<292>,tick<29201>,press<1024340>,rtc<1793952795>,ax<847>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1768>,vbat<2087>,crc<487>
+REC,seq<293>,tick<29301>,press<1024340>,rtc<1793952795>,ax<847>,ay<-21>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1774>,vbat<2097>,crc<34402>
+REC,seq<294>,tick<29401>,press<1024340>,rtc<1793952795>,ax<847>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1774>,vbat<2095>,crc<20106>
+IDLE: 683/1000 ms  hook 759/s  blank 0
+REC,seq<295>,tick<29501>,press<1024340>,rtc<1793952796>,ax<848>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1770>,vbat<2085>,crc<12197>
+REC,seq<296>,tick<29601>,press<1024340>,rtc<1793952796>,ax<845>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<524>,light<1776>,vbat<2089>,crc<58480>
+REC,seq<297>,tick<29701>,press<1024340>,rtc<1793952796>,ax<844>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2297>,humi<524>,light<1784>,vbat<2095>,crc<22486>
+REC,seq<298>,tick<29801>,press<1024340>,rtc<1793952796>,ax<849>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1774>,vbat<2087>,crc<22929>
+REC,seq<299>,tick<29901>,press<1024340>,rtc<1793952796>,ax<846>,ay<-20>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1772>,vbat<2097>,crc<34433>
+REC,seq<300>,tick<30001>,press<1024340>,rtc<1793952796>,ax<845>,ay<-20>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1776>,vbat<2091>,crc<26637>
+STAT acq=300 proc=300 full=0 qmax=1 drop=0 i2c=1443 i2c_max=2671 sd_err=0 sd_last=0 sdstk=146
+REC,seq<301>,tick<30101>,press<1024340>,rtc<1793952796>,ax<846>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1776>,vbat<2085>,crc<65151>
+SONAR: 105 mm (pulse 613 us, edges 59)
+REC,seq<302>,tick<30201>,press<1024340>,rtc<1793952796>,ax<845>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1774>,vbat<2091>,crc<47825>
+REC,seq<303>,tick<30301>,press<1024340>,rtc<1793952796>,ax<845>,ay<-19>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1780>,vbat<2097>,crc<50320>
+REC,seq<304>,tick<30401>,press<1024340>,rtc<1793952796>,ax<845>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1784>,vbat<2089>,crc<27198>
+REC,seq<305>,tick<30501>,press<1024340>,rtc<1793952797>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<523>,light<1776>,vbat<2088>,crc<3917>
+IDLE: 664/1000 ms  hook 740/s  blank 0
+REC,seq<306>,tick<30601>,press<1024340>,rtc<1793952797>,ax<846>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1774>,vbat<2094>,crc<54081>
+REC,seq<307>,tick<30701>,press<1024340>,rtc<1793952797>,ax<844>,ay<-18>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1778>,vbat<2097>,crc<3150>
+REC,seq<308>,tick<30801>,press<1024340>,rtc<1793952797>,ax<846>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<523>,light<1772>,vbat<2083>,crc<57680>
+REC,seq<309>,tick<30901>,press<1024340>,rtc<1793952797>,ax<845>,ay<-17>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<523>,light<1780>,vbat<2095>,crc<41809>
+REC,seq<310>,tick<31001>,press<1024340>,rtc<1793952797>,ax<846>,ay<-18>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1774>,vbat<2091>,crc<3389>
+REC,seq<311>,tick<31101>,press<1024340>,rtc<1793952797>,ax<846>,ay<-17>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<523>,light<1778>,vbat<2087>,crc<49039>
+SONAR: 122 mm (pulse 714 us, edges 61)
+REC,seq<312>,tick<31201>,press<1024350>,rtc<1793952797>,ax<845>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1778>,vbat<2082>,crc<10381>
+REC,seq<313>,tick<31301>,press<1024350>,rtc<1793952797>,ax<845>,ay<-18>,az<1851>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1776>,vbat<2083>,crc<61214>
+REC,seq<314>,tick<31401>,press<1024350>,rtc<1793952797>,ax<848>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2301>,humi<523>,light<1782>,vbat<2095>,crc<36823>
+REC,seq<315>,tick<31501>,press<1024350>,rtc<1793952798>,ax<846>,ay<-19>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1774>,vbat<2089>,crc<57675>
+REC,seq<316>,tick<31601>,press<1024350>,rtc<1793952798>,ax<843>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1780>,vbat<2091>,crc<58092>
+IDLE: 434/1000 ms  hook 484/s  blank 0
+REC,seq<317>,tick<31701>,press<1024350>,rtc<1793952798>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1790>,vbat<2093>,crc<43990>
+SD: SLOW batch=60 us=100098 tick=31720 size=50072
+REC,seq<318>,tick<31801>,press<1024350>,rtc<1793952798>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1788>,vbat<2112>,crc<1884>
+REC,seq<319>,tick<31901>,press<1024350>,rtc<1793952798>,ax<843>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<523>,light<1780>,vbat<2089>,crc<10784>
+REC,seq<320>,tick<32001>,press<1024350>,rtc<1793952798>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1788>,vbat<2091>,crc<18449>
+REC,seq<321>,tick<32101>,press<1024350>,rtc<1793952798>,ax<846>,ay<-19>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<523>,light<1780>,vbat<2081>,crc<18105>
+REC,seq<322>,tick<32201>,press<1024350>,rtc<1793952798>,ax<847>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1792>,vbat<2093>,crc<53191>
+SONAR: 105 mm (pulse 613 us, edges 63)
+REC,seq<323>,tick<32301>,press<1024350>,rtc<1793952798>,ax<844>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1784>,vbat<2096>,crc<22565>
+REC,seq<324>,tick<32401>,press<1024350>,rtc<1793952798>,ax<846>,ay<-20>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1782>,vbat<2093>,crc<42910>
+REC,seq<325>,tick<32501>,press<1024350>,rtc<1793952799>,ax<847>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<523>,light<1786>,vbat<2112>,crc<24721>
+REC,seq<326>,tick<32601>,press<1024350>,rtc<1793952799>,ax<848>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1790>,vbat<2096>,crc<20351>
+REC,seq<327>,tick<32701>,press<1024350>,rtc<1793952799>,ax<845>,ay<-17>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1784>,vbat<2097>,crc<25262>
+IDLE: 615/1000 ms  hook 688/s  blREC,seq<328>,tick<32801>,press<1024350>,rtc<1793952799>,ax<846>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1784>,vbat<2091>,crc<9228>
+ank 0
+REC,seq<329>,tick<32901>,press<1024350>,rtc<1793952799>,ax<844>,ay<-19>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1782>,vbat<2087>,crc<40802>
+REC,seq<330>,tick<33001>,press<1024350>,rtc<1793952799>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1778>,vbat<2086>,crc<20763>
+REC,seq<331>,tick<33101>,press<1024350>,rtc<1793952799>,ax<846>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<523>,light<1782>,vbat<2085>,crc<8628>
+REC,seq<332>,tick<33201>,press<1024350>,rtc<1793952799>,ax<844>,ay<-18>,az<1850>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<523>,light<1784>,vbat<2087>,crc<6789>
+SONAR: 105 mm (pulse 613 us, edges 65)
+REC,seq<333>,tick<33301>,press<1024370>,rtc<1793952799>,ax<847>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1792>,vbat<2089>,crc<15981>
+REC,seq<334>,tick<33401>,press<1024370>,rtc<1793952799>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1792>,vbat<2097>,crc<19117>
+REC,seq<335>,tick<33501>,press<1024370>,rtc<1793952800>,ax<843>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1792>,vbat<2097>,crc<16576>
+REC,seq<336>,tick<33601>,press<1024370>,rtc<1793952800>,ax<845>,ay<-20>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1786>,vbat<2091>,crc<43482>
+REC,seq<337>,tick<33701>,press<1024370>,rtc<1793952800>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1792>,vbat<2083>,crc<34484>
+DISP: SLOW frame 120948 us !
+REC,seq<338>,tick<33801>,press<1024370>,rtc<1793952800>,ax<843>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1784>,vbat<2104>,crc<28896>
+REC,seq<339>,tick<33901>,press<1024370>,rtc<1793952800>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1782>,vbat<2089>,crc<23361>
+IDLE: 672/1000 ms  hook 773/s  blank 0
+REC,seq<340>,tick<34001>,press<1024370>,rtc<1793952800>,ax<845>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2298>,humi<524>,light<1788>,vbat<2093>,crc<34031>
+REC,seq<341>,tick<34101>,press<1024370>,rtc<1793952800>,ax<844>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1782>,vbat<2079>,crc<57885>
+REC,seq<342>,tick<34201>,press<1024370>,rtc<1793952800>,ax<843>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<524>,light<1792>,vbat<2087>,crc<44221>
+SONAR: 105 mm (pulse 614 us, edges 67)
+REC,seq<343>,tick<34301>,press<1024380>,rtc<1793952800>,ax<847>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1808>,vbat<2101>,crc<54102>
+REC,seq<344>,tick<34401>,press<1024380>,rtc<1793952800>,ax<846>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<524>,light<1792>,vbat<2097>,crc<64939>
+REC,seq<345>,tick<34501>,press<1024380>,rtc<1793952801>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<524>,light<1794>,vbat<2083>,crc<5737>
+REC,seq<346>,tick<34601>,press<1024380>,rtc<1793952801>,ax<848>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2299>,humi<524>,light<1792>,vbat<2085>,crc<24519>
+REC,seq<347>,tick<34701>,press<1024380>,rtc<1793952801>,ax<844>,ay<-17>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1798>,vbat<2097>,crc<31142>
+REC,seq<348>,tick<34801>,press<1024380>,rtc<1793952801>,ax<847>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1794>,vbat<2100>,crc<35760>
+REC,seq<349>,tick<34901>,press<1024380>,rtc<1793952801>,ax<845>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1782>,vbat<2087>,crc<34824>
+REC,seq<350>,tick<35001>,press<1024380>,rtc<1793952801>,ax<846>,ay<-21>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1792>,vbat<2081>,crc<53001>
+IDLE: 684/1000 ms  hook 762/s  blank 0
+REC,seq<351>,tick<35101>,press<1024380>,rtc<1793952801>,ax<847>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1794>,vbat<2087>,crc<62453>
+REC,seq<352>,tick<35201>,press<1024380>,rtc<1793952801>,ax<844>,ay<-19>,az<1846>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1792>,vbat<2087>,crc<24626>
+REC,seq<353>,tick<35301>,press<1024390>,rtc<1793952801>,ax<847>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2299>,humi<524>,light<1796>,vbat<2093>,crc<55371>
+SONAR: 105 mm (pulse 613 us, edges 69)
+REC,seq<354>,tick<35401>,press<1024390>,rtc<1793952801>,ax<845>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2300>,humi<524>,light<1788>,vbat<2089>,crc<45203>
+REC,seq<355>,tick<35501>,press<1024390>,rtc<1793952802>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2300>,humi<524>,light<1792>,vbat<2089>,crc<41837>
+REC,seq<356>,tick<35601>,press<1024390>,rtc<1793952802>,ax<846>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2301>,humi<524>,light<1792>,vbat<2099>,crc<48852>
+REC,seq<357>,tick<35701>,press<1024390>,rtc<1793952802>,ax<845>,ay<-20>,az<1849>,gx<5>,gy<-14>,gz<28>,temp_ds<2137>,temp_chip<2301>,humi<524>,light<1796>,vbat<2087>,crc<6377>
+REC,seq<358>,tick<35801>,press<1024390>,rtc<1793952802>,ax<845>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2301>,humi<524>,light<1792>,vbat<2090>,crc<46063>
+REC,seq<359>,tick<35901>,press<1024390>,rtc<1793952802>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2301>,humi<524>,light<1806>,vbat<2103>,crc<21066>
+DISP: avg=115598 us  max=175796 us  (per refresh)
+REC,seq<360>,tick<36001>,press<1024390>,rtc<1793952802>,ax<845>,ay<-18>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2301>,humi<524>,light<1796>,vbat<2100>,crc<9119>
+REC,seq<361>,tick<36101>,press<1024390>,rtc<1793952802>,ax<845>,ay<-18>,az<1850>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2300>,humi<524>,light<1794>,vbat<2091>,crc<18903>
+IDLE: 664/1000 ms  hook 742/s  blank 0
+REC,seq<362>,tick<36201>,press<1024390>,rtc<1793952802>,ax<845>,ay<-18>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2301>,humi<524>,light<1792>,vbat<2096>,crc<15917>
+REC,seq<363>,tick<36301>,press<1024390>,rtc<1793952802>,ax<846>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2301>,humi<524>,light<1794>,vbat<2085>,crc<59591>
+SONAR: 105 mm (pulse 614 us, edges 71)
+REC,seq<364>,tick<36401>,press<1024390>,rtc<1793952802>,ax<846>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1796>,vbat<2093>,crc<26050>
+REC,seq<365>,tick<36501>,press<1024390>,rtc<1793952803>,ax<847>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1794>,vbat<2091>,crc<27925>
+REC,seq<366>,tick<36601>,press<1024390>,rtc<1793952803>,ax<846>,ay<-19>,az<1850>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1800>,vbat<2087>,crc<12331>
+REC,seq<367>,tick<36701>,press<1024390>,rtc<1793952803>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1794>,vbat<2095>,crc<46518>
+REC,seq<368>,tick<36801>,press<1024390>,rtc<1793952803>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1796>,vbat<2091>,crc<5256>
+REC,seq<369>,tick<36901>,press<1024390>,rtc<1793952803>,ax<843>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1806>,vbat<2087>,crc<39435>
+REC,seq<370>,tick<37001>,press<1024390>,rtc<1793952803>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1800>,vbat<2089>,crc<17958>
+REC,seq<371>,tick<37101>,press<1024390>,rtc<1793952803>,ax<844>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1796>,vbat<2081>,crc<43376>
+REC,seq<372>,tick<37201>,press<1024390>,rtc<1793952803>,ax<848>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1798>,vbat<2094>,crc<18977>
+IDLE: 679/1000 ms  hook 757/s  blank 0
+REC,seq<373>,tick<37301>,press<1024390>,rtc<1793952803>,ax<846>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2300>,humi<524>,light<1800>,vbat<2091>,crc<1572>
+SONAR: 105 mm (pulse 614 us, edges 73)
+REC,seq<374>,tick<37401>,press<1024390>,rtc<1793952803>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1800>,vbat<2086>,crc<3837>
+REC,seq<375>,tick<37501>,press<1024390>,rtc<1793952804>,ax<843>,ay<-20>,az<1842>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1802>,vbat<2093>,crc<56469>
+REC,seq<376>,tick<37601>,press<1024390>,rtc<1793952804>,ax<845>,ay<-18>,az<1841>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1800>,vbat<2091>,crc<49379>
+REC,seq<377>,tick<37701>,press<1024390>,rtc<1793952804>,ax<844>,ay<-19>,az<1848>,gx<4>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1798>,vbat<2096>,crc<49753>
+REC,seq<378>,tick<37801>,press<1024390>,rtc<1793952804>,ax<846>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1792>,vbat<2089>,crc<54969>
+REC,seq<379>,tick<37901>,press<1024390>,rtc<1793952804>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1806>,vbat<2077>,crc<6931>
+REC,seq<380>,tick<38001>,press<1024390>,rtc<1793952804>,ax<843>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1800>,vbat<2085>,crc<57058>
+REC,seq<381>,tick<38101>,press<1024390>,rtc<1793952804>,ax<847>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1808>,vbat<2089>,crc<3143>
+REC,seq<382>,tick<38201>,press<1024390>,rtc<1793952804>,ax<846>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1808>,vbat<2092>,crc<17134>
+DISP: SLOW frame 141916 us !
+REC,seq<383>,tick<38301>,press<1024390>,rtc<1793952804>,ax<844>,ay<-18>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1824>,vbat<2093>,crc<27648>
+SONAR: 105 mm (pulse 613 us, edges 75)
+REC,seq<384>,tick<38401>,press<1024390>,rtc<1793952804>,ax<846>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1800>,vbat<2093>,crc<30503>
+IDLE: 666/1000 ms  hook 768/s  blank 0
+REC,seq<385>,tick<38501>,press<1024390>,rtc<1793952805>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1806>,vbat<2091>,crc<47621>
+REC,seq<386>,tick<38601>,press<1024390>,rtc<1793952805>,ax<846>,ay<-18>,az<1846>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1806>,vbat<2091>,crc<16597>
+REC,seq<387>,tick<38701>,press<1024390>,rtc<1793952805>,ax<846>,ay<-17>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1802>,vbat<2085>,crc<6870>
+REC,seq<388>,tick<38801>,press<1024390>,rtc<1793952805>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1804>,vbat<2087>,crc<22291>
+REC,seq<389>,tick<38901>,press<1024390>,rtc<1793952805>,ax<846>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1806>,vbat<2097>,crc<6043>
+REC,seq<390>,tick<39001>,press<1024390>,rtc<1793952805>,ax<846>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1804>,vbat<2093>,crc<38090>
+REC,seq<391>,tick<39101>,press<1024390>,rtc<1793952805>,ax<846>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1802>,vbat<2091>,crc<8473>
+REC,seq<392>,tick<39201>,press<1024390>,rtc<1793952805>,ax<845>,ay<-21>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1806>,vbat<2098>,crc<25085>
+REC,seq<393>,tick<39301>,press<1024390>,rtc<1793952805>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1808>,vbat<2101>,crc<54404>
+REC,seq<394>,tick<39401>,press<1024390>,rtc<1793952805>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1816>,vbat<2087>,crc<47345>
+SONAR: 105 mm (pulse 614 us, edges 77)
+REC,seq<395>,tick<39501>,press<1024390>,rtc<1793952806>,ax<846>,ay<-21>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1804>,vbat<2087>,crc<6162>
+IDLE: 680/1000 ms  hook 758/s  blank 0
+REC,seq<396>,tick<39601>,press<1024390>,rtc<1793952806>,ax<844>,ay<-19>,az<1844>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1810>,vbat<2097>,crc<639>
+REC,seq<397>,tick<39701>,press<1024390>,rtc<1793952806>,ax<847>,ay<-17>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1804>,vbat<2093>,crc<3638>
+REC,seq<398>,tick<39801>,press<1024390>,rtc<1793952806>,ax<844>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1802>,vbat<2083>,crc<38243>
+REC,seq<399>,tick<39901>,press<1024390>,rtc<1793952806>,ax<844>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1804>,vbat<2085>,crc<45162>
+REC,seq<400>,tick<40001>,press<1024390>,rtc<1793952806>,ax<846>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1810>,vbat<2089>,crc<38124>
+STAT acq=400 proc=400 full=0 qmax=1 drop=0 i2c=1448 i2c_max=2671 sd_err=0 sd_last=0 sdstk=146
+REC,seq<401>,tick<40101>,press<1024390>,rtc<1793952806>,ax<846>,ay<-19>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1806>,vbat<2097>,crc<59098>
+REC,seq<402>,tick<40201>,press<1024390>,rtc<1793952806>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1810>,vbat<2085>,crc<23123>
+REC,seq<403>,tick<40301>,press<1024390>,rtc<1793952806>,ax<844>,ay<-20>,az<1846>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1816>,vbat<2096>,crc<30785>
+REC,seq<404>,tick<40401>,press<1024390>,rtc<1793952806>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1820>,vbat<2095>,crc<63781>
+CLK: over RTC 10s, tick advanced 9988 ms (expect 10000) => -1200 ppm SONAR: 105*** SYSTEM C mm (pulse 61LOCK OFF (c3 us, edges 7heck the 8M9)
+Hz XTAL: crystal or ceramic resonator?)
+DISP: SLOW frame 132666 us !
+REC,seq<405>,tick<40501>,press<1024390>,rtc<1793952807>,ax<846>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1816>,vbat<2088>,crc<48>
+REC,seq<406>,tick<40601>,press<1024390>,rtc<1793952807>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1812>,vbat<2095>,crc<40839>
+IDLE: 669/1000 ms  hook 762/s  blank 0
+REC,seq<407>,tick<40701>,press<1024390>,rtc<1793952807>,ax<846>,ay<-16>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2301>,humi<524>,light<1812>,vbat<2091>,crc<14056>
+REC,seq<408>,tick<40801>,press<1024390>,rtc<1793952807>,ax<846>,ay<-17>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1804>,vbat<2087>,crc<16166>
+REC,seq<409>,tick<40901>,press<1024390>,rtc<1793952807>,ax<844>,ay<-19>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1810>,vbat<2089>,crc<44671>
+REC,seq<410>,tick<41001>,press<1024390>,rtc<1793952807>,ax<844>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1806>,vbat<2087>,crc<57780>
+REC,seq<411>,tick<41101>,press<1024390>,rtc<1793952807>,ax<843>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1808>,vbat<2081>,crc<355>
+REC,seq<412>,tick<41201>,press<1024390>,rtc<1793952807>,ax<845>,ay<-17>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1810>,vbat<2083>,crc<11207>
+REC,seq<413>,tick<41301>,press<1024390>,rtc<1793952807>,ax<847>,ay<-20>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1808>,vbat<2095>,crc<40211>
+REC,seq<414>,tick<41401>,press<1024390>,rtc<1793952807>,ax<846>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1806>,vbat<2087>,crc<54655>
+REC,seq<415>,tick<41501>,press<1024380>,rtc<1793952808>,ax<844>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1806>,vbat<2096>,crc<17865>
+SONAR: 105 mm (pulse 613 us, edges 81)
+REC,seq<416>,tick<41601>,press<1024380>,rtc<1793952808>,ax<846>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1805>,vbat<2084>,crc<46821>
+DISP: SLOW frame 139479 us !
+REC,seq<417>,tick<41701>,press<1024380>,rtc<1793952808>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1804>,vbat<2090>,crc<12290>
+REC,seq<418>,tick<41801>,press<1024380>,rtc<1793952808>,ax<844>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1807>,vbat<2095>,crc<23528>
+IDLE: 642/1000 ms  hook 736/s  blank 0
+REC,seq<419>,tick<41901>,press<1024380>,rtc<1793952808>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1812>,vbat<2093>,crc<55342>
+REC,seq<420>,tick<42001>,press<1024380>,rtc<1793952808>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1814>,vbat<2083>,crc<18503>
+REC,seq<421>,tick<42101>,press<1024380>,rtc<1793952808>,ax<845>,ay<-21>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1810>,vbat<2087>,crc<23765>
+REC,seq<422>,tick<42201>,press<1024380>,rtc<1793952808>,ax<845>,ay<-19>,az<1849>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2302>,humi<524>,light<1808>,vbat<2091>,crc<51742>
+REC,seq<423>,tick<42301>,press<1024380>,rtc<1793952808>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1822>,vbat<2090>,crc<29877>
+REC,seq<424>,tick<42401>,press<1024380>,rtc<1793952808>,ax<845>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1812>,vbat<2091>,crc<10394>
+REC,seq<425>,tick<42501>,press<1024380>,rtc<1793952809>,ax<846>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1822>,vbat<2093>,crc<60042>
+SONAR: 105 mm (pulse 614 us, edges 83)
+REC,seq<426>,tick<42601>,press<1024380>,rtc<1793952809>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1814>,vbat<2091>,crc<50284>
+REC,seq<427>,tick<42701>,press<1024380>,rtc<1793952809>,ax<848>,ay<-19>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1814>,vbat<2112>,crc<58268>
+DISP: SLOW frame 120528 us !
+REC,seq<428>,tick<42801>,press<1024380>,rtc<1793952809>,ax<844>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1816>,vbat<2096>,crc<14547>
+REC,seq<429>,tick<42901>,press<1024380>,rtc<1793952809>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1818>,vbat<2101>,crc<59850>
+IDLE: 684/1000 ms  hook 773/s  blank 0
+REC,seq<430>,tick<43001>,press<1024380>,rtc<1793952809>,ax<845>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1814>,vbat<2093>,crc<22820>
+REC,seq<431>,tick<43101>,press<1024380>,rtc<1793952809>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1810>,vbat<2085>,crc<46686>
+REC,seq<432>,tick<43201>,press<1024380>,rtc<1793952809>,ax<846>,ay<-21>,az<1850>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1814>,vbat<2101>,crc<57401>
+REC,seq<433>,tick<43301>,press<1024380>,rtc<1793952809>,ax<845>,ay<-21>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1812>,vbat<2093>,crc<12744>
+REC,seq<434>,tick<43401>,press<1024380>,rtc<1793952809>,ax<845>,ay<-18>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1808>,vbat<2085>,crc<57386>
+REC,seq<435>,tick<43501>,press<1024380>,rtc<1793952810>,ax<844>,ay<-20>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1824>,vbat<2087>,crc<26611>
+SONAR: 105 mm (pulse 613 us, edges 85)
+REC,seq<436>,tick<43601>,press<1024380>,rtc<1793952810>,ax<846>,ay<-19>,az<1854>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1820>,vbat<2095>,crc<16132>
+REC,seq<437>,tick<43701>,press<1024380>,rtc<1793952810>,ax<843>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1814>,vbat<2089>,crc<59237>
+REC,seq<438>,tick<43801>,press<1024380>,rtc<1793952810>,ax<844>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2303>,humi<524>,light<1822>,vbat<2090>,crc<16317>
+REC,seq<439>,tick<43901>,press<1024380>,rtc<1793952810>,ax<846>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1824>,vbat<2095>,crc<13973>
+REC,seq<440>,tick<44001>,press<1024380>,rtc<1793952810>,ax<848>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1818>,vbat<2101>,crc<46189>
+IDLE: 683/1000 ms  hook 762/s  blank 0
+REC,seq<441>,tick<44101>,press<1024380>,rtc<1793952810>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1818>,vbat<2089>,crc<29962>
+REC,seq<442>,tick<44201>,press<1024380>,rtc<1793952810>,ax<843>,ay<-18>,az<1842>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1810>,vbat<2080>,crc<26210>
+REC,seq<443>,tick<44301>,press<1024380>,rtc<1793952810>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1803>,vbat<2093>,crc<11394>
+REC,seq<444>,tick<44401>,press<1024380>,rtc<1793952810>,ax<846>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1814>,vbat<2093>,crc<61743>
+REC,seq<445>,tick<44501>,press<1024380>,rtc<1793952811>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1812>,vbat<2097>,crc<20737>
+SONAR: 122 mm (pulse 714 us, edges 87)
+REC,seq<446>,tick<44601>,press<1024380>,rtc<1793952811>,ax<843>,ay<-18>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1820>,vbat<2092>,crc<28383>
+REC,seq<447>,tick<44701>,press<1024380>,rtc<1793952811>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1810>,vbat<2093>,crc<2542>
+REC,seq<448>,tick<44801>,press<1024380>,rtc<1793952811>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1818>,vbat<2089>,crc<42555>
+REC,seq<449>,tick<44901>,press<1024380>,rtc<1793952811>,ax<844>,ay<-19>,az<1849>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1818>,vbat<2093>,crc<52597>
+DISP: avg=121195 us  max=175796 us  (per refresh)
+REC,seq<450>,tick<45001>,press<1024380>,rtc<1793952811>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1822>,vbat<2091>,crc<55288>
+REC,seq<451>,tick<45101>,press<1024380>,rtc<1793952811>,ax<844>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1818>,vbat<2079>,crc<27394>
+IDLE: 682/1000 ms  hook 763/s  blank 0
+REC,seq<452>,tick<45201>,press<1024380>,rtc<1793952811>,ax<846>,ay<-18>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1814>,vbat<2089>,crc<13668>
+REC,seq<453>,tick<45301>,press<1024380>,rtc<1793952811>,ax<846>,ay<-16>,az<1847>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1814>,vbat<2096>,crc<34755>
+REC,seq<454>,tick<45401>,press<1024380>,rtc<1793952811>,ax<843>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1822>,vbat<2091>,crc<5038>
+REC,seq<455>,tick<45501>,press<1024380>,rtc<1793952812>,ax<845>,ay<-17>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1814>,vbat<2087>,crc<4427>
+REC,seq<456>,tick<45602>,press<1024360>,rtc<1793952812>,ax<843>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1820>,vbat<2091>,crc<34000>
+SONAR: 105 mm (pulse 614 us, edges 89)
+REC,seq<457>,tick<45701>,press<1024360>,rtc<1793952812>,ax<846>,ay<-20>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1818>,vbat<2093>,crc<28995>
+REC,seq<458>,tick<45801>,press<1024360>,rtc<1793952812>,ax<843>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1815>,vbat<2093>,crc<16557>
+REC,seq<459>,tick<45901>,press<1024360>,rtc<1793952812>,ax<846>,ay<-17>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1816>,vbat<2087>,crc<58808>
+REC,seq<460>,tick<46001>,press<1024360>,rtc<1793952812>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1814>,vbat<2091>,crc<15740>
+REC,seq<461>,tick<46101>,press<1024360>,rtc<1793952812>,ax<844>,ay<-20>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1822>,vbat<2093>,crc<9127>
+REC,seq<462>,tick<46201>,press<1024360>,rtc<1793952812>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1820>,vbat<2094>,crc<41589>
+IDLE: 669/1000 ms  hook 745/s  blank 0
+REC,seq<463>,tick<46301>,press<1024360>,rtc<1793952812>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1822>,vbat<2112>,crc<38318>
+REC,seq<464>,tick<46401>,press<1024360>,rtc<1793952812>,ax<845>,ay<-19>,az<1850>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1824>,vbat<2091>,crc<50357>
+REC,seq<465>,tick<46501>,press<1024360>,rtc<1793952813>,ax<846>,ay<-19>,az<1850>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1823>,vbat<2092>,crc<62128>
+REC,seq<466>,tick<46601>,press<1024360>,rtc<1793952813>,ax<844>,ay<-19>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1822>,vbat<2098>,crc<41907>
+SONAR: 105 mm (pulse 614 us, edges 91)
+REC,seq<467>,tick<46701>,press<1024360>,rtc<1793952813>,ax<847>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1814>,vbat<2093>,crc<51187>
+REC,seq<468>,tick<46801>,press<1024360>,rtc<1793952813>,ax<844>,ay<-19>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1826>,vbat<2090>,crc<37150>
+REC,seq<469>,tick<46901>,press<1024360>,rtc<1793952813>,ax<845>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1840>,vbat<2090>,crc<59154>
+REC,seq<470>,tick<47001>,press<1024360>,rtc<1793952813>,ax<846>,ay<-18>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1822>,vbat<2093>,crc<58570>
+REC,seq<471>,tick<47101>,press<1024360>,rtc<1793952813>,ax<843>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1816>,vbat<2089>,crc<49870>
+REC,seq<472>,tick<47201>,press<1024360>,rtc<1793952813>,ax<845>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1816>,vbat<2092>,crc<9679>
+REC,seq<473>,tick<47301>,press<1024360>,rtc<1793952813>,ax<845>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1824>,vbat<2096>,crc<58795>
+IDLE: 685/1000 ms  hook 762/s  blank 0
+REC,seq<474>,tick<47401>,press<1024360>,rtc<1793952813>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1820>,vbat<2095>,crc<51076>
+REC,seq<475>,tick<47501>,press<1024360>,rtc<1793952814>,ax<845>,ay<-20>,az<1844>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1824>,vbat<2097>,crc<35876>
+REC,seq<476>,tick<47601>,press<1024360>,rtc<1793952814>,ax<844>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1818>,vbat<2087>,crc<27187>
+SONAR: 105 mm (pulse 613 us, edges 93)
+REC,seq<477>,tick<47701>,press<1024360>,rtc<1793952814>,ax<843>,ay<-17>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1826>,vbat<2094>,crc<8303>
+REC,seq<478>,tick<47801>,press<1024360>,rtc<1793952814>,ax<845>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1822>,vbat<2091>,crc<21496>
+REC,seq<479>,tick<47901>,press<1024360>,rtc<1793952814>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1822>,vbat<2089>,crc<48780>
+REC,seq<480>,tick<48001>,press<1024360>,rtc<1793952814>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1818>,vbat<2081>,crc<2489>
+REC,seq<481>,tick<48101>,press<1024360>,rtc<1793952814>,ax<846>,ay<-17>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1822>,vbat<2087>,crc<42021>
+REC,seq<482>,tick<48201>,press<1024360>,rtc<1793952814>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1818>,vbat<2085>,crc<63800>
+REC,seq<483>,tick<48301>,press<1024360>,rtc<1793952814>,ax<844>,ay<-18>,az<1845>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1832>,vbat<2087>,crc<6915>
+DISP: SLOW frame 140783 us !
+REC,seq<484>,tick<48401>,press<1024360>,rtc<1793952814>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1824>,vbat<2101>,crc<46704>
+REC,seq<485>,tick<48501>,press<1024360>,rtc<1793952815>,ax<845>,ay<-16>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1823>,vbat<2097>,crc<11558>
+IDLE: 673/1000 ms  hook 773/s  blank 0
+REC,seq<486>,tick<48601>,press<1024360>,rtc<1793952815>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1816>,vbat<2091>,crc<51571>
+SONAR: 105 mm (pulse 614 us, edges 95)
+REC,seq<487>,tick<48701>,press<1024350>,rtc<1793952815>,ax<844>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1819>,vbat<2089>,crc<40707>
+REC,seq<488>,tick<48801>,press<1024350>,rtc<1793952815>,ax<844>,ay<-16>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1832>,vbat<2091>,crc<64874>
+REC,seq<489>,tick<48901>,press<1024350>,rtc<1793952815>,ax<846>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1824>,vbat<2093>,crc<28936>
+REC,seq<490>,tick<49001>,press<1024350>,rtc<1793952815>,ax<846>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1824>,vbat<2083>,crc<12413>
+REC,seq<491>,tick<49101>,press<1024350>,rtc<1793952815>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1818>,vbat<2087>,crc<53488>
+REC,seq<492>,tick<49201>,press<1024350>,rtc<1793952815>,ax<844>,ay<-17>,az<1846>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1822>,vbat<2094>,crc<56375>
+REC,seq<493>,tick<49301>,press<1024350>,rtc<1793952815>,ax<845>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1828>,vbat<2096>,crc<29490>
+REC,seq<494>,tick<49401>,press<1024350>,rtc<1793952815>,ax<845>,ay<-19>,az<1848>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2304>,humi<524>,light<1820>,vbat<2081>,crc<14576>
+REC,seq<495>,tick<49501>,press<1024350>,rtc<1793952816>,ax<844>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1823>,vbat<2090>,crc<12146>
+REC,seq<496>,tick<49601>,press<1024350>,rtc<1793952816>,ax<843>,ay<-20>,az<1848>,gx<4>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1822>,vbat<2087>,crc<5683>
+IDLE: 672/1000 ms  hook 748/s  blank 0
+REC,seq<497>,tick<49701>,press<1024350>,rtc<1793952816>,ax<844>,ay<-20>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1822>,vbat<2089>,crc<17190>
+SONAR: 105 mm (pulse 614 us, edges 97)
+REC,seq<498>,tick<49801>,press<1024350>,rtc<1793952816>,ax<844>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1830>,vbat<2085>,crc<19556>
+SD: SLOW batch=96 us=107516 tick=49828 size=65605
+REC,seq<499>,tick<49901>,press<1024350>,rtc<1793952816>,ax<844>,ay<-21>,az<1848>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1818>,vbat<2077>,crc<64038>
+REC,seq<500>,tick<50001>,press<1024350>,rtc<1793952816>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1826>,vbat<2091>,crc<63952>
+STAT acq=500 proc=500 full=0 qmax=1 drop=0 i2c=1466 i2c_max=2671 sd_err=0 sd_last=0 sdstk=146
+REC,seq<501>,tick<50101>,press<1024350>,rtc<1793952816>,ax<843>,ay<-17>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1826>,vbat<2089>,crc<16354>
+REC,seq<502>,tick<50201>,press<1024350>,rtc<1793952816>,ax<844>,ay<-19>,az<1850>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1824>,vbat<2095>,crc<57989>
+REC,seq<503>,tick<50301>,press<1024350>,rtc<1793952816>,ax<845>,ay<-21>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1824>,vbat<2092>,crc<28233>
+REC,seq<504>,tick<50401>,press<1024350>,rtc<1793952816>,ax<843>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1824>,vbat<2089>,crc<65520>
+REC,seq<505>,tick<50501>,press<1024350>,rtc<1793952817>,ax<844>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1820>,vbat<2087>,crc<53451>
+REC,seq<506>,tick<50601>,press<1024350>,rtc<1793952817>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1828>,vbat<2091>,crc<47482>
+REC,seq<507>,tick<50701>,press<1024350>,rtc<1793952817>,ax<844>,ay<-17>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1826>,vbat<2085>,crc<40158>
+SONAR: 105 mm (pulse 614 us, edges 99)
+IDLE: 436/1000 ms  hook 484/s  blank 0
+REC,seq<508>,tick<50801>,press<1024360>,rtc<1793952817>,ax<844>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1827>,vbat<2089>,crc<16460>
+SD: SLOW batch=98 us=100126 tick=50820 size=66465
+REC,seq<509>,tick<50901>,press<1024360>,rtc<1793952817>,ax<845>,ay<-18>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1830>,vbat<2093>,crc<983>
+REC,seq<510>,tick<51001>,press<1024360>,rtc<1793952817>,ax<845>,ay<-19>,az<1845>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1822>,vbat<2093>,crc<15412>
+REC,seq<511>,tick<51101>,press<1024360>,rtc<1793952817>,ax<846>,ay<-20>,az<1845>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1832>,vbat<2095>,crc<58015>
+REC,seq<512>,tick<51201>,press<1024360>,rtc<1793952817>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2305>,humi<524>,light<1826>,vbat<2090>,crc<52446>
+REC,seq<513>,tick<51301>,press<1024360>,rtc<1793952817>,ax<847>,ay<-17>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1824>,vbat<2087>,crc<52566>
+REC,seq<514>,tick<51401>,press<1024360>,rtc<1793952817>,ax<844>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1824>,vbat<2087>,crc<4396>
+REC,seq<515>,tick<51501>,press<1024360>,rtc<1793952818>,ax<843>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1820>,vbat<2085>,crc<44549>
+REC,seq<516>,tick<51601>,press<1024360>,rtc<1793952818>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-14>,gz<27>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1820>,vbat<2095>,crc<17822>
+REC,seq<517>,tick<51701>,press<1024360>,rtc<1793952818>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1824>,vbat<2088>,crc<40954>
+SD: W n=100 avg=12599 us max=107516 us ge100ms=3 lwmax=0 ms lwslow=0
+SONAR: 105 mm (pulse 613 us, edges 101)
+REC,seq<518>,tick<51801>,press<1024360>,rtc<1793952818>,ax<843>,ay<-19>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1820>,vbat<2086>,crc<53376>
+IDLE: 589/1000 ms  hook 658/s  blank 0
+REC,seq<519>,tick<51901>,press<1024360>,rtc<1793952818>,ax<843>,ay<-19>,az<1846>,gx<4>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1822>,vbat<2091>,crc<27315>
+REC,seq<520>,tick<52001>,press<1024360>,rtc<1793952818>,ax<846>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1816>,vbat<2087>,crc<56953>
+REC,seq<521>,tick<52101>,press<1024360>,rtc<1793952818>,ax<844>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1820>,vbat<2085>,crc<11960>
+REC,seq<522>,tick<52201>,press<1024360>,rtc<1793952818>,ax<844>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1820>,vbat<2085>,crc<33893>
+REC,seq<523>,tick<52301>,press<1024360>,rtc<1793952818>,ax<845>,ay<-17>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1828>,vbat<2087>,crc<60323>
+REC,seq<524>,tick<52401>,press<1024360>,rtc<1793952818>,ax<845>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1822>,vbat<2085>,crc<59258>
+REC,seq<525>,tick<52501>,press<1024360>,rtc<1793952819>,ax<843>,ay<-17>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1820>,vbat<2083>,crc<9097>
+REC,seq<526>,tick<52601>,press<1024360>,rtc<1793952819>,ax<845>,ay<-19>,az<1851>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1824>,vbat<2101>,crc<27710>
+REC,seq<527>,tick<52701>,press<1024360>,rtc<1793952819>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1818>,vbat<2096>,crc<30300>
+REC,seq<528>,tick<52801>,press<1024360>,rtc<1793952819>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1820>,vbat<2096>,crc<39377>
+DISP: SLSONAR: 105OW frame 15 mm (pulse 60255 us !
+13 us, edges 103)
+REC,seq<529>,tick<52901>,press<1024350>,rtc<1793952819>,ax<846>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1822>,vbat<2083>,crc<7107>
+REC,seq<530>,tick<53001>,press<1024350>,rtc<1793952819>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1820>,vbat<2087>,crc<30297>
+IDLE: 676/1000 ms  hook 784/s  blank 0
+REC,seq<531>,tick<53101>,press<1024350>,rtc<1793952819>,ax<845>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1828>,vbat<2097>,crc<61915>
+REC,seq<532>,tick<53201>,press<1024350>,rtc<1793952819>,ax<842>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1830>,vbat<2093>,crc<55964>
+REC,seq<533>,tick<53301>,press<1024350>,rtc<1793952819>,ax<844>,ay<-18>,az<1843>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1826>,vbat<2093>,crc<46546>
+REC,seq<534>,tick<53401>,press<1024350>,rtc<1793952819>,ax<843>,ay<-19>,az<1845>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1818>,vbat<2083>,crc<34280>
+REC,seq<535>,tick<53501>,press<1024350>,rtc<1793952820>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1816>,vbat<2085>,crc<63879>
+REC,seq<536>,tick<53601>,press<1024350>,rtc<1793952820>,ax<844>,ay<-18>,az<1846>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1822>,vbat<2093>,crc<60714>
+REC,seq<537>,tick<53701>,press<1024350>,rtc<1793952820>,ax<846>,ay<-19>,az<1846>,gx<4>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2306>,humi<524>,light<1822>,vbat<2087>,crc<30956>
+REC,seq<538>,tick<53801>,press<1024350>,rtc<1793952820>,ax<846>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1830>,vbat<2083>,crc<58011>
+SONAR: 105 mm (pulse 614 us, edges 105)
+REC,seq<539>,tick<53901>,press<1024370>,rtc<1793952820>,ax<846>,ay<-18>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1818>,vbat<2092>,crc<61824>
+DISP: avg=118544 us  max=175796 us  (per refresh)
+REC,seq<540>,tick<54001>,press<1024370>,rtc<1793952820>,ax<847>,ay<-20>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1830>,vbat<2089>,crc<20955>
+REC,seq<541>,tick<54101>,press<1024370>,rtc<1793952820>,ax<843>,ay<-17>,az<1844>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1824>,vbat<2097>,crc<41962>
+IDLE: 683/1000 ms  hook 770/s  blank 0
+REC,seq<542>,tick<54201>,press<1024370>,rtc<1793952820>,ax<844>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1820>,vbat<2089>,crc<45918>
+REC,seq<543>,tick<54301>,press<1024370>,rtc<1793952820>,ax<845>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1826>,vbat<2091>,crc<49123>
+REC,seq<544>,tick<54401>,press<1024370>,rtc<1793952820>,ax<843>,ay<-19>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1824>,vbat<2087>,crc<51991>
+REC,seq<545>,tick<54501>,press<1024370>,rtc<1793952821>,ax<847>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1823>,vbat<2085>,crc<26459>
+REC,seq<546>,tick<54601>,press<1024370>,rtc<1793952821>,ax<845>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1822>,vbat<2085>,crc<33563>
+REC,seq<547>,tick<54701>,press<1024370>,rtc<1793952821>,ax<843>,ay<-18>,az<1848>,gx<4>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1824>,vbat<2099>,crc<53288>
+REC,seq<548>,tick<54801>,press<1024370>,rtc<1793952821>,ax<843>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1824>,vbat<2108>,crc<38069>
+SONAR: 105 mm (pulse 614 us, edges 107)
+REC,seq<549>,tick<54901>,press<1024360>,rtc<1793952821>,ax<843>,ay<-18>,az<1844>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1840>,vbat<2091>,crc<50399>
+REC,seq<550>,tick<55001>,press<1024360>,rtc<1793952821>,ax<844>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1824>,vbat<2095>,crc<49378>
+REC,seq<551>,tick<55101>,press<1024360>,rtc<1793952821>,ax<846>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1822>,vbat<2083>,crc<49087>
+REC,seq<552>,tick<55201>,press<1024360>,rtc<1793952821>,ax<844>,ay<-20>,az<1846>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1824>,vbat<2095>,crc<40895>
+IDLE: 669/1000 ms  hook 745/s  blank 0
+REC,seq<553>,tick<55301>,press<1024360>,rtc<1793952821>,ax<843>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1816>,vbat<2091>,crc<3170>
+REC,seq<554>,tick<55401>,press<1024360>,rtc<1793952821>,ax<844>,ay<-20>,az<1845>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1828>,vbat<2098>,crc<39571>
+REC,seq<555>,tick<55501>,press<1024360>,rtc<1793952822>,ax<845>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1820>,vbat<2104>,crc<51219>
+REC,seq<556>,tick<55601>,press<1024360>,rtc<1793952822>,ax<845>,ay<-20>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1824>,vbat<2095>,crc<3188>
+REC,seq<557>,tick<55701>,press<1024360>,rtc<1793952822>,ax<844>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1822>,vbat<2087>,crc<26557>
+REC,seq<558>,tick<55801>,press<1024360>,rtc<1793952822>,ax<846>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1827>,vbat<2095>,crc<13855>
+REC,seq<559>,tick<55901>,press<1024360>,rtc<1793952822>,ax<845>,ay<-18>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1824>,vbat<2097>,crc<59451>
+SONAR: 105 mm (pulse 613 us, edges 109)
+REC,seq<560>,tick<56001>,press<1024360>,rtc<1793952822>,ax<845>,ay<-17>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1828>,vbat<2087>,crc<7598>
+REC,seq<561>,tick<56101>,press<1024360>,rtc<1793952822>,ax<845>,ay<-19>,az<1848>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1824>,vbat<2091>,crc<13647>
+REC,seq<562>,tick<56201>,press<1024360>,rtc<1793952822>,ax<843>,ay<-19>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1840>,vbat<2081>,crc<41388>
+REC,seq<563>,tick<56301>,press<1024360>,rtc<1793952822>,ax<843>,ay<-19>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1828>,vbat<2089>,crc<5148>
+IDLE: 683/1000 ms  hook 762/s  blank 0
+REC,seq<564>,tick<56401>,press<1024360>,rtc<1793952822>,ax<845>,ay<-18>,az<1846>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1826>,vbat<2087>,crc<37362>
+REC,seq<565>,tick<56501>,press<1024360>,rtc<1793952823>,ax<845>,ay<-18>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1820>,vbat<2095>,crc<65179>
+REC,seq<566>,tick<56601>,press<1024360>,rtc<1793952823>,ax<845>,ay<-18>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1824>,vbat<2096>,crc<15653>
+REC,seq<567>,tick<56701>,press<1024360>,rtc<1793952823>,ax<846>,ay<-20>,az<1844>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1816>,vbat<2089>,crc<13395>
+REC,seq<568>,tick<56801>,press<1024360>,rtc<1793952823>,ax<844>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1823>,vbat<2097>,crc<41902>
+REC,seq<569>,tick<56901>,press<1024360>,rtc<1793952823>,ax<844>,ay<-18>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2307>,humi<524>,light<1828>,vbat<2094>,crc<46316>
+SONAR: 105 mm (pulse 613 us, edges 111)
+REC,seq<570>,tick<57001>,press<1024350>,rtc<1793952823>,ax<847>,ay<-18>,az<1846>,gx<4>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2308>,humi<524>,light<1816>,vbat<2104>,crc<27675>
+REC,seq<571>,tick<57101>,press<1024350>,rtc<1793952823>,ax<844>,ay<-19>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2309>,humi<524>,light<1824>,vbat<2087>,crc<31021>
+REC,seq<572>,tick<57201>,press<1024350>,rtc<1793952823>,ax<844>,ay<-20>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2309>,humi<524>,light<1828>,vbat<2093>,crc<35254>
+REC,seq<573>,tick<57301>,press<1024350>,rtc<1793952823>,ax<844>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<27>,temp_ds<2137>,temp_chip<2309>,humi<524>,light<1820>,vbat<2104>,crc<27429>
+DISP: SLOW frame 143023 us !
+REC,seq<574>,tick<57401>,press<1024350>,rtc<1793952823>,ax<844>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2308>,humi<524>,light<1820>,vbat<2087>,crc<48664>
+REC,seq<575>,tick<57501>,press<1024350>,rtc<1793952824>,ax<844>,ay<-19>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2308>,humi<524>,light<1824>,vbat<2077>,crc<24752>
+IDLE: 676/1000 ms  hook 778/s  blank 0
+REC,seq<576>,tick<57601>,press<1024350>,rtc<1793952824>,ax<844>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2308>,humi<524>,light<1830>,vbat<2085>,crc<7672>
+REC,seq<577>,tick<57701>,press<1024350>,rtc<1793952824>,ax<845>,ay<-18>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2309>,humi<524>,light<1822>,vbat<2093>,crc<50094>
+REC,seq<578>,tick<57801>,press<1024350>,rtc<1793952824>,ax<846>,ay<-21>,az<1847>,gx<5>,gy<-14>,gz<28>,temp_ds<2137>,temp_chip<2308>,humi<524>,light<1822>,vbat<2090>,crc<27036>
+REC,seq<579>,tick<57901>,press<1024350>,rtc<1793952824>,ax<845>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2137>,temp_chip<2309>,humi<524>,light<1822>,vbat<2085>,crc<50247>
+SONAR: 105 mm (pulse 614 us, edges 113)
+REC,seq<580>,tick<58001>,press<1024350>,rtc<1793952824>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1830>,vbat<2095>,crc<53207>
+REC,seq<581>,tick<58101>,press<1024350>,rtc<1793952824>,ax<846>,ay<-19>,az<1845>,gx<5>,gy<-15>,gz<29>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1818>,vbat<2089>,crc<62974>
+REC,seq<582>,tick<58201>,press<1024350>,rtc<1793952824>,ax<845>,ay<-17>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2310>,humi<524>,light<1826>,vbat<2093>,crc<11606>
+REC,seq<583>,tick<58301>,press<1024350>,rtc<1793952824>,ax<846>,ay<-17>,az<1852>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1828>,vbat<2103>,crc<20924>
+REC,seq<584>,tick<58401>,press<1024350>,rtc<1793952824>,ax<843>,ay<-20>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1822>,vbat<2089>,crc<16550>
+REC,seq<585>,tick<58501>,press<1024350>,rtc<1793952825>,ax<846>,ay<-19>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1826>,vbat<2097>,crc<60063>
+REC,seq<586>,tick<58601>,press<1024350>,rtc<1793952825>,ax<843>,ay<-17>,az<1846>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1824>,vbat<2091>,crc<45122>
+IDLE: 682/1000 ms  hook 760/s  blank 0
+REC,seq<587>,tick<58701>,press<1024350>,rtc<1793952825>,ax<843>,ay<-18>,az<1847>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1818>,vbat<2085>,crc<43950>
+REC,seq<588>,tick<58801>,press<1024350>,rtc<1793952825>,ax<847>,ay<-18>,az<1847>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1820>,vbat<2093>,crc<12718>
+REC,seq<589>,tick<58901>,press<1024350>,rtc<1793952825>,ax<846>,ay<-18>,az<1846>,gx<5>,gy<-15>,gz<27>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1822>,vbat<2089>,crc<25119>
+SONAR: 105 mm (pulse 614 us, edges 115)
+REC,seq<590>,tick<59001>,press<1024340>,rtc<1793952825>,ax<845>,ay<-19>,az<1849>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1816>,vbat<2089>,crc<24709>
+REC,seq<591>,tick<59101>,press<1024340>,rtc<1793952825>,ax<843>,ay<-20>,az<1848>,gx<5>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2308>,humi<524>,light<1820>,vbat<2093>,crc<58211>
+REC,seq<592>,tick<59201>,press<1024340>,rtc<1793952825>,ax<846>,ay<-17>,az<1848>,gx<4>,gy<-15>,gz<28>,temp_ds<2131>,temp_chip<2309>,humi<524>,light<1816>,vbat<2087>,crc<23355>
+REC,seq<593>,tick<59301>,press<1024340>,rt
+#CAP,1793952853,end bytes=119530 gaps=0

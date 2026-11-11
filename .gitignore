@@ -18,6 +18,10 @@ DebugConfig/
 build.log
 # release 里的构建日志要入库
 !release/build.log
+# evidence 里的原始日志是"证据"，必须入库
+# （2026-11-11 复查发现：上面这条 *.log 把 65 个证据日志全部挡在仓库外，
+#   导致证据矩阵引用的 .log 一个都不在仓库里，[实测] 的"可复跑"定义落空）
+!evidence/**/*.log
 
 # Keil 用户/调试配置（每人一份，不入库）
 *.uvguix.*

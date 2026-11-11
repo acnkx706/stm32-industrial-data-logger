@@ -1,0 +1,45 @@
+#CAP,1793952247,start port=COM12 secs=150
+
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=44D4
+BOOT: no upgrade request -> normal boot
+BOOT: app valid -> jumping
+=== boot ===
+APP: ver 74 (2026-11-05 dsh: SD slow-write forensics)
+CRC: KERMIT=0x2189(want 2189)  XMODEM=0x31C3(want 31C3)
+VREFINT raw=1477 cal=65535 (CAL invalid -> use direction only)
+  raw up = VDD down: 1489=3.3V ok / 1800=2.73V / 2185=2.25V brownout!
+OLED: found 0, ACK addr=0 ctrl=0 cmd=0
+
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=44D4
+BOOT: no upgrade request -> normal boot
+BOOT: app valid -> jumping
+=== boot ===
+APP: ver 74 (2026-11-05 dsh: SD slow-write forensics)
+CRC: KERMIT=0x2189(want 2189)  XMODEM=0x31C3(want 31C3)
+VREFINT raw=1478 cal=65535 (CAL invalid -> use direction only)
+  raw up = VDD down: 1489=3.3V ok / 1800=2.73V / 2185=2.25V brownout!
+OLED: found 0, ACK addr=0 ctrl=0 cmd=0
+OLED: stress 8x128 bytes, lost ACK = 1024
+W25Q64: JEDEC = 0xEF4017 (expect 0xEF4017) -> PRESENT
+W25Q64: pins SCK=PA8  MISO=PA11  MOSI=PA12  CS=PB13
+MyRTC: BDCR=0x00008103 (bit0 LSEON / bit1 LSERDY / bit2 LSEBYP)
+MyRTC: already configured (BKP magic hit) -> keep counter
+RTC now = 2026-11-06 08:06:11   (unix=1793952371)
+  ^^ NOTE: this self-check only proves the counter ROUND-TRIPS,
+         NOT that the time is correct. The real check is on the PC:
+         time_sync.py asserts |diff| <= 2 s against the PC clock.
+MPU ID = 68 (expect 68)
+BMP280 init = 0 (0=OK / 1=ID wrong / 2=no bus)
+BMP280 selftest: T=2508 (expect 2508)  P=100653 (expect 100653)
+BMP280 selftest: PASS
+BMP280 raw : press=692390 (x10Pa)  temp=2329 (x100C)
+BMP280 real: press=692.3 hPa   temp=23.29 C
+  ^^ compare temp with DS18B20 above (expect within ~1C)
+gyro calibrating, keep still for 2s ...
+#CAP,1793952398,end bytes=2018 gaps=0

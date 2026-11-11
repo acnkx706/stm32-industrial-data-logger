@@ -1,0 +1,3 @@
+#CAP,1793952955,start port=COM12 secs=300
+#CAP,1793952955,port lost: could not open port 'COM12': PermissionError(13, '拒绝访问。', No
+#CAP,1793953255,end bytes=0 gaps=0

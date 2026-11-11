@@ -1,0 +1,922 @@
+DHT: FAIL reason=2 extra_wait=1045 us line_high=1
+EXP02,FAST,done,n=100000
+LAT,SUM,0,100000,3627,72069,0
+LAT,0,3,65535
+LAT,0,4,1829
+LAT,0,5,7936
+LAT,0,6,746
+LAT,0,7,1481
+LAT,0,8,1014
+LAT,0,9,223
+LAT,0,10,285
+LAT,0,11,818
+LAT,0,12,203
+LAT,0,13,268
+LAT,0,14,83
+LAT,0,15,46
+LAT,0,16,33
+LAT,0,17,9
+LAT,0,18,5
+LAT,0,19,9
+LAT,0,20,3
+LAT,0,22,2
+LAT,0,23,2
+LAT,0,24,5
+LAT,0,25,5
+LAT,0,26,5
+LAT,0,27,3
+LAT,0,29,1
+LAT,0,30,1
+LAT,0,37,1
+LAT,0,40,1
+LAT,0,42,1
+LAT,0,44,1
+LAT,0,47,1
+LAT,0,72,1
+LAT,SUM,1,100000,3775,48931,0
+LAT,1,3,65535
+LAT,1,4,4390
+LAT,1,5,3548
+LAT,1,6,4630
+LAT,1,7,363
+LAT,1,8,166
+LAT,1,9,80
+LAT,1,10,49
+LAT,1,11,798
+LAT,1,12,202
+LAT,1,13,1502
+LAT,1,14,138
+LAT,1,15,99
+LAT,1,16,91
+LAT,1,17,16
+LAT,1,18,19
+LAT,1,19,8
+LAT,1,20,10
+LAT,1,21,32
+LAT,1,22,11
+LAT,1,23,6
+LAT,1,24,128
+LAT,1,25,10
+LAT,1,26,13
+LAT,1,27,17
+LAT,1,28,9
+LAT,1,29,2
+LAT,1,30,5
+LAT,1,31,4
+LAT,1,32,1
+LAT,1,33,3
+LAT,1,34,3
+LAT,1,35,1
+LAT,1,36,1
+LAT,1,38,4
+LAT,1,39,3
+LAT,1,40,3
+LAT,1,41,3
+LAT,1,42,3
+LAT,1,43,1
+LAT,1,44,2
+LAT,1,45,1
+LAT,1,46,1
+LAT,1,48,1
+TOP,0,72069,15253
+TOP,1,42645,670788
+TOP,1,44129,749912
+TOP,1,38969,611294
+TOP,1,40057,593442
+TOP,1,41934,123742
+TOP,1,39989,71625
+TOP,1,46759,46334
+TOP,0,37596,319832
+TOP,1,45519,632297
+TOP,1,38006,140921
+TOP,1,48931,255067
+TOP,0,47851,163076
+TOP,1,40916,436978
+TOP,1,40859,359091
+TOP,1,38971,571283
+TOP,1,39999,211490
+TOP,1,38959,551360
+TOP,1,35962,315481
+TOP,1,43162,279986
+TOP,1,42719,202618
+TOP,0,44472,515183
+TOP,0,40527,476301
+TOP,1,44936,397943
+TOP,1,34964,677058
+TOP,1,36756,681817
+TOP,1,42639,704153
+TOP,1,41798,241155
+TOP,1,41480,84900
+TOP,1,39113,711049
+TOP,1,34699,31795
+TOP,0,42705,553670
+SD: begin, Vref=1472 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1473
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x01
+SD: ACMD41 #5 R1=0x00
+SD: ACMD41 ready after 5 tries
+SD: [1] f_mount OK
+SD: [2] date = 2026-11-06
+SD: [3] nn=1 trying 0:26110601.CSV
+SD: [4] opened 0:26110601.CSV  size=29551780
+SD: [5] lseek(end) fr=0
+SD: [6] lseek(sz-1) fr=0
+SD: [7] read1 fr=0 br=1 last=0x0A
+SD: last_rtc=1793939105  now=1793939887  diff=-782s
+SD: log = 0:26110601.CSV  size=29551780
+SD: [8] mount exit fr=0
+DISP: SLOW frame 163516 us !
+IDLE: 171/1000 ms  hook 200/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1416, echo=1)
+IDLE: 895/1000 ms  hook 984/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1418, echo=1)
+SONAR: no echo (pulse 0 us, edges 1420, echo=1)
+IDLE: 900/1000 ms  hook 983/s  blank 0
+DISP: avg=140531 us  max=192144 us  (per refresh)
+SONAR: no echo (pulse 0 us, edges 1422, echo=1)
+IDLE: 900/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1424, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1426, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1428, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1430, echo=1)
+IDLE: 903/1000 ms  hook 995/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1432, echo=1)
+IDLE: 903/1000 ms  hook 995/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1434, echo=1)
+IDLE: 903/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1436, echo=1)
+IDLE: 901/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1438, echo=1)
+DISP: avg=92574 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1440, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1442, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1444, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1446, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1448, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1450, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1452, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1454, echo=1)
+DISP: avg=88046 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1456, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1458, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1460, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1462, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1464, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1466, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1468, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1470, echo=1)
+DISP: avg=87277 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1472, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1474, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1476, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1478, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1480, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1482, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1484, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1486, echo=1)
+DISP: avg=87276 us  max=192144 us  (per refresh)
+IDLE: 892/1000 ms  hook 979/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1488, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1490, echo=1)
+SONAR: no echo (pulse 0 us, edges 1492, echo=1)
+IDLE: 900/1000 ms  hook 983/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1494, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1496, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1498, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1500, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1502, echo=1)
+IDLE: 903/1000 ms  hook 995/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1504, echo=1)
+DISP: avg=90791 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 999/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1506, echo=1)
+IDLE: 904/1000 ms  hook 990/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1508, echo=1)
+IDLE: 901/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1510, echo=1)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1512, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1514, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1516, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1518, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1520, echo=1)
+DISP: avg=88627 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1522, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 4148 us, edges 1525, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1526, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1528, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1530, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1532, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1534, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1536, echo=1)
+DISP: avg=87546 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1538, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1540, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1542, echo=1)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1544, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1546, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1548, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1550, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1552, echo=1)
+DISP: avg=87276 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1554, echo=1)
+IDLE: 894/1000 ms  hook 977/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1556, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1558, echo=1)
+SONAR: no echo (pulse 0 us, edges 1560, echo=1)
+IDLE: 900/1000 ms  hook 983/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1562, echo=1)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1564, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1566, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1568, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+DISP: avg=88423 us  max=192144 us  (per refresh)
+SONAR: no echo (pulse 0 us, edges 1570, echo=1)
+IDLE: 900/1000 ms  hook 995/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1572, echo=1)
+IDLE: 903/1000 ms  hook 999/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1574, echo=1)
+IDLE: 902/1000 ms  hook 996/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1576, echo=1)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1578, echo=1)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1580, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1582, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1584, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1586, echo=1)
+DISP: avg=91555 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1588, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1590, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1592, echo=1)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1594, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1596, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1598, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1600, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1602, echo=1)
+DISP: avg=87797 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1604, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1606, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1608, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1610, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1612, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1614, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1616, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1618, echo=1)
+DISP: avg=87284 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1620, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1622, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1624, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1626, echo=1)
+IDLE: 894/1000 ms  hook 978/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1628, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1630, echo=1)
+SONAR: no echo (pulse 0 us, edges 1632, echo=1)
+IDLE: 900/1000 ms  hook 983/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1634, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+DISP: avg=87262 us  max=192144 us  (per refresh)
+SONAR: no echo (pulse 0 us, edges 1636, echo=1)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1638, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1640, echo=1)
+IDLE: 903/1000 ms  hook 992/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1642, echo=1)
+IDLE: 904/1000 ms  hook 995/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1644, echo=1)
+IDLE: 903/1000 ms  hook 999/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1646, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1648, echo=1)
+IDLE: 902/1000 ms  hook 990/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1650, echo=1)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1652, echo=1)
+DISP: avg=92070 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1654, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1656, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1658, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1660, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1662, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1664, echo=1)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1666, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1668, echo=1)
+DISP: avg=88061 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1670, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1672, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1674, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1676, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1678, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1680, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1682, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1684, echo=1)
+DISP: avg=87274 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1686, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1688, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1690, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1692, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1694, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1696, echo=1)
+IDLE: 895/1000 ms  hook 978/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1698, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1700, echo=1)
+DISP: avg=87261 us  max=192144 us  (per refresh)
+SONAR: no echo (pulse 0 us, edges 1702, echo=1)
+IDLE: 896/1000 ms  hook 983/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1704, echo=1)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1706, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1708, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1710, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1712, echo=1)
+IDLE: 903/1000 ms  hook 995/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1714, echo=1)
+IDLE: 903/1000 ms  hook 999/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1716, echo=1)
+IDLE: 897/1000 ms  hook 994/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1718, echo=1)
+DISP: avg=93553 us  max=192144 us  (per refresh)
+IDLE: 897/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1720, echo=1)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1722, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1724, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1726, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1728, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1730, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1732, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1734, echo=1)
+DISP: avg=87811 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2709 us, edges 1737, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3333 us, edges 1739, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2465 us, edges 1741, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1742, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3434 us, edges 1745, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2953 us, edges 1747, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 1749, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2744 us, edges 1751, echo=0)
+DISP: avg=87269 us  max=192144 us  (per refresh)
+SONAR: no echo (pulse 3352 us, edges 1753, echo=0)
+IDLE: 888/1000 ms  hook 976/s  blank 0
+SONAR: no echo (pulse 3023 us, edges 1755, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2672 us, edges 1757, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2626 us, edges 1759, echo=0)
+IDLE: 904/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 2709 us, edges 1761, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2708 us, edges 1763, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2533 us, edges 1765, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 370 mm (pulse 2154 us, edges 1767)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2593 us, edges 1769, echo=0)
+DISP: avg=89758 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 379 mm (pulse 2206 us, edges 1771)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2423 us, edges 1773, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2532 us, edges 1775, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2954 us, edges 1777, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2423 us, edges 1779, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2603 us, edges 1781, echo=0)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2477 us, edges 1783, echo=0)
+SONAR: 412 mm (pulse 2396 us, edges 1785)
+IDLE: 890/1000 ms  hook 975/s  blank 0
+DISP: avg=87283 us  max=192144 us  (per refresh)
+SONAR: 405 mm (pulse 2355 us, edges 1787)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2476 us, edges 1789, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2811 us, edges 1791, echo=0)
+IDLE: 903/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 2813 us, edges 1793, echo=0)
+IDLE: 901/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 2939 us, edges 1795, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3480 us, edges 1797, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2648 us, edges 1799, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2529 us, edges 1801, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2683 us, edges 1803, echo=0)
+DISP: avg=90130 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2625 us, edges 1805, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1806, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2613 us, edges 1809, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2813 us, edges 1811, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 1813, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2613 us, edges 1815, echo=0)
+SONAR: no echo (pulse 2919 us, edges 1817, echo=0)
+IDLE: 890/1000 ms  hook 975/s  blank 0
+SONAR: no echo (pulse 2612 us, edges 1819, echo=0)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+DISP: avg=87258 us  max=192144 us  (per refresh)
+SONAR: no echo (pulse 2683 us, edges 1821, echo=0)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2752 us, edges 1823, echo=0)
+IDLE: 904/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 2789 us, edges 1825, echo=0)
+IDLE: 901/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 2906 us, edges 1827, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2802 us, edges 1829, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2907 us, edges 1831, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2637 us, edges 1833, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3456 us, edges 1835, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2683 us, edges 1837, echo=0)
+DISP: avg=89229 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2660 us, edges 1839, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2861 us, edges 1841, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2755 us, edges 1843, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 1845, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2613 us, edges 1847, echo=0)
+SONAR: no echo (pulse 2884 us, edges 1849, echo=0)
+IDLE: 891/1000 ms  hook 976/s  blank 0
+SONAR: no echo (pulse 2731 us, edges 1851, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2801 us, edges 1853, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2908 us, edges 1855, echo=0)
+DISP: avg=89294 us  max=192144 us  (per refresh)
+IDLE: 898/1000 ms  hook 996/s  blank 0
+SONAR: no echo (pulse 2718 us, edges 1857, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 1859, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2612 us, edges 1861, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2908 us, edges 1863, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2962 us, edges 1865, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 1867, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2754 us, edges 1869, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1870, echo=1)
+DISP: avg=87639 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1872, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3595 us, edges 1875, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1876, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1878, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3563 us, edges 1881, echo=0)
+IDLE: 901/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 3349 us, edges 1883, echo=0)
+SONAR: no echo (pulse 2476 us, edges 1885, echo=0)
+IDLE: 893/1000 ms  hook 982/s  blank 0
+SONAR: 404 mm (pulse 2354 us, edges 1887)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no DISecho (pulseP: avg=88545 2742 us, e us  max=192dges 1889, 144 us  (perecho=0)
+ refresh)
+IDLE: 900/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 2647 us, edges 1891, echo=0)
+IDLE: 902/1000 ms  hook 994/s  blank 0
+SONAR: no echo (pulse 3334 us, edges 1893, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 1895, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1896, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1898, echo=1)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 3332 us, edges 1901, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2707 us, edges 1903, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2707 us, edges 1905, echo=0)
+DISP: avg=88913 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2952 us, edges 1907, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 1909, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 1911, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 1913, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2931 us, edges 1915, echo=0)
+SONAR: no echo (pulse 2930 us, edges 1917, echo=0)
+IDLE: 890/1000 ms  hook 975/s  blank 0
+SONAR: no echo (pulse 2709 us, edges 1919, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 1921, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 1923, echo=0)
+DISP: avg=89579 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 2909 us, edges 1925, echo=0)
+IDLE: 901/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 1927, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2953 us, edges 1929, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2952 us, edges 1931, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 1933, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3341 us, edges 1935, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2660 us, edges 1937, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2590 us, edges 1939, echo=0)
+DISP: avg=87611 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3152 us, edges 1941, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1942, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2972 us, edges 1945, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3072 us, edges 1947, echo=0)
+IDLE: 896/1000 ms  hook 979/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 1949, echo=0)
+SONAR: no echo (pulse 2932 us, edges 1951, echo=0)
+IDLE: 888/1000 ms  hook 975/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1952, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2827 us, edges 1955, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3333 us, edges 1957, echo=0)
+DISP: avg=88953 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 2972 us, edges 1959, echo=0)
+IDLE: 900/1000 ms  hook 984/s  blank 0
+SONAR: no echo (pulse 2908 us, edges 1961, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3061 us, edges 1963, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3112 us, edges 1965, echo=0)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2962 us, edges 1967, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2963 us, edges 1969, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2972 us, edges 1971, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3433 us, edges 1973, echo=0)
+DISP: avg=87556 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 1975, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1976, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2766 us, edges 1979, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3333 us, edges 1981, echo=0)
+IDLE: 894/1000 ms  hook 977/s  blank 0
+SONAR: no echo (pulse 3022 us, edges 1983, echo=0)
+SONAR: no echo (pulse 0 us, edges 1984, echo=1)
+IDLE: 900/1000 ms  hook 983/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 1987, echo=0)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 1989, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3001 us, edges 1991, echo=0)
+DISP: avg=88942 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 3033 us, edges 1993, echo=0)
+IDLE: 901/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 3052 us, edges 1995, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1996, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3341 us, edges 1999, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2756 us, edges 2001, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2992 us, edges 2003, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2004, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2754 us, edges 2007, echo=0)
+DISP: avg=87547 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2872 us, edges 2009, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3101 us, edges 2011, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 196 mm (pulse 1143 us, edges 2013)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2884 us, edges 2015, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 2017, echo=0)
+SONAR: no echo (pulse 2697 us, edges 2019, echo=0)
+IDLE: 890/1000 ms  hook 975/s  blank 0
+SONAR: no echo (pulse 2942 us, edges 2021, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3133 us, edges 2023, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3349 us, edges 2025, echo=0)
+DISP: avg=89582 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 997/s  blank 0
+SONAR: no echo (pulse 2942 us, edges 2027, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2028, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3351 us, edges 2031, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 367 mm (pulse 2138 us, edges 2033)
+IDLE: 904/1000 ms  hook 990/s  blank 0
+SONAR: no echo (pulse 2952 us, edges 2035, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2931 us, edges 2037, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2038, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2565 us, edges 2041, echo=0)
+DISP: avg=87553 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2566 us, edges 2043, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 2045, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2960 us, edges 2047, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2803 us, edges 2049, echo=0)
+IDLE: 897/1000 ms  hook 980/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 2051, echo=0)
+SONAR: no echo (pulse 2872 us, edges 2053, echo=0)
+IDLE: 897/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 2577 us, edges 2055, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 388 mm (pulse 2259 us, edges 2057)
+IDLE: 904/1000 ms  hook 998/s  blank 0
+SONAR: 409 mm (pulse 2382 us, edges 2059)
+DISP: avg=90176 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 994/s  blank 0
+SONAR: no echo (pulse 2543 us, edges 2061, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2719 us, edges 2063, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2064, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2672 us, edges 2067, echo=0)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2068, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2684 us, edges 2071, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2778 us, edges 2073, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2626 us, edges 2075, echo=0)
+DISP: avg=87533 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2743 us, edges 2077, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2602 us, edges 2079, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2659 us, edges 2081, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2952 us, edges 2083, echo=0)
+SONAR: no echo (pulse 2802 us, edges 2085, echo=0)
+IDLE: 890/1000 ms  hook 975/s  blank 0
+SONAR: no echo (pulse 2813 us, edges 2087, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2826 us, edges 2089, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2707 us, edges 2091, echo=0)
+IDLE: 903/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 2884 us, edges 2093, echo=0)
+DISP: avg=89601 us  max=192144 us  (per refresh)
+IDLE: 898/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 2909 us, edges 2095, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 2097, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2098, echo=1)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2790 us, edges 2101, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 3433 us, edges 2103, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2802 us, edges 2105, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2874 us, edges 2107, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2981 us, edges 2109, echo=0)
+DISP: avg=87806 us  max=192144 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2709 us, edges 2111, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2112, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2802 us, edges 2115, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2684 us, edges 2117, echo=0)
+SONAR: no echo (pulse 2848 us, edges 2119, echo=0)
+IDLE: 891/1000 ms  hook 976/s  blank 0
+SONAR: no echo (pulse 2883 us, edges 2121, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 2123, echo=0)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2577 us, edges 2125, echo=0)
+IDLE: 904/1000 ms  hook 998/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2126, echo=1)
+DISP: avg=89483 us  max=192144 us  (per refresh)
+IDLE: 897/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 2129, echo=0)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2530 us, edges 2131, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2659 us, edges 2133, echo=0)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 2135, echo=0)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2765 us, edges 2137, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2742 us, edges 2139, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2825 us, edges 2141, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2825 us, edges 2143, echo=0)
+DISP: avg=87528 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2896 us, edges 2145, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2837 us, edges 2147, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2683 us, edges 2149, echo=0)
+SONAR: no echo (pulse 2883 us, edges 2151, echo=0)
+IDLE: 890/1000 ms  hook 975/s  blank 0
+SONAR: no echo (pulse 2718 us, edges 2153, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2920 us, edges 2155, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2871 us, edges 2157, echo=0)
+IDLE: 903/1000 ms  hook 997/s  blank 0
+SONAR: no echo (pulse 2970 us, edges 2159, echo=0)
+IDLE: 901/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 2790 us, edges 2161, echo=0)
+DISP: avg=89621 us  max=192144 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 2162, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 2165, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2896 us, edges 2167, echo=0)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 2169)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3272 us, edges 2171, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 386 mm (pulse 2245 us, edges 2173)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2754 us, edges 2175, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2778 us, edges 2177, echo=0)

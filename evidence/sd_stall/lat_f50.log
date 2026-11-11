@@ -1,0 +1,653 @@
+DISP: avg=88826 us  max=99762 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 19)
+IDLE: 904/1000 ms  hook 990/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 21)
+IDLE: 904/1000 ms  hook 990/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 23)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 25)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 27)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 29)
+SD: begin, Vref=1480 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1478
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x00
+SD: ACMD41 ready after 4 tries
+EXP02,FAST,free_KB=1890560,n=10000
+DISP: SLOW frame 174444 us !
+IDLE: 629/1000 ms  hook 746/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 31)
+DISP: SLOW frame 174415 us !
+SONAR: 119 mm (pulse 692 us, edges 33)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DISP:SONAR: 119 SLOW frame 1 mm (pulse 86468 us !
+693 us, edgeDISP: avgs 35)
+=121976 us  max=186468 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 37)
+DISP: SLOW frame 178413 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 39)
+DISP: SLOW frame 177563 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 41)
+DISP: SLOW frame 174545 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+
+=== BOOT ===
+BOOT: app area = 0x08004000 - 0x08020000  (112 KB)
+BOOT: IWDG probe PR=00 RLR=0FFF SR=00  (PR: 00=reset-cleared  04=set-by-App ; RLR default 0FFF)
+GOLD: W25 ok, backup crc=E23E
+G: trigger IWDG reset
+G: crc=E23E
+G: restoring
+G: ok
+G: restored -> jump
+=== boot ===
+APP: ver 74-EXP02 (2026-11-06 dsh: SD latency + stall)
+CRC: KERMIT=0x2189(want 2189)  XMODEM=0x31C3(want 31C3)
+VREFINT raw=1479 cal=65535 (CAL invalid -> use direction only)
+  raw up = VDD down: 1489=3.3V ok / 1800=2.73V / 2185=2.25V brownout!
+OLED: found 1, ACK addr=1 ctrl=1 cmd=1
+OLED: stress 8x128 bytes, lost ACK = 0
+W25Q64: JEDEC = 0xEF4017 (expect 0xEF4017) -> PRESENT
+W25Q64: pins SCK=PA8  MISO=PA11  MOSI=PA12  CS=PB13
+MyRTC: BDCR=0x00008103 (bit0 LSEON / bit1 LSERDY / bit2 LSEBYP)
+MyRTC: already configured (BKP magic hit) -> keep counter
+RTC now = 2026-11-06 02:17:27   (unix=1793931447)
+  ^^ NOTE: this self-check only proves the counter ROUND-TRIPS,
+         NOT that the time is correct. The real check is on the PC:
+         time_sync.py asserts |diff| <= 2 s against the PC clock.
+MPU ID = 68 (expect 68)
+BMP280 init = 0 (0=OK / 1=ID wrong / 2=no bus)
+BMP280 selftest: T=2508 (expect 2508)  P=100653 (expect 100653)
+BMP280 selftest: PASS
+BMP280 raw : press=1023640 (x10Pa)  temp=2080 (x100C)
+BMP280 real: press=1023.6 hPa   temp=20.80 C
+  ^^ compare temp with DS18B20 above (expect within ~1C)
+gyro calibrating, keep still for 2s ...
+MPU OFF acc=(70,-43,-160) fixed, gyro=(3,0,-21) boot-cal
+GYRO residual=(0,0,0)  (abs>5 = calibration NOT trustworthy)
+AD init: light=1494 vbat=2057 (raw 0-4095)
+DHT22: humi=63.9 %RH  temp=20.6 C
+DHT22: (compare with DS18B20 below; DHT22 self-heats a bit)
+WIRE: PB14 float 0/8 ipu 8/8 | PB15 float 8/8 ipu 8/8
+WIRE: DS18B20 presence = 124 us (60..240=ok 0=no ack 65535=stuck low)
+SD: begin, Vref=1481 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1479
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x01
+SD: ACMD41 #5 R1=0x01
+SD: ACMD41 ready after 6 tries
+---- SD test ----
+SD_Init=0 (OK) cardtype=4 (1=V1 2=V2 4=SDHC)
+read sector0 = 0 (OK)
+sector0[0..15]: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+MBR sig = 55 AA (expect 55 AA)
+part1 type=0x0C start=8192 sec, sectors=7736320 (~3777 MB)
+write sec 8191 [before-part] = 0 (OK)
+  [dbg] write ok, blanking buffer...
+  [dbg] calling SD_ReadBlocks(sec=8191)...
+  [dbg] SD_ReadBlocks returned 0
+  read back = 0 (OK)
+  verify: PASS
+=== Init Done ===
+queue ok: item=44 bytes
+DROP: log d=84/0 e=0/0  pending=0/0
+GOLD: my image crc=0xE23E  blacklist=0x0283
+GOLD: backup already matches this image -> nothing to do
+EXP02,FAST,wEXP02,STARTait 15s befor,lat=0,stale start
+lSD=0,stallPROC=0,qlen=8
+IDLE: 881/1000 ms  hook 998/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 3)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 5)
+SONAR: 101 mm (pulse 593 us, edges 7)
+IDLE: 892/1000 ms  hook 977/s  blank 0
+---- Task table (9) ----
+PROC     RUN prio=2 stkfree=220
+KEY      RDY prio=2 stkfree=41
+IDLE     RDY prio=0 stkfree=45
+DISP     BLK prio=1 stkfree=92
+sensor   BLK prio=1 stkfree=193
+ACQ      BLK prio=6 stkfree=81
+EXP02    BLK prio=1 stkfree=130
+SD       BLK prio=1 stkfree=278
+GOLD     BLK prio=1 stkfree=171
+SONAR: 101 mm (pulse 593 us, edges 9)
+IDLE: 880/1000 ms  hook 973/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 11)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 13)
+IDLE: 905/1000 ms  hook 998/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 15)
+IDLE: 902/1000 ms  hook 985/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 17)
+DISP: avg=88822 us  max=99744 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 19)
+IDLE: 904/1000 ms  hook 990/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 21)
+IDLE: 904/1000 ms  hook 990/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 23)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 25)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 27)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 29)
+SD: begin, Vref=1479 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1482
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x00
+SD: ACMD41 ready after 4 tries
+EXP02,FAST,free_KB=1890144,n=500
+DISP: SLOW frame 174435 us !
+IDLE: 629/1000 ms  hook 746/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 31)
+DISP: SLOW frame 174408 us !
+SONAR: 136 mm (pulse 793 us, edges 33)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DISP:SONAR: 119 SLOW frame 1 mm (pulse 86464 us !
+693 us, edgeDISP: avgs 35)
+=121973 us  max=186464 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 37)
+DISP: SLOW frame 178419 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+EXP02,FAST,done,n=500
+LAT,SUM,0,500,3730,15149,0
+LAT,0,3,407
+LAT,0,4,13
+LAT,0,5,51
+LAT,0,6,3
+LAT,0,7,8
+LAT,0,8,8
+LAT,0,9,3
+LAT,0,10,1
+LAT,0,11,2
+LAT,0,12,2
+LAT,0,13,1
+LAT,0,15,1
+LAT,SUM,1,500,3820,21732,0
+LAT,1,3,402
+LAT,1,4,22
+LAT,1,5,13
+LAT,1,6,45
+LAT,1,7,1
+LAT,1,8,2
+LAT,1,9,1
+LAT,1,10,1
+LAT,1,11,1
+LAT,1,12,3
+LAT,1,13,6
+LAT,1,18,1
+LAT,1,21,2
+TOP,0,9235,17585
+TOP,0,11215,18557
+TOP,1,13363,17658
+TOP,0,12717,16699
+TOP,0,11205,17682
+TOP,1,21732,16699
+TOP,0,10269,18123
+TOP,1,9000,17585
+TOP,1,12321,17682
+TOP,0,8723,16899
+TOP,1,12740,18109
+TOP,1,21545,17127
+TOP,0,9943,17142
+TOP,0,8761,16451
+TOP,1,13363,18094
+TOP,0,13740,17604
+TOP,1,8995,17604
+TOP,0,8749,17332
+TOP,0,12219,15258
+TOP,1,18923,15258
+TOP,1,13386,15732
+TOP,1,11358,15695
+TOP,0,8674,15933
+TOP,1,13717,15284
+TOP,1,13549,16165
+TOP,0,9023,16165
+TOP,1,13374,18527
+TOP,0,8697,15486
+TOP,1,10992,18557
+TOP,0,8750,17874
+TOP,0,15149,15714
+TOP,1,12285,16142
+SD: begin, Vref=1472 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1474
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x01
+SD: ACMD41 #5 R1=0x00
+SD: ACMD41 ready after 5 tries
+SD: [1] f_mount OK
+SD: [2] date = 2026-11-06
+SD: [3] nn=1 trying 0:26110601.CSV
+SD: [4] opened 0:26110601.CSV  size=27491412
+SD: [5] lseek(end) fr=0
+SD: [6] lseek(sz-1) fr=0
+SD: [7] read1 fr=0 br=1 last=0x0A
+SD: last_rtc=1793931046  now=1793931469  diff=-423s
+SD: log = 0:26110601.CSV  size=27491412
+SD: [8] mount exit fr=0
+SONAR: 119 mm (pulse 693 us, edges 39)
+IDLE: 594/1000 ms  hook 652/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 41)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 43)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 45)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 47)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 49)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 51)
+DISP: avg=98945 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 53)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 55)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 57)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 59)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 61)
+SONAR: 119 mm (pulse 694 us, edges 63)
+IDLE: 893/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 65)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 67)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 69)
+DISP: avg=89544 us  max=186464 us  (per refresh)
+IDLE: 898/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 71)
+IDLE: 901/1000 ms  hook 989/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 73)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 75)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 77)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 79)
+CLK: over RTC 10s, tick advanced 9989 ms (expect 10000) => -1100 ppm *** SYSTEM CLOCK OFF (check the 8MHz XTAL: crystal or ceramic resonator?)
+IDLE: 892/1000 ms  hook 975/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 81)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 83)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 85)
+DISP: avg=88078 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 87)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 89)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 91)
+SONAR: 119 mm (pulse 693 us, edges 93)
+IDLE: 894/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 95)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 97)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 99)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 101)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 103)
+DISP: avg=89374 us  max=186464 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 105)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 107)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 109)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 111)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 113)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 115)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 117)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 119)
+DISP: avg=87276 us  max=186464 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 121)
+SONAR: 101 mm (pulse 593 us, edges 123)
+IDLE: 893/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 125)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 127)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 129)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 131)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 133)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 135)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 136 mm (pulse 793 us, edges 137)
+DISP: avg=89384 us  max=186464 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 139)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 141)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 143)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 145)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 147)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 149)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 151)
+SONAR: 102 mm (pulse 594 us, edges 153)
+IDLE: 894/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 155)
+DISP: avg=88852 us  max=186464 us  (per refresh)
+IDLE: 899/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 157)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 159)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 161)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 163)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 165)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 167)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 169)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 171)
+DISP: avg=87636 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 173)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 175)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 177)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 179)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 181)
+SONAR: 119 mm (pulse 693 us, edges 183)
+IDLE: 894/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 185)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 187)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 115 mm (pulse 673 us, edges 189)
+DISP: avg=89124 us  max=186464 us  (per refresh)
+IDLE: 899/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 191)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 193)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 195)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 197)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 199)
+IDLE: 891/1000 ms  hook 973/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 201)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 203)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 205)
+DISP: avg=87264 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 207)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 209)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 211)
+SONAR: 119 mm (pulse 694 us, edges 213)
+IDLE: 894/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 215)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 217)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 219)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 221)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 223)
+DISP: avg=89377 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 225)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 227)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 229)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 231)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 233)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 235)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 237)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 239)
+DISP: avg=87278 us  max=186464 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 241)
+SONAR: 119 mm (pulse 694 us, edges 243)
+IDLE: 893/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 245)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 247)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 249)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 251)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 253)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 255)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 257)
+DISP: avg=89214 us  max=186464 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 259)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 261)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 263)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 265)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 267)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 269)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 271)
+SONAR: 101 mm (pulse 593 us, edges 273)
+IDLE: 894/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 275)
+DISP: avg=88845 us  max=186464 us  (per refresh)
+IDLE: 899/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 277)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 279)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 281)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 283)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 285)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 287)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 289)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 291)
+DISP: avg=87546 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 293)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 295)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 297)
+IDLE: 904/1000 ms  hook 989/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 299)
+IDLE: 896/1000 mSONAR: 101s  hook 987 mm (pulse 5/s  blank 093 us, edge
+ 301)
+SONAR: 101 mm (pulse 593 us, edges 303)
+IDLE: 901/1000 ms  hook 998/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 305)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 307)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 309)
+DISP: avg=90276 us  max=186464 us  (per refresh)
+IDLE: 899/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 311)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 313)
+IDLE: 904/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 315)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 317)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 319)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 321)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 323)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 325)
+DISP: avg=87284 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 327)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 329)
+SONAR: 119 mm (pulse 694 us, edges 331)
+IDLE: 893/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 333)
+IDLE: 904/1000 ms  hook 989/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 335)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 337)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 339)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 341)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 343)
+DISP: avg=89555 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 345)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 102 mm (pulse 594 us, edges 347)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 349)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 351)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 353)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 355)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 692 us, edges 357)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 359)
+SONAR: 119 mm (pulse 693 us, edges 361)
+DISP: avg=88860 us  max=186464 us  (per refresh)
+IDLE: 889/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 363)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 365)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 367)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 369)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 371)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 373)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 375)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 377)
+DISP: avg=87540 us  max=186464 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 379)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 381)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 383)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 385)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 387)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 389)
+SONAR: 119 mm (pulse 693 us, edges 391)
+IDLE: 893/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 393)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 395)
+DISP: avg=89053 us  max=186464 us  (per refresh)
+IDLE: 899/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 397)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 399)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 401)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 403)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 405)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 694 us, edges 407)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 409)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 411)
+DISP: avg=87514 us  max=186464 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 413)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 415)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 417)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 101 mm (pulse 593 us, edges 419)
+SONAR: 102 mm (pulse 594 us, edges 421)
+IDLE: 892/1000 ms  hook 986/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 423)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 425)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 427)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 119 mm (pulse 693 us, edges 429)

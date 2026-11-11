@@ -1,0 +1,2567 @@
+SONAR: 301 mm (pulse 1754 us, edges 23)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3422 us, edges 25, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3351 us, edges 27, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 29, echo=0)
+SD: begin, Vref=1476 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1472
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x00
+SD: ACMD41 ready after 4 tries
+EXP02,FAST,free_KB=1877088,n=100000
+DISP: SLOW frame 174428 us !
+IDLE: 630/1000 ms  hook 747/s  blank 0
+SONAR: 304 mm (pulse 1770 us, edges 31)
+DISP: SLOW frame 174406 us !
+SONAR: no echo (pulse 2671 us, edges 33, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DISP: SLOW frame 173471 us !
+DISP: avg=120089 us  max=174428 us  (per refresh)
+SONAR: 320 mm (pulse 1861 us, edges 35)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 304 mm (pulse 1770 us, edges 37)
+DISP: SLOW frame 190249 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 39, echo=0)
+DISP: SLOW frame 175497 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 376 mm (pulse 2190 us, edges 41)
+DISP: SLOW frame 174485 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3332 us, edges 43, echo=0)
+DISP: SLOW frame 174416 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2764 us, edges 45, echo=0)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 314 mm (pulse 1831 us, edges 47)
+DISP: SLOW frame 174419 us !
+SONAR: no echo (pulse 2489 us, edges 49, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 51, echo=0)
+DISP: SLOW frame 185465 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 52, echo=1)
+DISP: SLOW frame 177562 us !
+DISP: avg=178311 us  max=190249 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 336 mm (pulse 1954 us, edges 54)
+DISP: SLOW frame 175434 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3070 us, edges 56, echo=0)
+DISP: SLOW frame 174508 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2812 us, edges 58, echo=0)
+DISP: SLOW frame 174697 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2529 us, edges 60, echo=0)
+DISP: SLOW frame 174681 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 62)
+DISP: SLOW frame 175162 us !
+SONAR: 369 mm (pulse 2151 us, edges 64)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DISP: SLOW frame 181708 us !
+SONAR: no echo (pulse 0 us, edges 65, echo=1)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3348 us, edges 67, echo=0)
+DISP: SLOW frame 184920 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 68, echo=1)
+DISP: SLOW frame 174693 us !
+DISP: avg=176975 us  max=190249 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3172 us, edges 71, echo=0)
+DISP: SLOW frame 174816 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 73)
+DISP: SLOW frame 174592 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 374 mm (pulse 2178 us, edges 75)
+DISP: SLOW frame 173711 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2135 us, edges 77)
+CLK: over RTC 10s, tick advanced 9989 ms (expect 10000) => -1100 ppm *** SYSTEM CLOCK OFF (check the 8MHz XTAL: crystal or ceramic resonator?)
+DISP: SLOW frame 174509 us !
+SONAR: no echo (pulse 2950 us, edges 79, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DISP: SLOW frame 186539 us !
+SONAR: no echo (pulse 0 us, edges 80, echo=1)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 82)
+DISP: SLOW frame 184512 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2542 us, edges 84, echo=0)
+DISP: SLOW frame 176634 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 85, echo=1)
+DISP: SLOW frame 175517 us !
+DISP: avg=177603 us  max=190249 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 87, echo=1)
+DISP: SLOW frame 173465 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 89, echo=1)
+DISP: SLOW frame 174519 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2671 us, edges 92, echo=0)
+DISP: SLOW frame 173533 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2718 us, edges 94, echo=0)
+DISP: SLOW frame 174496 us !
+SONAR: no echo (pulse 3121 us, edges 96, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2422 us, edges 98, echo=0)
+DISP: SLOW frame 193983 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2434 us, edges 100, echo=0)
+DISP: SLOW frame 174435 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2884 us, edges 102, echo=0)
+DISP: SLOW frame 174500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3012 us, edges 104, echo=0)
+DISP: SLOW frame 174475 us !
+DISP: avg=176675 us  max=193983 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3151 us, edges 106, echo=0)
+DISP: SLOW frame 174415 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2848 us, edges 108, echo=0)
+DISP: SLOW frame 174395 us !
+IDLE: 0/1000SONAR: no  ms  hook 0/secho (pulse  blank 0
+ 2541 us, edges 110, echo=0)
+DISP: SLOW frame 174468 us !
+SONAR: no echo (pulse 3348 us, edges 112, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 114, echo=0)
+DISP: SLOW frame 189872 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 115, echo=1)
+DISP: SLOW frame 174535 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 118, echo=0)
+DISP: SLOW frame 177544 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2848 us, edges 120, echo=0)
+DISP: SLOW frame 174401 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2962 us, edges 122, echo=0)
+DISP: SLOW frame 174459 us !
+DISP: avg=176761 us  max=193983 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2636 us, edges 124, echo=0)
+DISP: SLOW frame 174408 us !
+SONAR: no echo (pulse 2989 us, edges 126, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DISP: SLOW frame 174404 us !
+SONAR: no echo (pulse 2529 us, edges 128, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2872 us, edges 130, echo=0)
+DISP: SLOW frame 189846 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 131, echo=1)
+DISP: SLOW frame 174527 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3041 us, edges 134, echo=0)
+DISP: SLOW frame 175496 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3341 us, edges 136, echo=0)
+DISP: SLOW frame 174523 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 138, echo=0)
+DISP: SLOW frame 174516 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 140, echo=0)
+DISP: SLOW frame 174514 us !
+DISP: avg=176529 us  max=193983 us  (per refresh)
+SONAR: no echo (pulse 3049 us, edges 142, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DISP: SLOW frame 174534 us !
+SONAR: no echo (pulse 3091 us, edges 144, echo=0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 4745 us, edges 146, echo=0)
+DISP: SLOW frame 196017 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2707 us, edges 148, echo=0)
+DISP: SLOW frame 175537 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2683 us, edges 150, echo=0)
+DISP: SLOW frame 175436 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2589 us, edges 152, echo=0)
+DISP: SLOW frame 174408 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2647 us, edges 154, echo=0)
+DISP: SLOW frame 174454 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3339 us, edges 156, echo=0)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2566 us, edges 158, echo=0)
+DISP:SONAR: no  SLOW frame 1echo (pulse81485 us !
+ 2589 us, edDISP: avgges 160, ech=178283 us  mo=0)
+ax=196017 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 162, echo=0)
+DISP: SLOW frame 180449 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2960 us, edges 164, echo=0)
+DISP: SLOW frame 175517 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2754 us, edges 166, echo=0)
+DISP: SLOW frame 174485 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2741 us, edges 168, echo=0)
+DISP: SLOW frame 174403 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 169, echo=1)
+DISP: SLOW frame 174397 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2577 us, edges 172, echo=0)
+DISP: SLOW frame 174460 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2873 us, edges 174, echo=0)
+SONAR: no echo (pulse 2970 us, edges 176, echo=0)
+DISP: SLOW frame 190446 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2860 us, edges 178, echo=0)
+DISP: SLOW frame 179518 us !
+DISP: avg=177959 us  max=196017 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2684 us, edges 180, echo=0)
+DISP: SLOW frame 177563 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3021 us, edges 182, echo=0)
+DISP: SLOW frame 174521 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2861 us, edges 184, echo=0)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2718 us, edges 186, echo=0)
+DISP: SLOW frame 174518 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2707 us, edges 188, echo=0)
+DISP: SLOW frame 174513 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3051 us, edges 190, echo=0)
+SONAR: no echo (pulse 2940 us, edges 192, echo=0)
+DISP: SLOW frame 189880 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2802 us, edges 194, echo=0)
+DISP: SLOW frame 174403 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2601 us, edges 196, echo=0)
+DISP: SLOW frame 177604 us !
+DISP: avg=177189 us  max=196017 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3333 us, edges 198, echo=0)
+DISP: SLOW frame 174416 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3001 us, edges 200, echo=0)
+DISP: SLOW frame 174397 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 202, echo=0)
+DISP: SLOW frame 174479 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 204, echo=0)
+DISP: SLOW frame 174398 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2730 us, edges 206, echo=0)
+SONAR: no echo (pulse 2961 us, edges 208, echo=0)
+DISP: SLOW frame 189884 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3122 us, edges 210, echo=0)
+DISP: SLOW frame 175537 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3232 us, edges 212, echo=0)
+DISP: SLOW frame 177608 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3142 us, edges 214, echo=0)
+DISP: SLOW frame 174445 us !
+DISP: avg=176895 us  max=196017 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3170 us, edges 216, echo=0)
+DISP: SLOW frame 174402 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 218, echo=0)
+DISP: SLOW frame 173537 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2960 us, edges 220, echo=0)
+SONAR: no echo (pulse 3031 us, edges 222, echo=0)
+DISP: SLOW frame 185552 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3102 us, edges 224, echo=0)
+DISP: SLOW frame 179767 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2814 us, edges 226, echo=0)
+DISP: SLOW frame 175498 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 228, echo=0)
+DISP: SLOW frame 174410 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2990 us, edges 230, echo=0)
+DISP: SLOW frame 174392 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2860 us, edges 232, echo=0)
+DISP: SLOW frame 173486 us !
+DISP: avg=176380 us  max=196017 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2825 us, edges 234, echo=0)
+DISP: SLOW frame 174409 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2590 us, edges 236, echo=0)
+SONAR: no echo (pulse 2694 us, edges 238, echo=0)
+DISP: SLOW frame 188918 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 239, echo=1)
+DISP: SLOW frame 174513 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 242, echo=0)
+DISP: SLOW frame 174498 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 244, echo=0)
+DISP: SLOW frame 174403 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3051 us, edges 246, echo=0)
+DISP: SLOW frame 173493 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DHT: FAIL reason=2 extra_wait=16107 us line_high=1
+SONAR: no echo (pulse 3350 us, edges 248, echo=0)
+DISP: SLOW frame 174522 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3348 us, edges 250, echo=0)
+DISP: SLOW frame 173552 us !
+DISP: avg=176038 us  max=196017 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 251, echo=1)
+SONAR: no echo (pulse 2950 us, edges 254, echo=0)
+DISP: SLOW frame 194869 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 256, echo=0)
+DISP: SLOW frame 173513 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 258, echo=0)
+DISP: SLOW frame 177586 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 260, echo=0)
+DISP: SLOW frame 173450 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 262, echo=0)
+DISP: SLOW frame 174507 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 263, echo=1)
+DISP: SLOW frame 173535 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 265, echo=1)
+DISP: SLOW frame 174389 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2670 us, edges 268, echo=0)
+SONAR: no echo (pulse 2541 us, edges 270, echo=0)
+DISP: SLOW frame 188829 us !
+DISP: avg=178834 us  max=196017 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2813 us, edges 272, echo=0)
+DISP: SLOW frame 178408 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2435 us, edges 274, echo=0)
+DISP: SLOW frame 174465 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2791 us, edges 276, echo=0)
+DISP: SLOW frame 174483 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3092 us, edges 278, echo=0)
+DISP: SLOW frame 173467 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 280, echo=0)
+DISP: SLOW frame 174512 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2859 us, edges 282, echo=0)
+DISP: SLOW frame 173547 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2826 us, edges 284, echo=0)
+SONAR: no echo (pulse 2694 us, edges 286, echo=0)
+DISP: SLOW frame 189861 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2766 us, edges 288, echo=0)
+DISP: SLOW frame 173547 us !
+DISP: avg=176536 us  max=196017 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2719 us, edges 290, echo=0)
+DISP: SLOW frame 177555 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2766 us, edges 292, echo=0)
+DISP: SLOW frame 173456 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2613 us, edges 294, echo=0)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2612 us, edges 296, echo=0)
+DISP: SLOW frame 173518 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 298, echo=0)
+DISP: SLOW frame 174520 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2636 us, edges 300, echo=0)
+SONAR: no echo (pulse 2789 us, edges 302, echo=0)
+DISP: SLOW frame 196044 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2695 us, edges 304, echo=0)
+DISP: SLOW frame 175538 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2776 us, edges 306, echo=0)
+DISP: SLOW frame 176634 us !
+DISP: avg=177722 us  max=196044 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2708 us, edges 308, echo=0)
+DISP: SLOW frame 174526 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2801 us, edges 310, echo=0)
+DISP: SLOW frame 173509 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 312, echo=0)
+DISP: SLOW frame 174466 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3060 us, edges 314, echo=0)
+SONAR: no echo (pulse 3349 us, edges 316, echo=0)
+DISP: SLOW frame 188867 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2837 us, edges 318, echo=0)
+DISP: SLOW frame 181210 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2778 us, edges 320, echo=0)
+DISP: SLOW frame 176561 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3331 us, edges 322, echo=0)
+DISP: SLOW frame 174411 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2960 us, edges 324, echo=0)
+DISP: SLOW frame 173509 us !
+DISP: avg=177132 us  max=196044 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2765 us, edges 326, echo=0)
+DISP: SLOW frame 174495 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 383 mm (pulse 2232 us, edges 328)
+DISP: SLOW frame 173472 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2612 us, edges 330, echo=0)
+DHT: FAIL reason=2 extra_wait=13163 us line_high=1
+SONAR: no echo (pulse 3121 us, edges 332, echo=0)
+DISP: SLOW frame 208851 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3499 us, edges 334, echo=0)
+DISP: SLOW frame 173497 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2530 us, edges 336, echo=0)
+DISP: SLOW frame 175544 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3121 us, edges 338, echo=0)
+DISP: SLOW frame 173482 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2970 us, edges 340, echo=0)
+DISP: SLOW frame 174492 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3333 us, edges 342, echo=0)
+DISP: SLOW frame 173541 us !
+DISP: avg=178421 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3161 us, edges 344, echo=0)
+DISP: SLOW frame 174398 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 346, echo=0)
+SONAR: no echo (pulse 0 us, edges 347, echo=1)
+DISP: SLOW frame 184479 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 388 mm (pulse 2259 us, edges 349)
+DISP: SLOW frame 174545 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 351)
+DISP: SLOW frame 176617 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 374 mm (pulse 2177 us, edges 353)
+DISP: SLOW frame 174466 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 372 mm (pulse 2165 us, edges 355)
+DISP: SLOW frame 173462 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 357)
+DISP: SLOW frame 174515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 372 mm (pulse 2165 us, edges 359)
+DISP: SLOW frame 173520 us !
+DISP: avg=175750 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2612 us, edges 361, echo=0)
+SONAR: 376 mm (pulse 2191 us, edges 363)
+DISP: SLOW frame 190266 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 365, echo=0)
+DISP: SLOW frame 174480 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2731 us, edges 367, echo=0)
+DISP: SLOW frame 174472 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 368, echo=1)
+DISP: SLOW frame 173454 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2860 us, edges 371, echo=0)
+DISP: SLOW frame 174507 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2753 us, edges 373, echo=0)
+DISP: SLOW frame 173526 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2754 us, edges 375, echo=0)
+DISP: SLOW frame 181445 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 376, echo=1)
+SONAR: no echo (pulse 2612 us, edges 378, echo=0)
+DISP: SLOW frame 189544 us !
+DISP: avg=178961 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2636 us, edges 380, echo=0)
+DISP: SLOW frame 175415 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 381, echo=1)
+DISP: SLOW frame 174523 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2814 us, edges 384, echo=0)
+DISP: SLOW frame 174530 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 386)
+DISP: SLOW frame 173497 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2848 us, edges 388, echo=0)
+DISP: SLOW frame 174460 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2719 us, edges 390, echo=0)
+DISP: SLOW frame 173501 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 374 mm (pulse 2177 us, edges 392)
+SONAR: no echo (pulse 0 us, edges 393, echo=1)
+DISP: SLOW frame 184542 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2542 us, edges 395, echo=0)
+DISP: SLOW frame 173585 us !
+DISP: avg=175506 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 396, echo=1)
+DISP: SLOW frame 175506 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2931 us, edges 399, echo=0)
+DISP: SLOW frame 173484 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2694 us, edges 401, echo=0)
+DISP: SLOW frame 174460 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3252 us, edges 403, echo=0)
+DISP: SLOW frame 173456 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 404, echo=1)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2789 us, edges 407, echo=0)
+SONAR: 367 mm (pulse 2137 us, edges 409)
+DISP: SLOW frame 184557 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 372 mm (pulse 2165 us, edges 411)
+DISP: SLOW frame 174532 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 412, echo=1)
+DISP: SLOW frame 177647 us !
+DISP: avg=176019 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2449 us, edges 415, echo=0)
+DISP: SLOW frame 174391 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 395 mm (pulse 2299 us, edges 417)
+DISP: SLOW frame 174391 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 390 mm (pulse 2273 us, edges 419)
+DISP: SLOW frame 174474 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 395 mm (pulse 2299 us, edges 421)
+DISP: SLOW frame 174514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 395 mm (pulse 2299 us, edges 423)
+SONAR: 381 mm (pulse 2218 us, edges 425)
+DISP: SLOW frame 189568 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 400 mm (pulse 2326 us, edges 427)
+DISP: SLOW frame 174425 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2588 us, edges 429, echo=0)
+DISP: SLOW frame 175450 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 430, echo=1)
+DISP: SLOW frame 174459 us !
+DISP: avg=176459 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 433, echo=0)
+DISP: SLOW frame 174521 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2896 us, edges 435, echo=0)
+DISP: SLOW frame 173515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2765 us, edges 437, echo=0)
+DISP: SLOW frame 174464 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2647 us, edges 439, echo=0)
+SONAR: 409 mm (pulse 2380 us, edges 441)
+DISP: SLOW frame 183523 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 372 mm (pulse 2164 us, edges 443)
+DISP: SLOW frame 177608 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 445)
+DISP: SLOW frame 176618 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 447)
+DISP: SLOW frame 174416 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 372 mm (pulse 2164 us, edges 449)
+DISP: SLOW frame 173520 us !
+DISP: avg=176023 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2767 us, edges 451, echo=0)
+DISP: SLOW frame 174517 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2611 us, edges 453, echo=0)
+SONAR: no echo (pulse 2847 us, edges 455, echo=0)
+DISP: SLOW frame 189690 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2776 us, edges 457, echo=0)
+DISP: SLOW frame 179665 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2719 us, edges 459, echo=0)
+DISP: SLOW frame 174489 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2871 us, edges 461, echo=0)
+DISP: SLOW frame 174485 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3347 us, edges 463, echo=0)
+DISP: SLOW frame 173472 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 465, echo=0)
+DISP: SLOW frame 174397 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3347 us, edges 467, echo=0)
+DISP: SLOW frame 173507 us !
+DISP: avg=176777 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3363 us, edges 469, echo=0)
+SONAR: no echo (pulse 2969 us, edges 471, echo=0)
+DISP: SLOW frame 189850 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 473, echo=0)
+DISP: SLOW frame 173467 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3341 us, edges 475, echo=0)
+DISP: SLOW frame 175463 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3813 us, edges 477, echo=0)
+DISP: SLOW frame 174418 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2553 us, edges 479, echo=0)
+DISP: SLOW frame 174460 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2931 us, edges 481, echo=0)
+DISP: SLOW frame 174506 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2516 us, edges 483, echo=0)
+DISP: SLOW frame 174522 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2825 us, edges 485, echo=0)
+SONAR: no echo (pulse 2730 us, edges 487, echo=0)
+DISP: SLOW frame 185553 us !
+DISP: avg=177779 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 488, echo=1)
+DISP: SLOW frame 174404 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 490, echo=1)
+DISP: SLOW frame 177558 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3102 us, edges 493, echo=0)
+DISP: SLOW frame 174522 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 400 mm (pulse 2327 us, edges 495)
+DISP: SLOW frame 174514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2742 us, edges 497, echo=0)
+DISP: SLOW frame 174519 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2502 us, edges 499, echo=0)
+DISP: SLOW frame 174496 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2476 us, edges 501, echo=0)
+SONAR: no echo (pulse 2502 us, edges 503, echo=0)
+DISP: SLOW frame 194944 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2502 us, edges 505, echo=0)
+DISP: SLOW frame 174534 us !
+DISP: avg=177436 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2136 us, edges 507)
+DISP: SLOW frame 175509 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2136 us, edges 509)
+DISP: SLOW frame 174398 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 511, echo=0)
+DISP: SLOW frame 174460 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2529 us, edges 513, echo=0)
+DISP: SLOW frame 174402 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2789 us, edges 515, echo=0)
+SONAR: no echo (pulse 2741 us, edges 517, echo=0)
+DISP: SLOW frame 189840 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 397 mm (pulse 2312 us, edges 519)
+DISP: SLOW frame 182830 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2695 us, edges 521, echo=0)
+DISP: SLOW frame 177543 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2490 us, edges 523, echo=0)
+DISP: SLOW frame 174512 us !
+DISP: avg=177936 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2623 us, edges 525, echo=0)
+DISP: SLOW frame 174512 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2670 us, edges 527, echo=0)
+DISP: SLOW frame 174504 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 529, echo=0)
+DISP: SLOW frame 174507 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 372 mm (pulse 2163 us, edges 531)
+SONAR: no echo (pulse 2530 us, edges 533, echo=0)
+DISP: SLOW frame 190538 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2502 us, edges 535, echo=0)
+DISP: SLOW frame 174506 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 381 mm (pulse 2218 us, edges 537)
+DISP: SLOW frame 177589 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3080 us, edges 539, echo=0)
+DISP: SLOW frame 174518 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2658 us, edges 541, echo=0)
+DISP: SLOW frame 174508 us !
+DISP: avg=176897 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 542, echo=1)
+DISP: SLOW frame 174516 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 545, echo=0)
+DISP: SLOW frame 174388 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 547, echo=0)
+SONAR: no echo (pulse 2707 us, edges 549, echo=0)
+DISP: SLOW frame 185553 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3011 us, edges 551, echo=0)
+DISP: SLOW frame 174530 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 552, echo=1)
+DISP: SLOW frame 175522 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 555, echo=0)
+DISP: SLOW frame 174430 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2449 us, edges 557, echo=0)
+DISP: SLOW frame 173542 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2962 us, edges 559, echo=0)
+DISP: SLOW frame 174514 us !
+DISP: avg=175874 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2601 us, edges 561, echo=0)
+DISP: SLOW frame 173454 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2421 us, edges 563, echo=0)
+SONAR: no echo (pulse 2600 us, edges 565, echo=0)
+DISP: SLOW frame 189863 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2422 us, edges 567, echo=0)
+DISP: SLOW frame 176567 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2490 us, edges 569, echo=0)
+DISP: SLOW frame 177511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2421 us, edges 571, echo=0)
+DISP: SLOW frame 173527 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2435 us, edges 573, echo=0)
+DISP: SLOW frame 174518 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2462 us, edges 575, echo=0)
+DISP: SLOW frame 173472 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 576, echo=1)
+DISP: SLOW frame 174468 us !
+DISP: avg=176672 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2731 us, edges 579, echo=0)
+SONAR: no echo (pulse 2565 us, edges 581, echo=0)
+DISP: SLOW frame 189525 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2565 us, edges 583, echo=0)
+DISP: SLOW frame 175415 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2435 us, edges 585, echo=0)
+DISP: SLOW frame 176601 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2684 us, edges 587, echo=0)
+DISP: SLOW frame 174419 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2647 us, edges 589, echo=0)
+DISP: SLOW frame 173462 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 590, echo=1)
+DISP: SLOW frame 174500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 593, echo=0)
+DISP: SLOW frame 173537 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 595, echo=0)
+SONAR: no echo (pulse 0 us, edges 596, echo=1)
+DISP: SLOW frame 184546 us !
+DISP: avg=177750 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 598, echo=0)
+DISP: SLOW frame 173463 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2671 us, edges 600, echo=0)
+DISP: SLOW frame 175448 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2516 us, edges 602, echo=0)
+DISP: SLOW frame 173537 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2600 us, edges 604, echo=0)
+DISP: SLOW frame 174499 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3021 us, edges 606, echo=0)
+DISP: SLOW frame 173567 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3101 us, edges 608, echo=0)
+DISP: SLOW frame 174408 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3121 us, edges 610, echo=0)
+SONAR: no echo (pulse 2542 us, edges 612, echo=0)
+DISP: SLOW frame 184556 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2530 us, edges 614, echo=0)
+DISP: SLOW frame 175492 us !
+DISP: avg=175621 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2969 us, edges 616, echo=0)
+DISP: SLOW frame 173480 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 618, echo=0)
+DISP: SLOW frame 174523 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2435 us, edges 620, echo=0)
+DISP: SLOW frame 173490 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2848 us, edges 622, echo=0)
+DISP: SLOW frame 174398 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2462 us, edges 624, echo=0)
+SONAR: no echo (pulse 2661 us, edges 626, echo=0)
+DISP: SLOW frame 184505 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2516 us, edges 628, echo=0)
+DISP: SLOW frame 183442 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2802 us, edges 630, echo=0)
+DISP: SLOW frame 174467 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 411 mm (pulse 2394 us, edges 632)
+DISP: SLOW frame 174485 us !
+DISP: avg=176598 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3081 us, edges 634, echo=0)
+DISP: SLOW frame 173520 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 636, echo=0)
+DISP: SLOW frame 174378 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2476 us, edges 638, echo=0)
+DISP: SLOW frame 174453 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2488 us, edges 640, echo=0)
+SONAR: no echo (pulse 2530 us, edges 642, echo=0)
+DISP: SLOW frame 185531 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2541 us, edges 644, echo=0)
+DISP: SLOW frame 174485 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DHT: FAIL reason=2 extra_wait=6243 us line_high=1
+SONAR: no echo (pulse 2960 us, edges 646, echo=0)
+DISP: SLOW frame 175479 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 647, echo=1)
+DISP: SLOW frame 174402 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 650, echo=0)
+DISP: SLOW frame 174501 us !
+DISP: avg=175843 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 652, echo=0)
+DISP: SLOW frame 174526 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2981 us, edges 654, echo=0)
+DISP: SLOW frame 174509 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2730 us, edges 656, echo=0)
+SONAR: no echo (pulse 3042 us, edges 658, echo=0)
+DISP: SLOW frame 194915 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2730 us, edges 660, echo=0)
+DISP: SLOW frame 174517 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2801 us, edges 662, echo=0)
+DISP: SLOW frame 175500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2895 us, edges 664, echo=0)
+DISP: SLOW frame 174412 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2789 us, edges 666, echo=0)
+DISP: SLOW frame 173427 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2811 us, edges 668, echo=0)
+DISP: SLOW frame 174502 us !
+DISP: avg=177038 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 670, echo=0)
+DISP: SLOW frame 173511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2814 us, edges 672, echo=0)
+SONAR: no echo (pulse 3222 us, edges 674, echo=0)
+DISP: SLOW frame 189788 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 676, echo=0)
+DISP: SLOW frame 175500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2908 us, edges 678, echo=0)
+DISP: SLOW frame 174414 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3140 us, edges 680, echo=0)
+DISP: SLOW frame 173515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2694 us, edges 682, echo=0)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2776 us, edges 684, echo=0)
+DISP: SLOW frame 173546 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2908 us, edges 686, echo=0)
+DHT: FAIL reason=2 extra_wait=11173 us line_high=1
+SONAR: no echo (pulse 2940 us, edges 688, echo=0)
+DISP: SLOW frame 206871 us !
+DISP: avg=180207 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2981 us, edges 690, echo=0)
+DISP: SLOW frame 175684 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 691, echo=1)
+DISP: SLOW frame 175421 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2671 us, edges 694, echo=0)
+DISP: SLOW frame 173514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 696, echo=0)
+DISP: SLOW frame 174408 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 697, echo=1)
+DISP: SLOW frame 173471 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2835 us, edges 700, echo=0)
+DISP: SLOW frame 174514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2801 us, edges 702, echo=0)
+DISP: SLOW frame 177549 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2931 us, edges 704, echo=0)
+SONAR: no echo (pulse 2849 us, edges 706, echo=0)
+DISP: SLOW frame 196032 us !
+DISP: avg=177574 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2960 us, edges 708, echo=0)
+DISP: SLOW frame 175522 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3348 us, edges 710, echo=0)
+DISP: SLOW frame 174382 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2671 us, edges 712, echo=0)
+DISP: SLOW frame 174472 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 713, echo=1)
+DISP: SLOW frame 174508 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2611 us, edges 716, echo=0)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 717, echo=1)
+DISP: SLOW frame 174509 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2672 us, edges 720, echo=0)
+SONAR: no echo (pulse 2564 us, edges 722, echo=0)
+DISP: SLOW frame 185462 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 723, echo=1)
+DISP: SLOW frame 174492 us !
+DISP: avg=175982 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2565 us, edges 726, echo=0)
+DISP: SLOW frame 175492 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2636 us, edges 728, echo=0)
+DISP: SLOW frame 174523 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 730, echo=0)
+DISP: SLOW frame 174507 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2825 us, edges 732, echo=0)
+DISP: SLOW frame 174515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 386 mm (pulse 2247 us, edges 734)
+DISP: SLOW frame 180657 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 736, echo=0)
+SONAR: no echo (pulse 2719 us, edges 738, echo=0)
+DISP: SLOW frame 185459 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 407 mm (pulse 2367 us, edges 740)
+DISP: SLOW frame 177538 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 407 mm (pulse 2367 us, edges 742)
+DISP: SLOW frame 174520 us !
+DISP: avg=177151 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 309 mm (pulse 1800 us, edges 744)
+DISP: SLOW frame 174503 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 745, echo=1)
+DISP: SLOW frame 174515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 307 mm (pulse 1785 us, edges 748)
+DISP: SLOW frame 174514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 314 mm (pulse 1830 us, edges 750)
+SONAR: 309 mm (pulse 1800 us, edges 752)
+DISP: SLOW frame 190325 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 383 mm (pulse 2232 us, edges 754)
+DISP: SLOW frame 175542 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3340 us, edges 756, echo=0)
+DISP: SLOW frame 175488 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2719 us, edges 758, echo=0)
+DISP: SLOW frame 174409 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DHT: FAIL reason=2 extra_wait=16797 us line_high=1
+SONAR: no echo (pulse 3021 us, edges 760, echo=0)
+DISP: SLOW frame 174533 us !
+DISP: avg=176728 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2919 us, edges 762, echo=0)
+DISP: SLOW frame 173524 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2896 us, edges 764, echo=0)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 765, echo=1)
+DISP: SLOW frame 181540 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 767, echo=1)
+SONAR: no echo (pulse 0 us, edges 768, echo=1)
+DISP: SLOW frame 184535 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 769, echo=1)
+DISP: SLOW frame 174530 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3338 us, edges 772, echo=0)
+DISP: SLOW frame 177559 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 773, echo=1)
+DISP: SLOW frame 174400 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2960 us, edges 776, echo=0)
+DISP: SLOW frame 174469 us !
+DISP: avg=176869 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2894 us, edges 778, echo=0)
+DISP: SLOW frame 174413 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2969 us, edges 780, echo=0)
+DISP: SLOW frame 174391 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 781, echo=1)
+SONAR: no echo (pulse 3331 us, edges 784, echo=0)
+DISP: SLOW frame 185502 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3051 us, edges 786, echo=0)
+DISP: SLOW frame 174519 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2407 us, edges 788, echo=0)
+DISP: SLOW frame 175558 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2907 us, edges 790, echo=0)
+DISP: SLOW frame 174412 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 792, echo=0)
+DISP: SLOW frame 174405 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3051 us, edges 794, echo=0)
+DISP: SLOW frame 174471 us !
+DISP: avg=175958 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3340 us, edges 796, echo=0)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3490 us, edges 798, echo=0)
+SONAR: no echo (pulse 2941 us, edges 800, echo=0)
+DISP: SLOW frame 194950 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2981 us, edges 802, echo=0)
+DISP: SLOW frame 174469 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3079 us, edges 804, echo=0)
+DISP: SLOW frame 175510 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3060 us, edges 806, echo=0)
+DISP: SLOW frame 174515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2980 us, edges 808, echo=0)
+DISP: SLOW frame 174520 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2969 us, edges 810, echo=0)
+DISP: SLOW frame 174509 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3081 us, edges 812, echo=0)
+DISP: SLOW frame 175890 us !
+DISP: avg=177344 us  max=208851 us  (per refresh)
+IDLE: 0/1SONAR: no 000 ms  hookecho (pulse 3 0/s  blank103 us, edges 0
+ 814, echo=0)
+SONAR: no echo (pulse 3111 us, edges 816, echo=0)
+DISP: SLOW frame 189800 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3191 us, edges 818, echo=0)
+DISP: SLOW frame 175457 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3171 us, edges 820, echo=0)
+DISP: SLOW frame 174523 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3251 us, edges 822, echo=0)
+DISP: SLOW frame 174515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3356 us, edges 824, echo=0)
+DISP: SLOW frame 174449 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3407 us, edges 826, echo=0)
+DISP: SLOW frame 174398 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2919 us, edges 828, echo=0)
+SONAR: 379 mm (pulse 2204 us, edges 830)
+DISP: SLOW frame 189454 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 832)
+DISP: SLOW frame 174538 us !
+DISP: avg=178391 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2719 us, edges 834, echo=0)
+DISP: SLOW frame 177604 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 407 mm (pulse 2368 us, edges 836)
+DISP: SLOW frame 174523 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3406 us, edges 838, echo=0)
+DISP: SLOW frame 174524 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2577 us, edges 840, echo=0)
+DISP: SLOW frame 173433 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3001 us, edges 842, echo=0)
+DISP: SLOW frame 174501 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 844, echo=0)
+SONAR: no echo (pulse 2969 us, edges 846, echo=0)
+DISP: SLOW frame 188935 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 848)
+DISP: SLOW frame 177598 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 849, echo=1)
+DISP: SLOW frame 175466 us !
+DISP: avg=177073 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 851, echo=1)
+DISP: SLOW frame 174411 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2136 us, edges 854)
+DISP: SLOW frame 173531 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 362 mm (pulse 2105 us, edges 856)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 383 mm (pulse 2232 us, edges 858)
+DISP: SLOW frame 173468 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 859, echo=1)
+SONAR: 367 mm (pulse 2137 us, edges 862)
+DISP: SLOW frame 190271 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2422 us, edges 864, echo=0)
+DISP: SLOW frame 173502 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3231 us, edges 866, echo=0)
+DISP: SLOW frame 175512 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 867, echo=1)
+DISP: SLOW frame 173508 us !
+DISP: avg=176089 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3432 us, edges 870, echo=0)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 871, echo=1)
+DISP: SLOW frame 173464 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 372 mm (pulse 2164 us, edges 874)
+DISP: SLOW frame 174514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 876)
+SONAR: 404 mm (pulse 2354 us, edges 878)
+DISP: SLOW frame 188585 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 383 mm (pulse 2232 us, edges 880)
+DISP: SLOW frame 174552 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 400 mm (pulse 2327 us, edges 882)
+DISP: SLOW frame 174501 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 884, echo=0)
+DISP: SLOW frame 174530 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3270 us, edges 886, echo=0)
+DISP: SLOW frame 173527 us !
+DISP: avg=176008 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3340 us, edges 888, echo=0)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3356 us, edges 890, echo=0)
+DISP: SLOW frame 173457 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3182 us, edges 892, echo=0)
+SONAR: no echo (pulse 2719 us, edges 894, echo=0)
+DISP: SLOW frame 189857 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2612 us, edges 896, echo=0)
+DISP: SLOW frame 173489 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2766 us, edges 898, echo=0)
+DISP: SLOW frame 177603 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2599 us, edges 900, echo=0)
+DISP: SLOW frame 173519 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2503 us, edges 902, echo=0)
+DISP: SLOW frame 174509 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 379 mm (pulse 2205 us, edges 904)
+DISP: SLOW frame 173515 us !
+DISP: avg=176293 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 407 mm (pulse 2367 us, edges 906)
+SONAR: no echo (pulse 2DISP: 959 us, edgeSLOW frame 1s 908, echo=88426 us !
+0)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2554 us, edges 910, echo=0)
+DISP: SLOW frame 182569 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 404 mm (pulse 2354 us, edges 912)
+DISP: SLOW frame 175498 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2529 us, edges 914, echo=0)
+DISP: SLOW frame 173503 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2896 us, edges 916, echo=0)
+DISP: SLOW frame 174524 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2476 us, edges 918, echo=0)
+DISP: SLOW frame 173503 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2516 us, edges 920, echo=0)
+DISP: SLOW frame 174400 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2730 us, edges 922, echo=0)
+SONAR: no echo (pulse 2754 us, edges 924, echo=0)
+DISP: SLOW frame 184549 us !
+DISP: avg=178371 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2475 us, edges 926, echo=0)
+DISP: SLOW frame 174423 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 390 mm (pulse 2273 us, edges 928)
+DISP: SLOW frame 176643 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2825 us, edges 930, echo=0)
+DISP: SLOW frame 174521 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 325 mm (pulse 1892 us, edges 932)
+DISP: SLOW frame 173479 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2765 us, edges 934, echo=0)
+DISP: SLOW frame 174441 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3515 us, edges 936, echo=0)
+DISP: SLOW frame 173520 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2894 us, edges 938, echo=0)
+SONAR: 372 mm (pulse 2163 us, edges 940)
+DISP: SLOW frame 184445 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2461 us, edges 942, echo=0)
+DISP: SLOW frame 174482 us !
+DISP: avg=175744 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2462 us, edges 944, echo=0)
+DISP: SLOW frame 177505 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 397 mm (pulse 2313 us, edges 946)
+DISP: SLOW frame 174519 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3111 us, edges 948, echo=0)
+DISP: SLOW frame 174516 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3182 us, edges 950, echo=0)
+DISP: SLOW frame 174522 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2980 us, edges 952, echo=0)
+SONAR: no echo (pulse 2981 us, edges 954, echo=0)DISP:
+ SLOW frame 185508 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 955, echo=1)
+DISP: SLOW frame 184587 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 372 mm (pulse 2164 us, edges 957)
+DISP: SLOW frame 177522 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2670 us, edges 959, echo=0)
+DISP: SLOW frame 174551 us !
+DISP: avg=177903 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2660 us, edges 961, echo=0)
+DISP: SLOW frame 174528 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 381 mm (pulse 2219 us, edges 963)
+DISP: SLOW frame 173506 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 964, echo=1)
+DISP: SLOW frame 174419 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3062 us, edges 967, echo=0)
+DISP: SLOW frame 179626 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2972 us, edges 969, echo=0)
+SONAR: no echo (pulse 0 us, edges 970, echo=1)
+DISP: SLOW frame 184592 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3340 us, edges 972, echo=0)
+DISP: SLOW frame 173502 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 974)
+DISP: SLOW frame 175527 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 386 mm (pulse 2245 us, edges 976)
+DISP: SLOW frame 173547 us !
+DISP: avg=176155 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 977, echo=1)
+DISP: SLOW frame 174513 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3340 us, edges 980, echo=0)
+DISP: SLOW frame 173590 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2907 us, edges 982, echo=0)
+DISP: SLOW frame 174409 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 984, echo=0)
+SONAR: no echo (pulse 2530 us, edges 986, echo=0)
+DISP: SLOW frame 185527 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 398 mm (pulse 2314 us, edges 988)
+DISP: SLOW frame 175497 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2684 us, edges 990, echo=0)
+DISP: SLOW frame 175408 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2659 us, edges 992, echo=0)
+DISP: SLOW frame 174510 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 993, echo=1)
+DISP: SLOW frame 173528 us !
+DISP: avg=175872 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3349 us, edges 996, echo=0)
+DISP: SLOW frame 174407 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 997, echo=1)
+DISP: SLOW frame 173429 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 43 mm (pulse 252 us, edges 1000)
+SONAR: 24 mm (pulse 140 us, edges 1002)
+DISP: SLOW frame 189532 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 30 mm (pulse 177 us, edges 1004)
+DISP: SLOW frame 174405 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3357 us, edges 1006, echo=0)
+DISP: SLOW frame 175506 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 24 mm (pulse 140 us, edges 1008)
+DISP: SLOW frame 174413 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3062 us, edges 1010, echo=0)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3063 us, edges 1012, echo=0)
+DISP: SLOW frame 174469 us !
+DISP: avg=176319 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3082 us, edges 1014, echo=0)
+SONAR: no echo (pulse 3021 us, edges 1016, echo=0)
+DISP: SLOW frame 189880 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3340 us, edges 1018, echo=0)
+DISP: SLOW frame 181347 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2981 us, edges 1020, echo=0)
+DISP: SLOW frame 177555 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2825 us, edges 1022, echo=0)
+DISP: SLOW frame 174521 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 1024, echo=0)
+DISP: SLOW frame 174457 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2661 us, edges 1026, echo=0)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2942 us, edges 1028, echo=0)
+DISP: SLOW frame 174400 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3012 us, edges 1030, echo=0)
+SONAR: no echo (pulse 3212 us, edges 1032, echo=0)
+DISP: SLOW frame 190495 us !
+DISP: avg=179645 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 1034, echo=0)
+DISP: SLOW frame 174416 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2602 us, edges 1036, echo=0)
+DISP: SLOW frame 177571 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1037, echo=1)
+DISP: SLOW frame 174536 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 379 mm (pulse 2205 us, edges 1040)
+DISP: SLOW frame 174520 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 374 mm (pulse 2178 us, edges 1042)
+DISP: SLOW frame 174516 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1043, echo=1)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1045, echo=1)
+DISONAR: no SP: SLOW fraecho (pulse 3me 185768 u573 us, edgess !
+IDLE:  1048, echo=00/1000 ms  )
+hook 0/s  blank 0
+SONAR: no echo (pulse 2696 us, edges 1050, echo=0)
+DISP: SLOW frame 193810 us !
+DISP: avg=178706 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2943 us, edges 1052, echo=0)
+DISP: SLOW frame 177582 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3061 us, edges 1054, echo=0)
+DISP: SLOW frame 173536 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2696 us, edges 1056, echo=0)
+DISP: SLOW frame 174524 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3293 us, edges 1058, echo=0)
+DISP: SLOW frame 173455 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2932 us, edges 1060, echo=0)
+DISP: SLOW frame 174517 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3349 us, edges 1062, echo=0)
+SONAR: no echo (pulse 3052 us, edges 1064, echo=0)
+DISP: SLOW frame 190039 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2991 us, edges 1066, echo=0)
+DISP: SLOW frame 174547 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2626 us, edges 1068, echo=0)
+DISP: SLOW frame 176621 us !
+DISP: avg=176852 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 312 mm (pulse 1817 us, edges 1070)
+DISP: SLOW frame 174407 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3342 us, edges 1072, echo=0)
+DISP: SLOW frame 173466 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2952 us, edges 1074, echo=0)
+DISP: SLOW frame 174494 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 328 mm (pulse 1908 us, edges 1076)
+DISP: SLOW frame 173496 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 1078)
+SONAR: no echo (pulse 2706 us, edges 1080, echo=0)
+DISP: SLOW frame 196108 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 1082)
+DISP: SLOW frame 174516 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 1084)
+DISP: SLOW frame 174382 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 390 mm (pulse 2272 us, edges 1086)
+DISP: SLOW frame 173527 us !
+DISP: avg=176799 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 314 mm (pulse 1830 us, edges 1088)
+DISP: SLOW frame 174398 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 346 mm (pulse 2015 us, edges 1090)
+DISP: SLOW frame 173476 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2671 us, edges 1092, echo=0)
+SONAR: no echo (pulse 3846 us, edges 1094, echo=0)
+DISP: SLOW frame 185501 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3342 us, edges 1096, echo=0)
+DISP: SLOW frame 174428 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 379 mm (pulse 2205 us, edges 1098)
+DISP: SLOW frame 177630 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 383 mm (pulse 2232 us, edges 1100)
+DISP: SLOW frame 174540 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 379 mm (pulse 2205 us, edges 1102)
+DISP: SLOW frame 174517 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 1104)
+DISP: SLOW frame 174522 us !
+DISP: avg=176126 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 377 mm (pulse 2192 us, edges 1106)
+DISP: SLOW frame 174400 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 349 mm (pulse 2030 us, edges 1108)
+SONAR: 367 mm (pulse 2137 us, edges 1110)
+DISP: SLOW frame 189536 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2138 us, edges 1112)
+DISP: SLOW frame 177538 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2149 us, edges 1114)
+DISP: SLOW frame 177514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3201 us, edges 1116, echo=0)
+DISP: SLOW frame 174481 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2553 us, edges 1118, echo=0)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2982 us, edges 1120, echo=0)
+DISP: SLOW frame 174391 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3109 us, edges 1122, echo=0)
+SONAR: no echo (pulse 2940 us, edges 1124, echo=0DISP:)
+ SLOW frame 185496 us !
+DISP: avg=178469 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 383 mm (pulse 2232 us, edges 1126)
+DISP: SLOW frame 177533 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 402 mm (pulse 2340 us, edges 1128)
+DISP: SLOW frame 174623 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2565 us, edges 1130, echo=0)
+DISP: SLOW frame 174535 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1131, echo=1)
+DISP: SLOW frame 173519 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2931 us, edges 1134, echo=0)
+DISP: SLOW frame 174462 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2920 us, edges 1136, echo=0)
+DISP: SLOW frame 173443 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2542 us, edges 1138, echo=0)
+DHT: FAIL reason=2 extra_wait=8091 us line_high=1
+SONAR: no echo (pulse 2601 us, edges 1140, echo=0)
+DISP: SLOW frame 203856 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3356 us, edges 1142, echo=0)
+DISP: SLOW frame 177601 us !
+DISP: avg=178696 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2706 us, edges 1144, echo=0)
+DISP: SLOW frame 175472 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2611 us, edges 1146, echo=0)
+DISP: SLOW frame 173532 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2872 us, edges 1148, echo=0)
+DISP: SLOW frame 174422 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2801 us, edges 1150, echo=0)
+DISP: SLOW frame 173462 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2950 us, edges 1152, echo=0)
+DISP: SLOW frame 174501 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2824 us, edges 1154, echo=0)
+SONAR: no echo (pulse 2942 us, edges 1156, echo=0)
+DISP: SLOW frame 190001 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 1158, echo=0)
+DISP: SLOW frame 174541 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2884 us, edges 1160, echo=0)
+DISP: SLOW frame 175554 us !
+DISP: avg=176435 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2972 us, edges 1162, echo=0)
+DISP: SLOW frame 174517 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 1164, echo=0)
+DISP: SLOW frame 174526 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 1166, echo=0)
+DISP: SLOW frame 174508 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 1168, echo=0)
+DISP: SLOW frame 174513 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2992 us, edges 1170, echo=0)
+SONAR: no echo (pulse 2991 us, edges 1172, echo=0)
+DISP: SLOW frame 185549 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2578 us, edges 1174, echo=0)
+DISP: SLOW frame 177522 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2939 us, edges 1176, echo=0)
+DISP: SLOW frame 176108 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2462 us, edges 1178, echo=0)
+DISP: SLOW frame 174471 us !
+DISP: avg=176464 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2884 us, edges 1180, echo=0)
+DISP: SLOW frame 174387 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DHT: FAIL reason=2 extra_wait=16462 us line_high=1
+SONAR: no echo (pulse 2600 us, edges 1182, echo=0)
+DISP: SLOW frame 174468 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1183, echo=1)
+DISP: SLOW frame 175773 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3132 us, edges 1186, echo=0)
+SONAR: no echo (pulse 2683 us, edges 1188, echo=0)
+DISP: SLOW frame 190540 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 384 mm (pulse 2233 us, edges 1190)
+DISP: SLOW frame 175514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 307 mm (pulse 1785 us, edges 1192)
+DISP: SLOW frame 174416 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 304 mm (pulse 1770 us, edges 1194)
+DISP: SLOW frame 174403 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 312 mm (pulse 1814 us, edges 1196)
+DISP: SLOW frame 174521 us !
+DISP: avg=176752 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1197, echo=1)
+DISP: SLOW frame 174391 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1199, echo=1)
+DISP: SLOW frame 174453 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 312 mm (pulse 1816 us, edges 1202)
+SONAR: 320 mm (pulse 1861 us, edges 1204)
+DISP: SLOW frame 184459 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 325 mm (pulse 1892 us, edges 1206)
+DISP: SLOW frame 175440 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 312 mm (pulse 1815 us, edges 1208)
+DISP: SLOW frame 174500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 320 mm (pulse 1862 us, edges 1210)
+DISP: SLOW frame 174520 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 304 mm (pulse 1769 us, edges 1212)
+DISP: SLOW frame 174513 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2647 us, edges 1214, echo=0)
+DISP: SLOW frame 174526 us !
+DISP: avg=175850 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2624 us, edges 1216, echo=0)
+SONAR: 344 mm (pulse 2000 us, edges 1218)
+DISP: SLOW frame 189556 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2683 us, edges 1220, echo=0)
+DISP: SLOW frame 174489 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3072 us, edges 1222, echo=0)
+DISP: SLOW frame 177576 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DHT: FAIL reason=2 extra_wait=12609 us line_high=1
+SONAR: no echo (pulse 2719 us, edges 1224, echo=0)
+DISP: SLOW frame 174512 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2908 us, edges 1226, echo=0)
+DISP: SLOW frame 174508 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2812 us, edges 1228, echo=0)
+DISP: SLOW frame 174500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 312 mm (pulse 1815 us, edges 1230)
+DISP: SLOW frame 174520 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2931 us, edges 1232, echo=0)
+SONAR: no echo (pulse 2648 us, edges 1234, echo=0)
+DISP: SLOW frame 185478 us !
+DISP: avg=178142 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2647 us, edges 1236, echo=0)
+DISP: SLOW frame 174412 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3341 us, edges 1238, echo=0)
+DISP: SLOW frame 177585 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2542 us, edges 1240, echo=0)
+DISP: SLOW frame 174517 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2800 us, edges 1242, echo=0)
+DISP: SLOW frame 174518 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1243, echo=1)
+DISP: SLOW frame 174521 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3349 us, edges 1246, echo=0)
+DISP: SLOW frame 174529 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2659 us, edges 1248, echo=0)
+SONAR: 411 mm (pulse 2393 us, edges 1250)
+DISP: SLOW frame 184581 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 1252)
+DISP: SLOW frame 174540 us !
+DISP: avg=176150 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 374 mm (pulse 2177 us, edges 1254)
+DISP: SLOW frame 175514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 397 mm (pulse 2313 us, edges 1256)
+DISP: SLOW frame 174469 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1257, echo=1)
+DISP: SLOW frame 174409 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2150 us, edges 1260)
+DISP: SLOW frame 174396 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2136 us, edges 1262)
+DISP: SLOW frame 174468 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 364 mm (pulse 2122 us, edges 1264)
+SONAR: 388 mm (pulse 2258 us, edges 1266)
+DISP: SLOW frame 189514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 379 mm (pulse 2205 us, edges 1268)
+DISP: SLOW frame 175530 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1269, echo=1)
+DISP: SLOW frame 175572 us !
+DISP: avg=176734 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1271, echo=1)
+DISP: SLOW frame 174403 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1273, echo=1)
+DISP: SLOW frame 174517 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1275, echo=1)
+DISP: SLOW frame 174506 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 293 mm (pulse 1705 us, edges 1278)
+DISP: SLOW frame 174505 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1279, echo=1)
+DISP: SLOW frame 185135 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1281, echo=1)
+SONAR: no echo (pulse 0 us, edges 1282, echo=1)
+DISP: SLOW frame 194927 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1283, echo=1)
+DISP: SLOW frame 174552 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1285, echo=1)
+DISP: SLOW frame 175526 us !
+DISP: avg=178508 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 404 mm (pulse 2353 us, edges 1288)
+DISP: SLOW frame 174391 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3440 us, edges 1290, echo=0)
+DISP: SLOW frame 174452 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 1292, echo=0)
+DISP: SLOW frame 174515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3812 us, edges 1294, echo=0)
+DISP: SLOW frame 174532 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3062 us, edges 1296, echo=0)
+SONAR: no echo (pulse 3222 us, edges 1298, echo=0)
+DISP: SLOW frame 185503 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 1300, echo=0)
+DISP: SLOW frame 174427 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2463 us, edges 1302, echo=0)
+DISP: SLOW frame 177553 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 1304, echo=0)
+DISP: SLOW frame 174521 us !
+DISP: avg=176236 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2625 us, edges 1306, echo=0)
+DISP: SLOW frame 174514 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3515 us, edges 1308, echo=0)
+DISP: SLOW frame 174500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 1310, echo=0)
+DISP: SLOW frame 173466 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+DHT: FAIL reason=1 extra_wait=12609 us line_high=1
+SONAR: no echo (pulse 0 us, edges 1311, echo=1)
+SONAR: no echo (pulse 2624 us, edges 1314, echo=0)
+DISP: SLOW frame 185479 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2659 us, edges 1316, echo=0)
+DISP: SLOW frame 173591 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2778 us, edges 1318, echo=0)
+DISP: SLOW frame 175494 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2707 us, edges 1320, echo=0)
+DISP: SLOW frame 173500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2624 us, edges 1322, echo=0)
+DISP: SLOW frame 174454 us !
+DISP: avg=175624 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3059 us, edges 1324, echo=0)
+DISP: SLOW frame 173497 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2960 us, edges 1326, echo=0)
+DISP: SLOW frame 174462 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 1328, echo=0)
+SONAR: no echo (pulse 3022 us, edges 1330, echo=0)
+DISP: SLOW frame 189532 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3331 us, edges 1332, echo=0)
+DISP: SLOW frame 174530 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3232 us, edges 1334, echo=0)
+DISP: SLOW frame 174518 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 1336, echo=0)
+DISP: SLOW frame 174530 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3465 us, edges 1338, echo=0)
+DISP: SLOW frame 173544 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 1340, echo=0)
+DISP: SLOW frame 174453 us !
+DISP: avg=176133 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2982 us, edges 1342, echo=0)
+DISP: SLOW frame 179464 us !
+IDLE: 0/1000 ms  hook 0/s SONAR: no  blank 0
+echo (pulse 2529 us, edges 1344, echo=0)
+SONAR: no echo (pulse 2489 us, edges 1346, echo=0)
+DISP: SLOW frame 185532 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3161 us, edges 1348, echo=0)
+DISP: SLOW frame 176567 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 406 mm (pulse 2366 us, edges 1350)
+DISP: SLOW frame 174414 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1351, echo=1)
+DISP: SLOW frame 173527 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3366 us, edges 1354, echo=0)
+DISP: SLOW frame 174516 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2942 us, edges 1356, echo=0)
+DISP: SLOW frame 173516 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2517 us, edges 1358, echo=0)
+DISP: SLOW frame 181466 us !
+DISP: avg=177375 us  mSONAR: no ax=208851 us echo (pulse (per refresh 2462 us, e)
+IDLE: 0/10dges 1360, 00 ms  hook 0echo=0)
+/s  blank 0
+SONAR: 330 mm (pulse 1923 us, edges 1362)
+DISP: SLOW frame 182547 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 381 mm (pulse 2218 us, edges 1364)
+DISP: SLOW frame 177582 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 381 mm (pulse 2217 us, edges 1366)
+DISP: SLOW frame 173468 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3854 us, edges 1368, echo=0)
+DISP: SLOW frame 174500 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3389 us, edges 1370, echo=0)
+DISP: SLOW frame 173503 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 349 mm (pulse 2030 us, edges 1372)
+DISP: SLOW frame 174408 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 322 mm (pulse 1877 us, edges 1374)
+SONAR: 325 mm (pulse 1891 us, edges 1376)
+DISP: SLOW frame 183484 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 320 mm (pulse 1862 us, edges 1378)
+DISP: SLOW frame 174568 us !
+DISP: avg=176757 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 322 mm (pulse 1877 us, edges 1380)
+DISP: SLOW frame 174458 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2554 us, edges 1382, echo=0)
+DISP: SLOW frame 174457 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2150 us, edges 1384)
+DISP: SLOW frame 173490 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2636 us, edges 1386, echo=0)
+DISP: SLOW frame 174502 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2502 us, edges 1388, echo=0)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 1390)
+SONAR: no echo (pulse 0 us, edges 1391, echo=1)
+DISP: SLOW frame 185585 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 374 mm (pulse 2177 us, edges 1393)
+DISP: SLOW frame 173567 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2742 us, edges 1395, echo=0)
+DISP: SLOW frame 175541 us !
+DISP: avg=175763 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 379 mm (pulse 2206 us, edges 1397)
+DISP: SLOW frame 174515 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2649 us, edges 1399, echo=0)
+DISP: SLOW frame 174508 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 354 mm (pulse 2061 us, edges 1401)
+DISP: SLOW frame 174508 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 1403)
+DISP: SLOW frame 177521 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 1405)
+SONAR: no echo (pulse 2940 us, edges 1407, echo=0)
+DISP: SLOW frame 190508 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2752 us, edges 1409, echo=0)
+DISP: SLOW frame 177528 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2530 us, edges 1411, echo=0)
+DISP: SLOW frame 174511 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3050 us, edges 1413, echo=0)
+DISP: SLOW frame 174464 us !
+DISP: avg=177257 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1414, echo=1)
+DISP: SLOW frame 173537 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2503 us, edges 1417, echo=0)
+DISP: SLOW frame 174442 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2551 us, edges 1419, echo=0)
+DISP: SLOW frame 1SONAR: no 80475 us !
+echo (pulse IDLE: 0/1000 2448 us, edms  hook 0/s ges 1421, e blank 0
+cho=0)
+SONAR: no echo (pulse 2624 us, edges 1423, echo=0)
+DISP: SLOW frame 185549 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 1425)
+DISP: SLOW frame 176628 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 1427, echo=0)
+DISP: SLOW frame 174534 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1428, echo=1)
+DISP: SLOW frame 173478 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1430, echo=1)
+DISP: SLOW frame 174458 us !
+DISP: avg=176637 us  max=208851 us  (per refresh)
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3051 us, edges 1433, echo=0)
+DISP: SLOW frame 173449 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 1435, echo=0)
+DISP: SLOW frame 174509 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 3513 us, edges 1437, echo=0)
+SONAR: no echo (pulse 3505 us, edges 1439, echo=0)
+DISP: SLOW frame 184542 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: no echo (pulse 2660 us, edges 1441, echo=0)
+DISP: SLOW frame 174523 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 367 mm (pulse 2137 us, edges 1443)
+DISP: SLOW frame 174537 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2150 us, edges 1445)
+DISP: SLOW frame 174528 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2150 us, edges 1447)
+DISP: SLOW frame 173548 us !
+IDLE: 0/1000 ms  hook 0/s  blank 0
+SONAR: 369 mm (pulse 2150 us, edges 1449)
+DISP:EXP02,FAST SLOW frame ,done,n=100174462 us !000
+LAT
+DISP: a,SUM,0,10000vg=175512 u0,3650,42866s  max=2088,0
+LAT,0,351 us  (per,65535
+LAT refresh)
+,0,4,1899
+IDLE: 0/1000 LAT,0,5,804ms  hook 0/s5
+LAT,0,6,  blank 0
+923
+LAT,0,7,1502
+LAT,0,8,1061
+LAT,0,9,318
+LAT,0,10,342
+LAT,0,11,833
+LAT,0,12,209
+LAT,0,13,246
+LAT,0,14,63
+LAT,0,15,41
+LAT,0,16,29
+LAT,0,17,10
+LAT,0,18,11
+LAT,0,19,7
+LAT,0,20,2
+LAT,0,21,2
+LAT,0,22,7
+LAT,0,23,3
+LAT,0,24,2
+LAT,0,25,7
+LAT,0,26,4
+LAT,0,27,2
+LAT,0,28,3
+LAT,0,29,1
+LAT,0,30,2
+LAT,0,40,2
+LAT,0,41,1
+LAT,0,42,2
+LAT,SUM,1,100000,3773,48003,0
+LAT,1,3,65535
+LAT,1,4,4132
+LAT,1,5,2256
+LAT,1,6,6280
+LAT,1,7,405
+LAT,1,8,259
+LAT,1,9,107
+LAT,1,10,57
+LAT,1,11,814
+LAT,1,12,207
+LAT,1,13,1398
+LAT,1,14,136
+LAT,1,15,123
+LAT,1,16,56
+LAT,1,17,24
+LAT,1,18,21
+LAT,1,19,10
+LAT,1,20,14
+LAT,1,21,24
+LAT,1,22,11
+LAT,1,23,12
+LAT,1,24,187
+LAT,1,25,17
+LAT,1,26,16
+LAT,1,27,21
+LAT,1,28,16
+LAT,1,29,1
+LAT,1,30,5
+LAT,1,31,1
+LAT,1,32,2
+LAT,1,33,4
+LAT,1,34,3
+LAT,1,35,2
+LAT,1,37,2
+LAT,1,38,4
+LAT,1,39,1
+LAT,1,40,1
+LAT,1,41,3
+LAT,1,42,1
+LAT,1,43,1
+LAT,1,44,3
+LAT,1,45,1
+LAT,1,46,3
+LAT,1,48,1
+TOP,0,42866,488021
+TOP,1,43708,134183
+TOP,1,39009,392857
+TOP,1,38962,713466
+TOP,1,46105,369508
+TOP,1,35010,507958
+TOP,0,42453,212151
+TOP,1,35586,734957
+TOP,1,37319,453313
+TOP,1,46006,448710
+TOP,1,44142,93746
+TOP,1,33979,531841
+TOP,1,40544,409764
+TOP,1,34999,352369
+TOP,1,38971,553184
+TOP,1,41433,685496
+TOP,1,41553,527772
+TOP,1,44154,606283
+TOP,1,38960,232440
+SONAR: 35TOP,1,44759 mm (pulse 3,645135
+2092 us, edgeTOP,1,4800s 1451)
+3,251491
+TOP,1,42523,172886
+TOP,1,46869,724365
+TOP,0,40104,291346
+TOP,1,37682,676846
+TOP,1,41979,54903
+TOP,1,34379,328569
+TOP,1,45857,330664
+TOP,0,41846,567005
+TOP,0,40219,15436
+TOP,1,34000,314411
+TOP,1,38301,132653
+SD: begin, Vref=1477 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1473
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x01
+SD: ACMD41 #5 R1=0x00
+SD: ACMD41 ready after 5 tries
+SD: [1] f_mount OK
+SD: [2] date = 2026-11-06
+SD: [3] nn=1 trying 0:26110601.CSV
+SD: [4] opened 0:26110601.CSV  size=27620396
+SD: [5] lseek(end) fr=0
+SD: [6] lseek(sz-1) fr=0
+SD: [7] read1 fr=0 br=1 last=0x0A
+SD: last_rtc=1793932684  now=1793935588  diff=-2904s
+SD: log = 0:26110601.CSV  size=27620396
+SD: [8] mount exit fr=0
+IDLE: 621/1000 ms  hook 680/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 1453)
+SONAR: no echo (pulse 2940 us, edges 1455, echo=0)
+IDLE: 893/1000 ms  hook 988/s  blank 0
+SONAR: 383 mm (pulse 2232 us, edges 1457)
+IDLE: 903/1000 ms  hook 992/s  blank 0
+SONAR: no echo (pulse 2516 us, edges 1459, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 336 mm (pulse 1954 us, edges 1461)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: 346 mm (pulse 2015 us, edges 1463)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2884 us, edges 1465, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2730 us, edges 1467, echo=0)
+DISP: avg=90679 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: 407 mm (pulse 2367 us, edges 1469)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 328 mm (pulse 1907 us, edges 1471)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2529 us, edges 1473, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 1475)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 322 mm (pulse 1877 us, edges 1477)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 402 mm (pulse 2340 us, edges 1479)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 343 mm (pulse 1999 us, edges 1481)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 304 mm (pulse 1770 us, edges 1483)
+DISP: avg=87276 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2421 us, edges 1485, echo=0)
+SONAR: 379 mm (pulse 2204 us, edges 1487)
+IDLE: 891/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2648 us, edges 1489, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 312 mm (pulse 1816 us, edges 1491)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 307 mm (pulse 1785 us, edges 1493)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 304 mm (pulse 1770 us, edges 1495)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 299 mm (pulse 1740 us, edges 1497)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 335 mm (pulse 1953 us, edges 1499)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 379 mm (pulse 2205 us, edges 1501)
+DISP: avg=89145 us  max=208851 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3052 us, edges 1503, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2530 us, edges 1505, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 1507, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 1509, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2778 us, edges 1511, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2565 us, edges 1513, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 386 mm (pulse 2246 us, edges 1515)
+SONAR: 407 mm (pulse 2367 us, edges 1517)
+IDLE: 893/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2408 us, edges 1519, echo=0)
+DISP: avg=88894 us  max=208851 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 1521, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2503 us, edges 1523, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2707 us, edges 1525, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2646 us, edges 1527, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2635 us, edges 1529, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1530, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2961 us, edges 1533, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2422 us, edges 1535, echo=0)
+DISP: avg=87541 us  max=208851 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: 367 mm (pulse 2136 us, edges 1537)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: 349 mm (pulse 2030 us, edges 1539)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 336 mm (pulse 1954 us, edges 1541)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 330 mm (pulse 1924 us, edges 1543)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 325 mm (pulse 1893 us, edges 1545)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 330 mm (pulse 1923 us, edges 1547)
+SONAR: 330 mm (pulse 1924 us, edges 1549)
+IDLE: 893/1000 ms  hook 988/s  blank 0
+SONAR: 379 mm (pulse 2204 us, edges 1551)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2601 us, edges 1553, echo=0)
+DISP: avg=88902 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2694 us, edges 1555, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 1557, echo=0)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2837 us, edges 1559, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2613 us, edges 1561, echo=0)
+IDLE: 890/1000 ms  hook 973/s  blank 0
+SONAR: no echo (pulse 2671 us, edges 1563, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 376 mm (pulse 2191 us, edges 1565)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2636 us, edges 1567, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2541 us, edges 1569, echo=0)
+DISP: avg=87515 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2565 us, edges 1571, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2476 us, edges 1573, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2671 us, edges 1575, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2836 us, edges 1577, echo=0)
+IDLE: 899/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1578, echo=1)
+SONAR: no echo (pulse 3348 us, edges 1581, echo=0)
+IDLE: 897/1000 ms  hook 996/s  blank 0
+SONAR: 395 mm (pulse 2300 us, edges 1583)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 409 mm (pulse 2380 us, edges 1585)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 341 mm (pulse 1984 us, edges 1587)
+DISP: avg=90260 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: 395 mm (pulse 2299 us, edges 1589)
+IDLE: 901/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1590, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1592, echo=1)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 393 mm (pulse 2286 us, edges 1595)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1596, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 1599)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: 372 mm (pulse 2163 us, edges 1601)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 388 mm (pulse 2259 us, edges 1603)
+DISP: avg=87541 us  max=208851 us  (per refresh)
+IDLE: 901/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2625 us, edges 1605, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2564 us, edges 1607, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2624 us, edges 1609, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2476 us, edges 1611, echo=0)
+IDLE: 902/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 2637 us, edges 1613, echo=0)
+SONAR: no echo (pulse 2554 us, edges 1615, echo=0)
+IDLE: 893/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2566 us, edges 1617, echo=0)
+IDLE: 902/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2672 us, edges 1619, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 1621, echo=0)
+DISP: avg=89265 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2708 us, edges 1623, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 5620 us, edges 1625, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 1627, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3333 us, edges 1629, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2600 us, edges 1631, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2971 us, edges 1633, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2825 us, edges 1635, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2489 us, edges 1637, echo=0)
+DISP: avg=87524 us  max=208851 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2931 us, edges 1639, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2541 us, edges 1641, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2503 us, edges 1643, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2718 us, edges 1645, echo=0)
+SONAR: no echo (pulse 2683 us, edges 1647, echo=0)
+IDLE: 891/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2613 us, edges 1649, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1650, echo=1)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2541 us, edges 1653, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2646 us, edges 1655, echo=0)
+DISP: avg=89871 us  max=208851 us  (per refresh)
+IDLE: 897/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2672 us, edges 1657, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2588 us, edges 1659, echo=0)
+IDLE: 902/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 2612 us, edges 1661, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2625 us, edges 1663, echo=0)
+IDLE: 903/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2659 us, edges 1665, echo=0)
+IDLE: 902/1000 ms  hook 985/s  blank 0
+SONAR: no echo (pulse 3081 us, edges 1667, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3340 us, edges 1669, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2941 us, edges 1671, echo=0)
+DISP: avg=87277 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: 409 mm (pulse 2381 us, edges 1673)
+IDLE: 903/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2564 us, edges 1675, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3332 us, edges 1677, echo=0)
+SONAR: no echo (pulse 2448 us, edges 1679, echo=0)
+IDLE: 892/1000 ms  hook 986/s  blank 0
+SONAR: 402 mm (pulse 2340 us, edges 1681)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3311 us, edges 1683, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2970 us, edges 1685, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2906 us, edges 1687, echo=0)
+IDLE: 902/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 2970 us, edges 1689, echo=0)
+DISP: avg=89213 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3894 us, edges 1691, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3333 us, edges 1693, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2959 us, edges 1695, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2647 us, edges 1697, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2517 us, edges 1699, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2636 us, edges 1701, echo=0)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2575 us, edges 1703, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2858 us, edges 1705, echo=0)
+DISP: avg=87284 us  max=208851 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1706, echo=1)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3030 us, edges 1709, echo=0)
+SONAR: no echo (pulse 2872 us, edges 1711, echo=0)
+IDLE: 893/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2981 us, edges 1713, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3330 us, edges 1715, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 411 mm (pulse 2395 us, edges 1717)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2951 us, edges 1719, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2529 us, edges 1721, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 386 mm (pulse 2245 us, edges 1723)
+DISP: avg=89232 us  max=208851 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2565 us, edges 1725, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2566 us, edges 1727, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2813 us, edges 1729, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 369 mm (pulse 2150 us, edges 1731)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 383 mm (pulse 2231 us, edges 1733)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2612 us, edges 1735, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2930 us, edges 1737, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3953 us, edges 1739, echo=0)
+DISSONAR: 36P: avg=884469 mm (pulse us  max=208 2151 us, e851 us  (perdges 1741) refresh)
+
+IDLE: 889/1000 ms  hook 987/s  blank 0
+SONAR: 369 mm (pulse 2150 us, edges 1743)
+IDLE: 903/1000 ms  hook 997/s  blank 0
+SONAR: no echo (pulse 2695 us, edges 1745, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3448 us, edges 1747, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 3587 us, edges 1749, echo=0)
+IDLE: 901/1000 ms  hook 985/s  blank 0
+SONAR: 388 mm (pulse 2259 us, edges 1751)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 391 mm (pulse 2274 us, edges 1753)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 299 mm (pulse 1739 us, edges 1755)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 13140 us, edges 1757, echo=0)
+DISP: avg=89604 us  max=208851 us  (per refresh)
+IDLE: 900/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 13076 us, edges 1759, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2991 us, edges 1761, echo=0)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 3051 us, edges 1763, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 407 mm (pulse 2367 us, edges 1765)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: 372 mm (pulse 2163 us, edges 1767)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 372 mm (pulse 2164 us, edges 1769)
+IDLE: 904/1000 ms  hook 988/s  blank 0
+SONAR: no echo (pulse 2813 us, edges 1771, echo=0)
+SONAR: no echo (pulse 2742 us, edges 1773, echo=0)
+IDLE: 892/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2872 us, edges 1775, echo=0)
+DISP: avg=89598 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2872 us, edges 1777, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 369 mm (pulse 2151 us, edges 1779)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1780, echo=1)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: 346 mm (pulse 2016 us, edges 1783)
+IDLE: 903/1000 ms  hook 989/s  blank 0
+SONAR: no echo (pulse 0 us, edges 1784, echo=1)
+IDLE: 901/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2421 us, edges 1787, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2801 us, edges 1789, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2848 us, edges 1791, echo=0)
+DISP: avg=87805 us  max=208851 us  (per refresh)
+IDLE: 899/1000 ms  hook 986/s  blank 0
+SONAR: no echo (pulse 2940 us, edges 1793, echo=0)
+IDLE: 902/1000 ms  hook 987/s  blank 0
+SONAR: no echo (pulse 2777 us, edges 1795, echo=0)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 367 mm (pulse 2138 us, edges 1797)
+IDLE: 902/1000 ms  hook 986/s  blank 0
+SONAR: 407 mm (pulse 2367 us, edges 1799)
+IDLE: 903/1000 ms  hook 987/s  blank 0
+SONAR: 407 mm (pulse 2367 us, edges 1801)

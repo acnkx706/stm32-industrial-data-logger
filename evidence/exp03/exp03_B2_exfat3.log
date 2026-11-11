@@ -1,0 +1,1122 @@
+#CAP,1793952592,start port=COM12 secs=65
+SD: drained 1 batch (stored 0, ram=3 recs) pending=30 ovr=0 hdrer=0 evter=1
+REC,seq<992>,tick<99201>,press<1024370>,rtc<1793952565>,ax<219>,ay<-3>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2307>,humi<525>,light<1412>,vbat<2095>,crc<1249>
+REC,seq<993>,tick<99301>,press<1024370>,rtc<1793952565>,ax<221>,ay<-2>,az<2022>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2305>,humi<525>,light<1412>,vbat<2095>,crc<9923>
+REC,seq<994>,tick<99401>,press<1024370>,rtc<1793952565>,ax<222>,ay<-3>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2306>,humi<525>,light<1410>,vbat<2095>,crc<39911>
+REC,seq<995>,tick<99501>,press<1024370>,rtc<1793952565>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2305>,humi<525>,light<1418>,vbat<2087>,crc<31428>
+REC,seq<996>,tick<99601>,press<1024370>,rtc<1793952565>,ax<222>,ay<0>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1416>,vbat<2095>,crc<29042>
+REC,seq<997>,tick<99701>,press<1024370>,rtc<1793952565>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2305>,humi<525>,light<1418>,vbat<2089>,crc<6789>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=30 ovr=0 hdrer=0 evter=1
+REC,seq<998>,tick<99801>,press<1024370>,rtc<1793952565>,ax<219>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2306>,humi<525>,light<1415>,vbat<2089>,crc<5502>
+REC,seq<999>,tick<99901>,press<1024370>,rtc<1793952565>,ax<222>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2305>,humi<525>,light<1416>,vbat<2085>,crc<35921>
+IDLE: 703/1000 ms  hook 784/s  blank 0
+REC,seq<1000>,tick<100001>,press<1024370>,rtc<1793952565>,ax<220>,ay<-1>,az<2019>,gx<0>,gy<0>,gz<-1>,temp_ds<2137>,temp_chip<2306>,humi<525>,light<1418>,vbat<2104>,crc<30188>
+STAT acq=1000 proc=1000 full=0 qmax=1 drop=0 i2c=1469 i2c_max=15553 sd_err=1 sd_last=13 sdstk=130
+REC,seq<1001>,tick<100101>,press<1024370>,rtc<1793952565>,ax<221>,ay<-3>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2306>,humi<525>,light<1416>,vbat<2095>,crc<30370>
+SONAR: 112 mm (pulse 653 us, edges 195)
+REC,seq<1002>,tick<100201>,press<1024360>,rtc<1793952566>,ax<220>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1418>,vbat<2101>,crc<64012>
+REC,seq<1003>,tick<100301>,press<1024360>,rtc<1793952566>,ax<222>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2306>,humi<525>,light<1420>,vbat<2091>,crc<11962>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=30 ovr=0 hdrer=0 evter=1
+REC,seq<1004>,tick<100401>,press<1024360>,rtc<1793952566>,ax<221>,ay<0>,az<2016>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2306>,humi<525>,light<1416>,vbat<2095>,crc<38823>
+REC,seq<1005>,tick<100501>,press<1024360>,rtc<1793952566>,ax<221>,ay<-1>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1418>,vbat<2087>,crc<54626>
+REC,seq<1006>,tick<100601>,press<1024360>,rtc<1793952566>,ax<222>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1422>,vbat<2089>,crc<25312>
+REC,seq<1007>,tick<100701>,press<1024360>,rtc<1793952566>,ax<222>,ay<-1>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1424>,vbat<2093>,crc<50075>
+REC,seq<1008>,tick<100801>,press<1024360>,rtc<1793952566>,ax<223>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1416>,vbat<2085>,crc<16163>
+SD: begin, Vref=1475 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1473
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1009>,tick<100901>,press<1024360>,rtc<1793952566>,ax<220>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1424>,vbat<2099>,crc<27106>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=30 ovr=0 hdrer=0 evter=1
+REC,seq<1010>,tick<101001>,press<1024360>,rtc<1793952566>,ax<223>,ay<-3>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1424>,vbat<2091>,crc<62113>
+IDLE: 636/1000 ms  hook 709/s  blank 0
+REC,seq<1011>,tick<101101>,press<1024360>,rtc<1793952566>,ax<221>,ay<-2>,az<2021>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1424>,vbat<2083>,crc<50509>
+SONAR: 112 mm (pulse 653 us, edges 197)
+REC,seq<1012>,tick<101201>,press<1024360>,rtc<1793952567>,ax<220>,ay<-1>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1420>,vbat<2093>,crc<21068>
+REC,seq<1013>,tick<101301>,press<1024360>,rtc<1793952567>,ax<222>,ay<-1>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1422>,vbat<2091>,crc<47095>
+REC,seq<1014>,tick<101401>,press<1024360>,rtc<1793952567>,ax<220>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1422>,vbat<2095>,crc<623>
+REC,seq<1015>,tick<101501>,press<1024360>,rtc<1793952567>,ax<221>,ay<-1>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1420>,vbat<2090>,crc<63368>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=30 ovr=0 hdrer=0 evter=1
+REC,seq<1016>,tick<101601>,press<1024360>,rtc<1793952567>,ax<220>,ay<-4>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1420>,vbat<2083>,crc<24462>
+REC,seq<1017>,tick<101701>,press<1024360>,rtc<1793952567>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1428>,vbat<2089>,crc<52078>
+REC,seq<1018>,tick<101801>,press<1024360>,rtc<1793952567>,ax<222>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1428>,vbat<2099>,crc<64384>
+REC,seq<1019>,tick<101901>,press<1024360>,rtc<1793952567>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1422>,vbat<2097>,crc<45223>
+REC,seq<1020>,tick<102001>,press<1024360>,rtc<1793952567>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1424>,vbat<2085>,crc<48355>
+REC,seq<1021>,tick<102101>,press<1024360>,rtc<1793952567>,ax<220>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1426>,vbat<2095>,crc<897>
+SONAR: 112 mm (pulse 65SD: drai4 us, edges ned 1 batch (199)
+stored 0, ramREC,seq<1022>,tick<102201>,press<1024350>,rtc<1793952568>,ax<221>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1428>,vbat<2091>,crc<16689>
+=0 recs) pending=31 ovr=0 hdrer=0 evter=1
+DISP: SLOW frame 146440 us !
+IDLE: 672/1000 ms  hook 777/s  blank 0
+REC,seq<1023>,tick<102301>,press<1024350>,rtc<1793952568>,ax<222>,ay<-1>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1422>,vbat<2082>,crc<24578>
+REC,seq<1024>,tick<102401>,press<1024350>,rtc<1793952568>,ax<219>,ay<-3>,az<2020>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1426>,vbat<2091>,crc<53132>
+REC,seq<1025>,tick<102501>,press<1024350>,rtc<1793952568>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1436>,vbat<2095>,crc<37363>
+REC,seq<1026>,tick<102601>,press<1024350>,rtc<1793952568>,ax<222>,ay<0>,az<2013>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1430>,vbat<2101>,crc<27919>
+REC,seq<1027>,tick<102701>,press<1024350>,rtc<1793952568>,ax<219>,ay<-1>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2306>,humi<525>,light<1422>,vbat<2087>,crc<53115>
+SD: drained 1 batch (stored 0, ram=1 recs) pending=31 ovr=0 hdrer=0 evter=1
+REC,seq<1028>,tick<102801>,press<1024350>,rtc<1793952568>,ax<222>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1432>,vbat<2101>,crc<42731>
+REC,seq<1029>,tick<102901>,press<1024350>,rtc<1793952568>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1428>,vbat<2095>,crc<40570>
+REC,seq<1030>,tick<103001>,press<1024350>,rtc<1793952568>,ax<220>,ay<-3>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1432>,vbat<2099>,crc<61202>
+REC,seq<1031>,tick<103101>,press<1024350>,rtc<1793952568>,ax<223>,ay<-2>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2306>,humi<525>,light<1430>,vbat<2087>,crc<47601>
+REC,seq<1032>,tick<103201>,press<1024350>,rtc<1793952569>,ax<222>,ay<-3>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1424>,vbat<2088>,crc<57019>
+SONAR: 112 mm (pulse 653 us, edges 201)
+REC,seq<1033>,tick<103301>,press<1024350>,rtc<1793952569>,ax<220>,ay<-2>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2306>,humi<525>,light<1430>,vbat<2095>,crc<23355>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=31 ovr=0 hdrer=0 evter=1
+IDLE: 703/1000 ms  hook 787/s  blank 0
+REC,seq<1034>,tick<103401>,press<1024350>,rtc<1793952569>,ax<222>,ay<-1>,az<2016>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1428>,vbat<2096>,crc<24316>
+REC,seq<1035>,tick<103501>,press<1024350>,rtc<1793952569>,ax<221>,ay<0>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1428>,vbat<2091>,crc<54567>
+REC,seq<1036>,tick<103601>,press<1024350>,rtc<1793952569>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1430>,vbat<2097>,crc<28569>
+REC,seq<1037>,tick<103701>,press<1024350>,rtc<1793952569>,ax<220>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1428>,vbat<2089>,crc<24122>
+REC,seq<1038>,tick<103801>,press<1024350>,rtc<1793952569>,ax<220>,ay<0>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1434>,vbat<2099>,crc<19171>
+REC,seq<1039>,tick<103901>,press<1024350>,rtc<1793952569>,ax<219>,ay<-2>,az<2015>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1428>,vbat<2093>,crc<21306>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=31 ovr=0 hdrer=0 evter=1
+SD: begin, Vref=1471 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1476
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 reREC,seq<1040>,tick<104001>,press<1024350>,rtc<1793952569>,ax<220>,ay<-3>,az<2019>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2306>,humi<525>,light<1428>,vbat<2096>,crc<2330>
+ady after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1041>,tick<104101>,press<1024350>,rtc<1793952569>,ax<222>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1426>,vbat<2082>,crc<56542>
+REC,seq<1042>,tick<104201>,press<1024350>,rtc<1793952570>,ax<224>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1430>,vbat<2089>,crc<56256>
+SONAR: 112 mm (pulse 654 us, edges 203)
+REC,seq<1043>,tick<104301>,press<1024350>,rtc<1793952570>,ax<223>,ay<-1>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1428>,vbat<2095>,crc<65467>
+REC,seq<1044>,tick<104401>,press<1024350>,rtc<1793952570>,ax<224>,ay<-3>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1428>,vbat<2097>,crc<19901>
+IDLE: 650/1000 ms  hook 725/s  blank 0
+REC,seq<1045>,tick<104501>,press<1024350>,rtc<1793952570>,ax<222>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2305>,humi<525>,light<1430>,vbat<2085>,crc<6219>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=31 ovr=0 hdrer=0 evter=1
+REC,seq<1046>,tick<104601>,press<1024350>,rtc<1793952570>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1423>,vbat<2083>,crc<44928>
+REC,seq<1047>,tick<104701>,press<1024350>,rtc<1793952570>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1432>,vbat<2091>,crc<2059>
+REC,seq<1048>,tick<104801>,press<1024350>,rtc<1793952570>,ax<221>,ay<0>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1426>,vbat<2087>,crc<63345>
+REC,seq<1049>,tick<104901>,press<1024350>,rtc<1793952570>,ax<223>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1424>,vbat<2079>,crc<35069>
+REC,seq<1050>,tick<105001>,press<1024350>,rtc<1793952570>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1430>,vbat<2095>,crc<19577>
+REC,seq<1051>,tick<105101>,press<1024350>,rtc<1793952570>,ax<222>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1430>,vbat<2095>,crc<8786>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=31 ovr=0 hdrer=0 evter=1
+REC,seq<1052>,tick<105201>,press<1024350>,rtc<1793952571>,ax<222>,ay<0>,az<2018>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1428>,vbat<2087>,crc<48266>
+SONAR: 112 mm (pulse 654 us, edges 205)
+REC,seq<1053>,tick<105301>,press<1024340>,rtc<1793952571>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1432>,vbat<2093>,crc<35966>
+REC,seq<1054>,tick<105401>,press<1024340>,rtc<1793952571>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1428>,vbat<2089>,crc<3128>
+REC,seq<1055>,tick<105501>,press<1024340>,rtc<1793952571>,ax<222>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1440>,vbat<2104>,crc<12515>
+IDLE: 699/1000 ms  hook 780/s  blank 0
+REC,seq<1056>,tick<105601>,press<1024340>,rtc<1793952571>,ax<219>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1436>,vbat<2095>,crc<59169>
+REC,seq<1057>,tick<105701>,press<1024340>,rtc<1793952571>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1428>,vbat<2095>,crc<62176>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=31 ovr=0 hdrer=0 evter=1
+REC,seq<1058>,tick<105801>,press<1024340>,rtc<1793952571>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1434>,vbat<2085>,crc<50433>
+REC,seq<1059>,tick<105901>,press<1024340>,rtc<1793952571>,ax<221>,ay<0>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1434>,vbat<2097>,crc<37372>
+REC,seq<1060>,tick<106001>,press<1024340>,rtc<1793952571>,ax<221>,ay<-1>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1434>,vbat<2095>,crc<40183>
+REC,seq<1061>,tick<106101>,press<1024340>,rtc<1793952571>,ax<222>,ay<-1>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1434>,vbat<2093>,crc<40633>
+REC,seq<1062>,tick<106201>,press<1024340>,rtc<1793952572>,ax<222>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1436>,vbat<2099>,crc<44068>
+REC,seq<1063>,tick<106301>,press<1024350>,rtc<1793952572>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1434>,vbat<2104>,crc<27445>
+SONAR: 112 mm (pulse 653 us, edges 207)
+SD: drained 1 batch (stored 0, ram=5 recs) pending=31 ovr=0 hdrer=0 evter=1
+REC,seq<1064>,tick<106401>,press<1024350>,rtc<1793952572>,ax<219>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1440>,vbat<2095>,crc<45360>
+REC,seq<1065>,tick<106501>,press<1024350>,rtc<1793952572>,ax<221>,ay<-4>,az<2014>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1438>,vbat<2095>,crc<61010>
+REC,seq<1066>,tick<106601>,press<1024350>,rtc<1793952572>,ax<222>,ay<0>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1436>,vbat<2089>,crc<29150>
+IDLE: 700/1000 ms  hook 777/s  blank 0
+REC,seq<1067>,tick<106701>,press<1024350>,rtc<1793952572>,ax<222>,ay<0>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1442>,vbat<2093>,crc<41062>
+REC,seq<1068>,tick<106801>,press<1024350>,rtc<1793952572>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1436>,vbat<2091>,crc<453>
+REC,seq<1069>,tick<106901>,press<1024350>,rtc<1793952572>,ax<222>,ay<-1>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1432>,vbat<2081>,crc<35089>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=31 ovr=0 hdrer=0 evter=1
+REC,seq<1070>,tick<107001>,press<1024350>,rtc<1793952572>,ax<222>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1436>,vbat<2099>,crc<32839>
+SD: begin, Vref=1475 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMREC,seq<1071>,tick<107101>,press<1024350>,rtc<1793952572>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1436>,vbat<2087>,crc<8641>
+D8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1472
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x00
+SD: ACMD41 ready after 4 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1072>,tick<107201>,press<1024350>,rtc<1793952573>,ax<220>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1436>,vbat<2095>,crc<7763>
+REC,seq<1073>,tick<107301>,press<1024350>,rtc<1793952573>,ax<221>,ay<-3>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1436>,vbat<2097>,crc<21690>
+SONAR: 112 mm (pulse 653 us, edges 209)
+REC,seq<1074>,tick<107401>,press<1024370>,rtc<1793952573>,ax<220>,ay<-2>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1440>,vbat<2091>,crc<45642>
+REC,seq<1075>,tick<107501>,press<1024370>,rtc<1793952573>,ax<221>,ay<-1>,az<2015>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1432>,vbat<2092>,crc<46571>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=31 ovr=0 hdrer=0 evter=1
+REC,seq<1076>,tick<107601>,press<1024370>,rtc<1793952573>,ax<222>,ay<-1>,az<2014>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1438>,vbat<2093>,crc<30822>
+REC,seq<1077>,tick<107701>,press<1024370>,rtc<1793952573>,ax<221>,ay<0>,az<2021>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1434>,vbat<2085>,crc<10998>
+REC,seq<1078>,tick<107801>,press<1024370>,rtc<1793952573>,ax<221>,ay<0>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1442>,vbat<2091>,crc<7237>
+DISP: SLOW frame 135265 us !
+DISP: avg=116737 us  max=194075 us  (per refresh)
+IDLE: 621/1000 ms  hook 714/s  blank 0
+REC,seq<1079>,tick<107901>,press<1024370>,rtc<1793952573>,ax<221>,ay<-2>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2304>,humi<525>,light<1440>,vbat<2112>,crc<63065>
+REC,seq<1080>,tick<108001>,press<1024370>,rtc<1793952573>,ax<222>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1434>,vbat<2085>,crc<11487>
+REC,seq<1081>,tick<108101>,press<1024370>,rtc<1793952573>,ax<223>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1434>,vbat<2083>,crc<8568>
+SD: drained 1 batch (stored 0, ram=0 recs) pending=32 ovr=0 hdrer=0 evter=1
+REC,seq<1082>,tick<108201>,press<1024370>,rtc<1793952574>,ax<220>,ay<0>,az<2018>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1438>,vbat<2087>,crc<12109>
+REC,seq<1083>,tick<108301>,press<1024370>,rtc<1793952574>,ax<222>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1438>,vbat<2104>,crc<10485>
+SONAR: 112 mm (pulse 653 us, edges 211)
+REC,seq<1084>,tick<108401>,press<1024360>,rtc<1793952574>,ax<222>,ay<-2>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1438>,vbat<2085>,crc<57349>
+REC,seq<1085>,tick<108501>,press<1024360>,rtc<1793952574>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1444>,vbat<2091>,crc<7396>
+REC,seq<1086>,tick<108601>,press<1024360>,rtc<1793952574>,ax<220>,ay<0>,az<2012>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1442>,vbat<2087>,crc<4296>
+REC,seq<1087>,tick<108701>,press<1024360>,rtc<1793952574>,ax<221>,ay<-2>,az<2020>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1438>,vbat<2095>,crc<56021>
+SD: drained 1 batch (stored 0, ram=1 recs) pending=32 ovr=0 hdrer=0 evter=1
+REC,seq<1088>,tick<108801>,press<1024360>,rtc<1793952574>,ax<221>,ay<-2>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1438>,vbat<2085>,crc<5452>
+REC,seq<1089>,tick<108901>,press<1024360>,rtc<1793952574>,ax<220>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<-1>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1448>,vbat<2085>,crc<40683>
+IDLE: 701/1000 ms  hook 781/s  blank 0
+REC,seq<1090>,tick<109001>,press<1024360>,rtc<1793952574>,ax<221>,ay<1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1448>,vbat<2091>,crc<28869>
+REC,seq<1091>,tick<109101>,press<1024360>,rtc<1793952574>,ax<221>,ay<-2>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1438>,vbat<2087>,crc<33162>
+REC,seq<1092>,tick<109201>,press<1024360>,rtc<1793952575>,ax<222>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1440>,vbat<2089>,crc<49403>
+REC,seq<1093>,tick<109301>,press<1024360>,rtc<1793952575>,ax<220>,ay<-1>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1442>,vbat<2089>,crc<44898>
+SD: draiSONAR: 112ned 1 batch  mm (pulse (stored 0, r653 us, edgam=2 recs) pes 213)
+ending=32 ovr=0 hdrer=0 evter=1
+REC,seq<1094>,tick<109401>,press<1024360>,rtc<1793952575>,ax<221>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1442>,vbat<2087>,crc<43570>
+REC,seq<1095>,tick<109501>,press<1024360>,rtc<1793952575>,ax<222>,ay<-3>,az<2013>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1440>,vbat<2081>,crc<23492>
+REC,seq<1096>,tick<109601>,press<1024360>,rtc<1793952575>,ax<221>,ay<0>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1444>,vbat<2099>,crc<10222>
+REC,seq<1097>,tick<109701>,press<1024360>,rtc<1793952575>,ax<221>,ay<-3>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1448>,vbat<2104>,crc<33456>
+REC,seq<1098>,tick<109801>,press<1024360>,rtc<1793952575>,ax<220>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1444>,vbat<2095>,crc<16691>
+REC,seq<1099>,tick<109901>,press<1024360>,rtc<1793952575>,ax<219>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1436>,vbat<2086>,crc<59608>
+SD: drained 1 batch (stored 0, ramREC,seq<1100>,tick<110001>,press<1024360>,rtc<1793952575>,ax<222>,ay<0>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1447>,vbat<2095>,crc<783>
+STAT acq=1100 proc=1100 full=0 qmax=1 drop=0 i2c=1458 i2c_max=15553 sd_err=1 sd_last=13 sdstk=130
+=2 recs) pending=32 ovr=0 hdrer=0 evter=1
+DISP: SLOW frame 122449 us !
+IDLE: 693/1000 ms  hook 785/s  blank 0
+REC,seq<1101>,tick<110101>,press<1024360>,rtc<1793952575>,ax<224>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1443>,vbat<2091>,crc<40824>
+REC,seq<1102>,tick<110201>,press<1024360>,rtc<1793952576>,ax<220>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1440>,vbat<2099>,crc<29856>
+SD: begin, Vref=1475 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1482
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1103>,tick<110301>,press<1024360>,rtc<1793952576>,ax<220>,ay<0>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1448>,vbat<2104>,crc<20468>
+REC,seq<1104>,tick<110401>,press<1024360>,rtc<1793952576>,ax<220>,ay<-2>,az<2014>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1446>,vbat<2083>,crc<45305>
+SONAR: 112 mm (pulse 654 us, edges 215)
+REC,seq<1105>,tick<110501>,press<1024370>,rtc<1793952576>,ax<221>,ay<-1>,az<2021>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1447>,vbat<2087>,crc<57071>
+SD: drained 1 batch (stored 0, ram=3 recs)REC,seq<1106>,tick<110601>,press<1024370>,rtc<1793952576>,ax<221>,ay<-4>,az<2020>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1446>,vbat<2087>,crc<44469>
+ pending=32 ovr=0 hdrer=0 evter=1
+REC,seq<1107>,tick<110701>,press<1024370>,rtc<1793952576>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1442>,vbat<2093>,crc<1981>
+REC,seq<1108>,tick<110801>,press<1024370>,rtc<1793952576>,ax<220>,ay<0>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1446>,vbat<2081>,crc<9114>
+REC,seq<1109>,tick<110901>,press<1024370>,rtc<1793952576>,ax<224>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1446>,vbat<2089>,crc<39636>
+REC,seq<1110>,tick<111001>,press<1024370>,rtc<1793952576>,ax<222>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1444>,vbat<2085>,crc<2440>
+REC,seq<1111>,tick<111101>,press<1024370>,rtc<1793952576>,ax<222>,ay<-3>,az<2017>,gx<1>,gy<0>,gz<-1>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1446>,vbat<2096>,crc<61121>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=32 ovr=0 hdrer=0 evter=1
+IDLE: 646/1000 ms  hook 723/s  blank 0
+REC,seq<1112>,tick<111201>,press<1024370>,rtc<1793952577>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1452>,vbat<2101>,crc<1004>
+REC,seq<1113>,tick<111301>,press<1024370>,rtc<1793952577>,ax<220>,ay<-1>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1446>,vbat<2088>,crc<44976>
+REC,seq<1114>,tick<111401>,press<1024370>,rtc<1793952577>,ax<218>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1452>,vbat<2091>,crc<31442>
+SONAR: 112 mm (pulse 653 us, edges 217)
+REC,seq<1115>,tick<111501>,press<1024380>,rtc<1793952577>,ax<223>,ay<-1>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1452>,vbat<2089>,crc<60510>
+REC,seq<1116>,tick<111601>,press<1024380>,rtc<1793952577>,ax<222>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1448>,vbat<2088>,crc<23839>
+REC,seq<1117>,tick<111701>,press<1024380>,rtc<1793952577>,ax<223>,ay<-2>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1454>,vbat<2100>,crc<63625>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=32 ovr=0 hdrer=0 evter=1
+REC,seq<1118>,tick<111801>,press<1024380>,rtc<1793952577>,ax<222>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1452>,vbat<2095>,crc<46652>
+REC,seq<1119>,tick<111901>,press<1024380>,rtc<1793952577>,ax<222>,ay<-4>,az<2020>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1452>,vbat<2095>,crc<54696>
+REC,seq<1120>,tick<112001>,press<1024380>,rtc<1793952577>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1454>,vbat<2093>,crc<63294>
+REC,seq<1121>,tick<112101>,press<1024380>,rtc<1793952577>,ax<220>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1452>,vbat<2085>,crc<28862>
+REC,seq<1122>,tick<112201>,press<1024380>,rtc<1793952578>,ax<221>,ay<-1>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1456>,vbat<2112>,crc<61992>
+REC,seq<1123>,tick<112301>,press<1024380>,rtc<1793952578>,ax<221>,ay<-2>,az<2018>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1456>,vbat<2096>,crc<64606>
+DISP: SLOW frame 127497 us !
+IDLE: 690/1000 ms  hook 785/s  blank 0
+SD: drained 1 batch (stored 0, ram=5 recs) pending=32 ovr=0 hdrer=0 evter=1
+REC,seq<1124>,tick<112401>,press<1024380>,rtc<1793952578>,ax<224>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1460>,vbat<2096>,crc<31502>
+SONAR: 112 mm (pulse 653 us, edges 219)
+REC,seq<1125>,tick<112501>,press<1024380>,rtc<1793952578>,ax<222>,ay<-1>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1456>,vbat<2095>,crc<8342>
+REC,seq<1126>,tick<112601>,press<1024380>,rtc<1793952578>,ax<220>,ay<-3>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1452>,vbat<2087>,crc<17738>
+REC,seq<1127>,tick<112701>,press<1024380>,rtc<1793952578>,ax<221>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1452>,vbat<2089>,crc<50784>
+REC,seq<1128>,tick<112801>,press<1024380>,rtc<1793952578>,ax<219>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1454>,vbat<2095>,crc<5922>
+REC,seq<1129>,tick<112901>,press<1024380>,rtc<1793952578>,ax<220>,ay<-1>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1452>,vbat<2091>,crc<64978>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=32 ovr=0 hdrer=0 evter=1
+REC,seq<1130>,tick<113001>,press<1024380>,rtc<1793952578>,ax<220>,ay<-2>,az<2021>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1454>,vbat<2097>,crc<19055>
+REC,seq<1131>,tick<113101>,press<1024380>,rtc<1793952578>,ax<220>,ay<-1>,az<2017>,gx<1>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1450>,vbat<2087>,crc<64660>
+REC,seq<1132>,tick<113201>,press<1024380>,rtc<1793952579>,ax<220>,ay<-1>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1454>,vbat<2091>,crc<50432>
+REC,seq<1133>,tick<113301>,press<1024380>,rtc<1793952579>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1458>,vbat<2095>,crc<16315>
+SD: begin, Vref=1477 (1489=3.3V, bigger=lower)
+REC,seq<1134>,tick<113401>,press<1024380>,rtc<1793952579>,ax<220>,ay<0>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1456>,vbat<2087>,crc<17901>
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1483
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x00
+SD: ACMD41 ready after 2 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+DISP: SLOW frame 164800 us !
+REC,seq<1135>,tick<113501>,press<1024380>,rtc<1793952579>,ax<222>,ay<-2>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1454>,vbat<2088>,crc<394>
+IDLE: 660/1000 ms  hook 777/s  blank 0
+SONAR: 112 mm (pulse 654 us, edges 221)
+SD: drained 1 batch (stored 0, ram=6 recs) pending=32 ovr=0 hdrer=0 evter=1
+REC,seq<1136>,tick<113601>,press<1024380>,rtc<1793952579>,ax<222>,ay<-2>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1446>,vbat<2085>,crc<57646>
+REC,seq<1137>,tick<113701>,press<1024380>,rtc<1793952579>,ax<221>,ay<-3>,az<2021>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1454>,vbat<2085>,crc<33232>
+REC,seq<1138>,tick<113801>,press<1024380>,rtc<1793952579>,ax<222>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1472>,vbat<2107>,crc<50429>
+REC,seq<1139>,tick<113901>,press<1024380>,rtc<1793952579>,ax<219>,ay<0>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1472>,vbat<2083>,crc<43159>
+REC,seq<1140>,tick<114001>,press<1024380>,rtc<1793952579>,ax<220>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1454>,vbat<2083>,crc<11873>
+REC,seq<1141>,tick<114101>,press<1024380>,rtc<1793952579>,ax<221>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1454>,vbat<2099>,crc<20261>
+SD: drained 1 batch (stored 0, ram=0 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1142>,tick<114201>,press<1024380>,rtc<1793952580>,ax<220>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1456>,vbat<2093>,crc<48025>
+REC,seq<1143>,tick<114301>,press<1024380>,rtc<1793952580>,ax<220>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1456>,vbat<2085>,crc<37889>
+REC,seq<1144>,tick<114401>,press<1024380>,rtc<1793952580>,ax<220>,ay<0>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1460>,vbat<2089>,crc<18511>
+REC,seq<1145>,tick<114501>,press<1024380>,rtc<1793952580>,ax<220>,ay<-1>,az<2015>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1458>,vbat<2089>,crc<62773>
+SONAR: 112 mm (pulse 653 us, edges 223)
+REC,seq<1146>,tick<114601>,press<1024380>,rtc<1793952580>,ax<221>,ay<-3>,az<2015>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1458>,vbat<2097>,crc<34204>
+DISP: SLOW frame 120216 us !
+IDLE: 664/1000 ms  hook 765/s  blank 0
+REC,seq<1147>,tick<114701>,press<1024380>,rtc<1793952580>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1464>,vbat<2097>,crc<35687>
+SD: drained 1 batch (stored 0, ram=1 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1148>,tick<114801>,press<1024380>,rtc<1793952580>,ax<224>,ay<-1>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1452>,vbat<2093>,crc<40188>
+REC,seq<1149>,tick<114901>,press<1024380>,rtc<1793952580>,ax<222>,ay<-4>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1462>,vbat<2095>,crc<25750>
+REC,seq<1150>,tick<115001>,press<1024380>,rtc<1793952580>,ax<223>,ay<-2>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<525>,light<1456>,vbat<2089>,crc<65532>
+REC,seq<1151>,tick<115101>,press<1024380>,rtc<1793952580>,ax<223>,ay<-2>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<525>,light<1456>,vbat<2093>,crc<61052>
+REC,seq<1152>,tick<115201>,press<1024380>,rtc<1793952581>,ax<223>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1456>,vbat<2103>,crc<19187>
+REC,seq<1153>,tick<115301>,press<1024380>,rtc<1793952581>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1458>,vbat<2083>,crc<4411>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1154>,tick<115401>,press<1024380>,rtc<1793952581>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1454>,vbat<2085>,crc<26171>
+REC,seq<1155>,tick<115501>,press<1024380>,rtc<1793952581>,ax<221>,ay<-2>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1462>,vbat<2093>,crc<61073>
+SONAR: 112 mm (pulse 654 us, edges 225)
+REC,seq<1156>,tick<115601>,press<1024380>,rtc<1793952581>,ax<220>,ay<0>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1472>,vbat<2105>,crc<31576>
+REC,seq<1157>,tick<115701>,press<1024380>,rtc<1793952581>,ax<221>,ay<0>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1460>,vbat<2104>,crc<21698>
+IDLE: 700/1000 ms  hook 780/s  blank 0
+REC,seq<1158>,tick<115801>,press<1024380>,rtc<1793952581>,ax<222>,ay<0>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1462>,vbat<2098>,crc<41641>
+REC,seq<1159>,tick<115901>,press<1024380>,rtc<1793952581>,ax<221>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1462>,vbat<2085>,crc<43044>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1160>,tick<116001>,press<1024380>,rtc<1793952581>,ax<223>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1460>,vbat<2094>,crc<60038>
+REC,seq<1161>,tick<116101>,press<1024380>,rtc<1793952581>,ax<220>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1460>,vbat<2099>,crc<7585>
+REC,seq<1162>,tick<116201>,press<1024380>,rtc<1793952582>,ax<222>,ay<-2>,az<2019>,gx<1>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1458>,vbat<2091>,crc<16019>
+REC,seq<1163>,tick<116301>,press<1024380>,rtc<1793952582>,ax<222>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<-1>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1454>,vbat<2079>,crc<43282>
+REC,seq<1164>,tick<116401>,press<1024380>,rtc<1793952582>,ax<222>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<-1>,temp_ds<2137>,temp_chip<2304>,humi<525>,light<1452>,vbat<2087>,crc<10077>
+REC,seq<1165>,tick<116501>,press<1024380>,rtc<1793952582>,ax<224>,ay<0>,az<2020>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1464>,vbat<2095>,crc<12837>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=33 ovr=0 hdrer=0 evter=1
+SD: begin, Vref=1472 (1489=3.3V, bigger=lower)
+REC,seq<1166>,tick<116601>,press<1024380>,rtc<1793952582>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<525>,light<1458>,vbat<2087>,crc<54726>
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0SONAR: 112x01 echo=01  mm (pulse AA is_sd2=1653 us, edg
+SD: Vref bes 227)
+aseline = 1476
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x00
+SD: ACMD41 ready after 4 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1167>,tick<116701>,press<1024370>,rtc<1793952582>,ax<223>,ay<0>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1459>,vbat<2096>,crc<27785>
+REC,seq<1168>,tick<116801>,press<1024370>,rtc<1793952582>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1454>,vbat<2079>,crc<62947>
+DISP: avg=121365 us  max=194075 us  (per refresh)
+IDLE: 640/1000 ms  hook 714/s  blank 0
+REC,seq<1169>,tick<116901>,press<1024370>,rtc<1793952582>,ax<222>,ay<-1>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1457>,vbat<2081>,crc<45814>
+REC,seq<1170>,tick<117001>,press<1024370>,rtc<1793952582>,ax<225>,ay<-3>,az<2016>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1456>,vbat<2085>,crc<12491>
+REC,seq<1171>,tick<117101>,press<1024370>,rtc<1793952582>,ax<222>,ay<-2>,az<2018>,gx<-1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1458>,vbat<2091>,crc<44993>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1172>,tick<117201>,press<1024370>,rtc<1793952583>,ax<223>,ay<0>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1462>,vbat<2099>,crc<32373>
+REC,seq<1173>,tick<117301>,press<1024370>,rtc<1793952583>,ax<221>,ay<-2>,az<2018>,gx<-1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1464>,vbat<2099>,crc<57736>
+REC,seq<1174>,tick<117401>,press<1024370>,rtc<1793952583>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1456>,vbat<2089>,crc<56094>
+REC,seq<1175>,tick<117501>,press<1024370>,rtc<1793952583>,ax<223>,ay<0>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1458>,vbat<2087>,crc<44728>
+REC,seq<1176>,tick<117601>,press<1024370>,rtc<1793952583>,ax<220>,ay<0>,az<2019>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1460>,vbat<2098>,crc<26902>
+SONAR: 112 mm (pulse 653 us, edges 229)
+REC,seq<1177>,tick<117701>,press<1024350>,rtc<1793952583>,ax<222>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1462>,vbat<2103>,crc<9188>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1178>,tick<117801>,press<1024350>,rtc<1793952583>,ax<220>,ay<0>,az<2017>,gx<0>,gy<0>,gz<-1>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1456>,vbat<2096>,crc<56637>
+REC,seq<1179>,tick<117901>,press<1024350>,rtc<1793952583>,ax<221>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1456>,vbat<2089>,crc<25572>
+IDLE: 698/1000 ms  hook 779/s  blank 0
+REC,seq<1180>,tick<118001>,press<1024350>,rtc<1793952583>,ax<220>,ay<-2>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<525>,light<1456>,vbat<2097>,crc<1756>
+REC,seq<1181>,tick<118101>,press<1024350>,rtc<1793952583>,ax<221>,ay<-3>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<525>,light<1464>,vbat<2102>,crc<17078>
+REC,seq<1182>,tick<118201>,press<1024350>,rtc<1793952584>,ax<222>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1458>,vbat<2096>,crc<19287>
+REC,seq<1183>,tick<118301>,press<1024350>,rtc<1793952584>,ax<222>,ay<-1>,az<2021>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<525>,light<1458>,vbat<2097>,crc<5436>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1184>,tick<118401>,press<1024350>,rtc<1793952584>,ax<220>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<525>,light<1452>,vbat<2089>,crc<17130>
+REC,seq<1185>,tick<118501>,press<1024350>,rtc<1793952584>,ax<220>,ay<-1>,az<2016>,gx<1>,gy<0>,gz<-1>,temp_ds<2137>,temp_chip<2301>,humi<525>,light<1458>,vbat<2085>,crc<20338>
+REC,seq<1186>,tick<118601>,press<1024350>,rtc<1793952584>,ax<222>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<525>,light<1460>,vbat<2089>,crc<32055>
+SONAR: 112 mm (pulse 654 us, edges 231)
+REC,seq<1187>,tick<118701>,press<1024350>,rtc<1793952584>,ax<220>,ay<-3>,az<2021>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1462>,vbat<2089>,crc<51975>
+REC,seq<1188>,tick<118801>,press<1024350>,rtc<1793952584>,ax<220>,ay<-1>,az<2016>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1460>,vbat<2091>,crc<12353>
+REC,seq<1189>,tick<118901>,press<1024350>,rtc<1793952584>,ax<221>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1458>,vbat<2097>,crc<47079>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1190>,tick<119001>,press<1024350>,rtc<1793952584>,ax<219>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1458>,vbat<2095>,crc<45949>
+IDLE: 699/1000 ms  hook 778/s  blank 0
+REC,seq<1191>,tick<119101>,press<1024350>,rtc<1793952584>,ax<221>,ay<-3>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1464>,vbat<2095>,crc<38975>
+REC,seq<1192>,tick<119201>,press<1024350>,rtc<1793952585>,ax<219>,ay<-3>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1464>,vbat<2089>,crc<41522>
+REC,seq<1193>,tick<119301>,press<1024350>,rtc<1793952585>,ax<220>,ay<-4>,az<2019>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1454>,vbat<2081>,crc<12564>
+REC,seq<1194>,tick<119401>,press<1024350>,rtc<1793952585>,ax<222>,ay<-2>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1462>,vbat<2089>,crc<60345>
+REC,seq<1195>,tick<119501>,press<1024350>,rtc<1793952585>,ax<221>,ay<-3>,az<2020>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1456>,vbat<2089>,crc<44264>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=33 ovr=0 hdrer=0 evter=1
+REC,seq<1196>,tick<119601>,press<1024350>,rtc<1793952585>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1458>,vbat<2087>,crc<28509>
+REC,seq<1197>,tick<119701>,press<1024350>,rtc<1793952585>,ax<221>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<525>,light<1460>,vbat<2091>,crc<21783>
+SD: begin, Vref=1477 (1489=3.3V, bigger=lower)
+SONAR: 112 mm (pulse 654 us, edges 233)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1477
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1198>,tick<119801>,press<1024330>,rtc<1793952585>,ax<219>,ay<-1>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1463>,vbat<2095>,crc<39971>
+REC,seq<1199>,tick<119901>,press<1024330>,rtc<1793952585>,ax<222>,ay<-2>,az<2022>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1458>,vbat<2089>,crc<30365>
+REC,seq<1200>,tick<120001>,press<1024330>,rtc<1793952585>,ax<221>,ay<1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1460>,vbat<2094>,crc<36038>
+STAT acq=1200 proc=1200 full=0 qmax=1 drop=0 i2c=1449 i2c_max=15553 sd_err=1 sd_last=13 sdstk=130
+REC,seq<1201>,tick<120101>,press<1024330>,rtc<1793952585>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1460>,vbat<2096>,crc<19710>
+SD: drainREC,seq<1202>,tick<120201>,press<1024330>,rtc<1793952586>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1458>,vbat<2093>,crc<41410>
+ed 1 batch (stored 0, ram=0 recs) pending=34 ovr=0 hdrer=0 evter=1
+IDLE: 615/1000 ms  hook 701/s  blank 0
+REC,seq<1203>,tick<120301>,press<1024330>,rtc<1793952586>,ax<220>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1454>,vbat<2085>,crc<52533>
+REC,seq<1204>,tick<120401>,press<1024330>,rtc<1793952586>,ax<218>,ay<0>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1454>,vbat<2079>,crc<37866>
+REC,seq<1205>,tick<120501>,press<1024330>,rtc<1793952586>,ax<220>,ay<-4>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1464>,vbat<2105>,crc<26050>
+REC,seq<1206>,tick<120601>,press<1024330>,rtc<1793952586>,ax<219>,ay<-2>,az<2021>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1460>,vbat<2095>,crc<44437>
+REC,seq<1207>,tick<120701>,press<1024330>,rtc<1793952586>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2303>,humi<526>,light<1458>,vbat<2089>,crc<32912>
+SD: drained 1 batch (stored 0, ram=1 recs) pending=34 ovr=0 hdrer=0 evter=1
+SONAR: 112 mm (pulse 653 us, edges 235)
+REC,seq<1208>,tick<120801>,press<1024330>,rtc<1793952586>,ax<222>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<526>,light<1464>,vbat<2089>,crc<31624>
+REC,seq<1209>,tick<120901>,press<1024330>,rtc<1793952586>,ax<221>,ay<-4>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<526>,light<1464>,vbat<2093>,crc<14465>
+REC,seq<1210>,tick<121001>,press<1024330>,rtc<1793952586>,ax<220>,ay<-2>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<526>,light<1462>,vbat<2091>,crc<12502>
+REC,seq<1211>,tick<121101>,press<1024330>,rtc<1793952586>,ax<220>,ay<-4>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<526>,light<1466>,vbat<2097>,crc<22163>
+REC,seq<1212>,tick<121201>,press<1024330>,rtc<1793952587>,ax<222>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2303>,humi<526>,light<1460>,vbat<2087>,crc<33993>
+REC,seq<1213>,tick<121301>,press<1024330>,rtc<1793952587>,ax<222>,ay<-1>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<526>,light<1460>,vbat<2091>,crc<7638>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=34 ovr=0 hdrer=0 evter=1
+IDLE: 703/1000 ms  hook 788/s  blank 0
+REC,seq<1214>,tick<121401>,press<1024330>,rtc<1793952587>,ax<223>,ay<-2>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<526>,light<1472>,vbat<2089>,crc<54980>
+REC,seq<1215>,tick<121501>,press<1024330>,rtc<1793952587>,ax<219>,ay<-2>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<526>,light<1472>,vbat<2095>,crc<56809>
+REC,seq<1216>,tick<121601>,press<1024330>,rtc<1793952587>,ax<220>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2137>,temp_chip<2301>,humi<526>,light<1462>,vbat<2091>,crc<62613>
+REC,seq<1217>,tick<121701>,press<1024330>,rtc<1793952587>,ax<221>,ay<-2>,az<2021>,gx<1>,gy<0>,gz<0>,temp_ds<2137>,temp_chip<2302>,humi<526>,light<1458>,vbat<2097>,crc<10258>
+REC,seq<1218>,tick<121801>,press<1024330>,rtc<1793952587>,ax<220>,ay<-3>,az<2018>,gx<1>,gy<-1>,gz<-1>,temp_ds<2137>,temp_chip<2302>,humi<526>,light<1468>,vbat<2089>,crc<13808>
+SONAR: 112 mm (pulse 653 us, edges 237)
+REC,seq<1219>,tick<121901>,press<1024340>,rtc<1793952587>,ax<220>,ay<-2>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1466>,vbat<2085>,crc<23147>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=34 ovr=0 hdrer=0 evter=1
+REC,seq<1220>,tick<122001>,press<1024340>,rtc<1793952587>,ax<220>,ay<0>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1462>,vbat<2091>,crc<11644>
+REC,seq<1221>,tick<122101>,press<1024340>,rtc<1793952587>,ax<221>,ay<-4>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1460>,vbat<2087>,crc<35206>
+REC,seq<1222>,tick<122201>,press<1024340>,rtc<1793952588>,ax<218>,ay<-2>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1458>,vbat<2097>,crc<39415>
+REC,seq<1223>,tick<122301>,press<1024340>,rtc<1793952588>,ax<220>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1456>,vbat<2093>,crc<8785>
+REC,seq<1224>,tick<122401>,press<1024340>,rtc<1793952588>,ax<223>,ay<-2>,az<2020>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1460>,vbat<2089>,crc<26892>
+IDLE: 707/1000 ms  hook 788/s  blank 0
+REC,seq<1225>,tick<122501>,press<1024340>,rtc<1793952588>,ax<222>,ay<-1>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1458>,vbat<2089>,crc<2437>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=34 ovr=0 hdrer=0 evter=1
+REC,seq<1226>,tick<122601>,press<1024340>,rtc<1793952588>,ax<220>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1456>,vbat<2088>,crc<59740>
+REC,seq<1227>,tick<122701>,press<1024340>,rtc<1793952588>,ax<221>,ay<-2>,az<2021>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1456>,vbat<2089>,crc<63787>
+REC,seq<1228>,tick<122801>,press<1024340>,rtc<1793952588>,ax<221>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1458>,vbat<2093>,crc<17235>
+SONAR: 112 mm (pulse 653 us, edges 239)
+SD: begin, Vref=1472 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA iREC,seq<1229>,tick<122901>,press<1024350>,rtc<1793952588>,ax<220>,ay<-5>,az<2015>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1454>,vbat<2092>,crc<37585>
+s_sd2=1
+SD: Vref baseline = 1474
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x00
+SD: ACMD41 ready after 4 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1230>,tick<123001>,press<1024350>,rtc<1793952588>,ax<220>,ay<-4>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1454>,vbat<2089>,crc<10012>
+REC,seq<1231>,tick<123101>,press<1024350>,rtc<1793952588>,ax<221>,ay<-1>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1458>,vbat<2093>,crc<9015>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=34 ovr=0 hdrer=0 evter=1
+REC,seq<1232>,tick<123201>,press<1024350>,rtc<1793952589>,ax<220>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1456>,vbat<2096>,crc<34461>
+REC,seq<1233>,tick<123301>,press<1024350>,rtc<1793952589>,ax<222>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1454>,vbat<2091>,crc<39703>
+REC,seq<1234>,tick<123401>,press<1024350>,rtc<1793952589>,ax<219>,ay<-2>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1458>,vbat<2085>,crc<507>
+REC,seq<1235>,tick<123501>,press<1024350>,rtc<1793952589>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1456>,vbat<2089>,crc<17398>
+IDLE: 642/1000 ms  hook 716/s  blank 0
+REC,seq<1236>,tick<123601>,press<1024350>,rtc<1793952589>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1460>,vbat<2095>,crc<16807>
+REC,seq<1237>,tick<123701>,press<1024350>,rtc<1793952589>,ax<219>,ay<-3>,az<2014>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1454>,vbat<2095>,crc<21932>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=34 ovr=0 hdrer=0 evter=1
+REC,seq<1238>,tick<123801>,press<1024350>,rtc<1793952589>,ax<219>,ay<-2>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1452>,vbat<2089>,crc<21566>
+SONAR: 112 mm (pulse 653 us, edges 241)
+REC,seq<1239>,tick<123901>,press<1024340>,rtc<1793952589>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1456>,vbat<2086>,crc<62464>
+REC,seq<1240>,tick<124001>,press<1024340>,rtc<1793952589>,ax<220>,ay<-1>,az<2015>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1454>,vbat<2087>,crc<2581>
+REC,seq<1241>,tick<124101>,press<1024340>,rtc<1793952589>,ax<222>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1457>,vbat<2087>,crc<21457>
+REC,seq<1242>,tick<124201>,press<1024340>,rtc<1793952590>,ax<222>,ay<-3>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1460>,vbat<2099>,crc<37796>
+REC,seq<1243>,tick<124301>,press<1024340>,rtc<1793952590>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1458>,vbat<2085>,crc<12328>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=34 ovr=0 hdrer=0 evter=1
+REC,seq<1244>,tick<124401>,press<1024340>,rtc<1793952590>,ax<221>,ay<-3>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1452>,vbat<2087>,crc<52417>
+REC,seq<1245>,tick<124501>,press<1024340>,rtc<1793952590>,ax<223>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1454>,vbat<2089>,crc<21343>
+REC,seq<1246>,tick<124601>,press<1024340>,rtc<1793952590>,ax<220>,ay<-4>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1454>,vbat<2095>,crc<29544>
+IDLE: 698/1000 ms  hook 777/s  blank 0
+REC,seq<1247>,tick<124701>,press<1024340>,rtc<1793952590>,ax<218>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1472>,vbat<2096>,crc<62425>
+REC,seq<1248>,tick<124801>,press<1024340>,rtc<1793952590>,ax<223>,ay<-2>,az<2016>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1456>,vbat<2089>,crc<39050>
+REC,seq<1249>,tick<124901>,press<1024360>,rtc<1793952590>,ax<220>,ay<-1>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1460>,vbat<2095>,crc<34675>
+SONAR: 112 mm (pulse 653 us, edges 243)
+SD: drained 1 batch (stored 0, ram=5 recs) pending=34 ovr=0 hdrer=0 evter=1
+REC,seq<1250>,tick<125001>,press<1024360>,rtc<1793952590>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1456>,vbat<2099>,crc<64864>
+REC,seq<1251>,tick<125101>,press<1024360>,rtc<1793952590>,ax<220>,ay<-1>,az<2014>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1456>,vbat<2101>,crc<10312>
+REC,seq<1252>,tick<125201>,press<1024360>,rtc<1793952591>,ax<221>,ay<-3>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1458>,vbat<2097>,crc<34110>
+REC,seq<1253>,tick<125301>,press<1024360>,rtc<1793952591>,ax<222>,ay<-3>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1454>,vbat<2093>,crc<37584>
+REC,seq<1254>,tick<125401>,press<1024360>,rtc<1793952591>,ax<220>,ay<-1>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1460>,vbat<2099>,crc<54451>
+REC,seq<1255>,tick<125501>,press<1024360>,rtc<1793952591>,ax<220>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1450>,vbat<2096>,crc<63000>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=34 ovr=0 hdrer=0 evter=1
+REC,seq<1256>,tick<125601>,press<1024360>,rtc<1793952591>,ax<220>,ay<-3>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1456>,vbat<2097>,crc<45136>
+REC,seq<1257>,tick<125701>,press<1024360>,rtc<1793952591>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1454>,vbat<2097>,crc<49589>
+REC,seq<1258>,tick<125801>,press<1024360>,rtc<1793952591>,ax<225>,ay<-3>,az<2019>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1450>,vbat<2087>,crc<15190>
+DISP: SLOW frame 135942 us !
+DISP: avg=112820 us  max=194075 us  (per refresh)
+IDLE: 677/1000 ms  hook 777/s  blank 0
+REC,seq<1259>,tick<125901>,press<1024360>,rtc<1793952591>,ax<221>,ay<-1>,az<2018>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1449>,vbat<2112>,crc<23786>
+SONAR: 112 mm (pulse 654 us, edges 245)
+REC,seq<1260>,tick<126001>,press<1024370>,rtc<1793952591>,ax<223>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1454>,vbat<2101>,crc<62273>
+SD: begin, Vref=1477 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1475
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1261>,tick<126101>,press<1024370>,rtc<1793952591>,ax<221>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1458>,vbat<2099>,crc<54708>
+SD: drained 1 batch (stored 0, ram=0 recs) pending=35 ovr=0 hdrer=0 evter=1
+REC,seq<1262>,tick<126201>,press<1024370>,rtc<1793952592>,ax<221>,ay<-1>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1450>,vbat<2083>,crc<19406>
+REC,seq<1263>,tick<126301>,press<1024370>,rtc<1793952592>,ax<222>,ay<-3>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1450>,vbat<2087>,crc<36226>
+REC,seq<1264>,tick<126401>,press<1024370>,rtc<1793952592>,ax<220>,ay<-4>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1450>,vbat<2087>,crc<60375>
+REC,seq<1265>,tick<126501>,press<1024370>,rtc<1793952592>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1454>,vbat<2093>,crc<28512>
+REC,seq<1266>,tick<126601>,press<1024370>,rtc<1793952592>,ax<222>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1450>,vbat<2089>,crc<58308>
+REC,seq<1267>,tick<126701>,press<1024370>,rtc<1793952592>,ax<222>,ay<0>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1450>,vbat<2093>,crc<4425>
+SD: drained 1 batch (stored 0, ram=1 recs) pending=35 ovr=0 hdrer=0 evter=1
+REC,seq<1268>,tick<126801>,press<1024370>,rtc<1793952592>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1452>,vbat<2100>,crc<65146>
+REC,seq<1269>,tick<126901>,press<1024370>,rtc<1793952592>,ax<222>,ay<-1>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1452>,vbat<2093>,crc<41174>
+IDLE: 645/1000 ms  hook 718/s  blank 0
+SONAR: 112 mm (pulse 654 us, edges 247)
+REC,seq<1270>,tick<127001>,press<1024370>,rtc<1793952592>,ax<221>,ay<-3>,az<2015>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1452>,vbat<2081>,crc<5746>
+REC,seq<1271>,tick<127101>,press<1024370>,rtc<1793952592>,ax<222>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1450>,vbat<2095>,crc<56466>
+REC,seq<1272>,tick<127201>,press<1024370>,rtc<1793952593>,ax<222>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1452>,vbat<2093>,crc<32092>
+REC,seq<1273>,tick<127301>,press<1024370>,rtc<1793952593>,ax<222>,ay<-2>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1456>,vbat<2099>,crc<20024>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=35 ovr=0 hdrer=0 evter=1
+REC,seq<1274>,tick<127401>,press<1024370>,rtc<1793952593>,ax<223>,ay<-4>,az<2021>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1442>,vbat<2085>,crc<60544>
+REC,seq<1275>,tick<127501>,press<1024370>,rtc<1793952593>,ax<221>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1446>,vbat<2085>,crc<42119>
+REC,seq<1276>,tick<127601>,press<1024370>,rtc<1793952593>,ax<222>,ay<-1>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1452>,vbat<2103>,crc<39951>
+REC,seq<1277>,tick<127701>,press<1024370>,rtc<1793952593>,ax<218>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1450>,vbat<2097>,crc<26528>
+REC,seq<1278>,tick<127801>,press<1024370>,rtc<1793952593>,ax<222>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1450>,vbat<2095>,crc<8122>
+REC,seq<1279>,tick<127901>,press<1024370>,rtc<1793952593>,ax<222>,ay<0>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<527>,light<1448>,vbat<2087>,crc<6165>
+SONAR: 112 mm (pulse 654 us, edges 249)
+SD: draiREC,seq<1280>,tick<128001>,press<1024370>,rtc<1793952593>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1455>,vbat<2093>,crc<18384>
+ned 1 batch (stored 0, ram=2 recs) pending=35 ovr=0 hdrer=0 evter=1
+DISP: SLOW frame 126438 us !
+IDLE: 691/1000 ms  hook 786/s  blank 0
+REC,seq<1281>,tick<128101>,press<1024370>,rtc<1793952593>,ax<220>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1446>,vbat<2096>,crc<41368>
+REC,seq<1282>,tick<128201>,press<1024370>,rtc<1793952594>,ax<220>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1446>,vbat<2097>,crc<29417>
+REC,seq<1283>,tick<128301>,press<1024370>,rtc<1793952594>,ax<221>,ay<-2>,az<2022>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1446>,vbat<2087>,crc<54905>
+REC,seq<1284>,tick<128401>,press<1024370>,rtc<1793952594>,ax<220>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1448>,vbat<2087>,crc<40344>
+REC,seq<1285>,tick<128501>,press<1024370>,rtc<1793952594>,ax<220>,ay<0>,az<2020>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1446>,vbat<2101>,crc<1260>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=35 ovr=0 hdrer=0 evter=1
+REC,seq<1286>,tick<128601>,press<1024370>,rtc<1793952594>,ax<222>,ay<-3>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1444>,vbat<2095>,crc<58643>
+REC,seq<1287>,tick<128701>,press<1024370>,rtc<1793952594>,ax<220>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1446>,vbat<2091>,crc<6396>
+REC,seq<1288>,tick<128801>,press<1024370>,rtc<1793952594>,ax<222>,ay<0>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<527>,light<1446>,vbat<2089>,crc<2048>
+REC,seq<1289>,tick<128901>,press<1024370>,rtc<1793952594>,ax<222>,ay<0>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1442>,vbat<2091>,crc<60246>
+REC,seq<1290>,tick<129002>,press<1024370>,rtc<1793952594>,ax<222>,ay<0>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<527>,light<1438>,vbat<2095>,crc<25912>
+SONAR: 112 mm (pulse 654 us, edges 251)
+REC,seq<1291>,tick<129101>,press<1024360>,rtc<1793952594>,ax<220>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1448>,vbat<2097>,crc<14781>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=35 ovr=0 hdrer=0 evter=1
+SD: begin, Vref=1474 (1489=3.3V, bigger=lower)
+REC,seq<1292>,tick<129201>,press<1024360>,rtc<1793952595>,ax<219>,ay<-2>,az<2021>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1456>,vbat<2083>,crc<43188>
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1461
+SD: ACMD41 #1 R1=0x01
+DISPSD: ACMD41 : SLOW fram#2 R1=0x00
+e 173545 usSD: ACMD41 r !
+IDLE: eady after 2663/1000 ms tries
+  hook 786/s  blank 0
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1293>,tick<129301>,press<1024360>,rtc<1793952595>,ax<222>,ay<-2>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1446>,vbat<2099>,crc<33578>
+REC,seq<1294>,tick<129401>,press<1024360>,rtc<1793952595>,ax<220>,ay<-4>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1440>,vbat<2093>,crc<55155>
+REC,seq<1295>,tick<129501>,press<1024360>,rtc<1793952595>,ax<224>,ay<-3>,az<2015>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2302>,humi<525>,light<1444>,vbat<2097>,crc<23356>
+REC,seq<1296>,tick<129601>,press<1024360>,rtc<1793952595>,ax<220>,ay<-3>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1438>,vbat<2087>,crc<48775>
+REC,seq<1297>,tick<129701>,press<1024360>,rtc<1793952595>,ax<220>,ay<-2>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1444>,vbat<2095>,crc<18020>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=35 ovr=0 hdrer=0 evter=1
+REC,seq<1298>,tick<129801>,press<1024360>,rtc<1793952595>,ax<218>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1444>,vbat<2095>,crc<17714>
+REC,seq<1299>,tick<129901>,press<1024360>,rtc<1793952595>,ax<219>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1436>,vbat<2091>,crc<48344>
+REC,seq<1300>,tick<130001>,press<1024360>,rtc<1793952595>,ax<223>,ay<-1>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1436>,vbat<2085>,crc<25473>
+STAT acq=1300 proc=1300 full=0 qmax=1 drop=0 i2c=1451 i2c_max=15553 sd_err=1 sd_last=13 sdstk=130
+SONAR: 112 mm (pulse 653 us, edges 253)
+REC,seq<1301>,tick<130101>,press<1024350>,rtc<1793952595>,ax<222>,ay<0>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2300>,humi<525>,light<1442>,vbat<2089>,crc<2415>
+REC,seq<1302>,tick<130201>,press<1024350>,rtc<1793952596>,ax<222>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2301>,humi<525>,light<1438>,vbat<2083>,crc<51139>
+REC,seq<1303>,tick<130301>,press<1024350>,rtc<1793952596>,ax<222>,ay<-3>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2301>,humi<525>,light<1438>,vbat<2091>,crc<2539>
+IDLE: 685/1000 ms  hook 766/s  blank 0
+SD: drained 1 batch (stored 0, ram=5 recs) pending=35 ovr=0 hdrer=0 evter=1
+REC,seq<1304>,tick<130401>,press<1024350>,rtc<1793952596>,ax<222>,ay<-4>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2300>,humi<525>,light<1442>,vbat<2097>,crc<20126>
+REC,seq<1305>,tick<130501>,press<1024350>,rtc<1793952596>,ax<221>,ay<-3>,az<2016>,gx<1>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2301>,humi<525>,light<1444>,vbat<2097>,crc<11098>
+REC,seq<1306>,tick<130601>,press<1024350>,rtc<1793952596>,ax<220>,ay<0>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2300>,humi<525>,light<1444>,vbat<2091>,crc<9108>
+REC,seq<1307>,tick<130701>,press<1024350>,rtc<1793952596>,ax<220>,ay<-5>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2302>,humi<525>,light<1436>,vbat<2091>,crc<29000>
+REC,seq<1308>,tick<130801>,press<1024350>,rtc<1793952596>,ax<220>,ay<-2>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2302>,humi<525>,light<1440>,vbat<2093>,crc<13417>
+REC,seq<1309>,tick<130901>,press<1024350>,rtc<1793952596>,ax<221>,ay<-1>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2301>,humi<525>,light<1438>,vbat<2099>,crc<5417>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=35 ovr=0 hdrer=0 evter=1
+REC,seq<1310>,tick<131001>,press<1024350>,rtc<1793952596>,ax<223>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2301>,humi<525>,light<1438>,vbat<2093>,crc<29889>
+SONAR: 112 mm (pulse 654 us, edges 255)
+REC,seq<1311>,tick<131101>,press<1024360>,rtc<1793952596>,ax<221>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1438>,vbat<2095>,crc<52845>
+REC,seq<1312>,tick<131201>,press<1024360>,rtc<1793952597>,ax<221>,ay<-1>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1438>,vbat<2091>,crc<1022>
+REC,seq<1313>,tick<131301>,press<1024360>,rtc<1793952597>,ax<219>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1438>,vbat<2091>,crc<22164>
+REC,seq<1314>,tick<131401>,press<1024360>,rtc<1793952597>,ax<222>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1434>,vbat<2094>,crc<22824>
+IDLE: 702/1000 ms  hook 782/s  blank 0
+REC,seq<1315>,tick<131501>,press<1024360>,rtc<1793952597>,ax<220>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1436>,vbat<2088>,crc<29468>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=35 ovr=0 hdrer=0 evter=1
+REC,seq<1316>,tick<131601>,press<1024360>,rtc<1793952597>,ax<222>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1430>,vbat<2085>,crc<36592>
+REC,seq<1317>,tick<131701>,press<1024360>,rtc<1793952597>,ax<220>,ay<-2>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1438>,vbat<2095>,crc<31752>
+REC,seq<1318>,tick<131801>,press<1024360>,rtc<1793952597>,ax<221>,ay<-1>,az<2016>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1438>,vbat<2095>,crc<61444>
+REC,seq<1319>,tick<131901>,press<1024360>,rtc<1793952597>,ax<220>,ay<-1>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1436>,vbat<2091>,crc<43717>
+REC,seq<1320>,tick<132001>,press<1024360>,rtc<1793952597>,ax<222>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1436>,vbat<2093>,crc<45431>
+REC,seq<1321>,tick<132101>,press<1024370>,rtc<1793952597>,ax<222>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1434>,vbat<2095>,crc<55970>
+SD: drainSONAR: 112ed 1 batch ( mm (pulse stored 0, ra654 us, edgm=0 recs) pees 257)
+nding=36 ovr=0 hdrer=0 evter=1
+REC,seq<1322>,tick<132201>,press<1024370>,rtc<1793952598>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1440>,vbat<2087>,crc<40011>
+REC,seq<1323>,tick<132301>,press<1024370>,rtc<1793952598>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1436>,vbat<2093>,crc<15398>
+SD: begin, Vref=1469 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1474
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1324>,tick<132401>,press<1024370>,rtc<1793952598>,ax<220>,ay<-1>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2108>,crc<63484>
+REC,seq<1325>,tick<132501>,press<1024370>,rtc<1793952598>,ax<221>,ay<-5>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1434>,vbat<2089>,crc<35403>
+IDLE: 635/1000 ms  hook 706/s  blank 0
+REC,seq<1326>,tick<132601>,press<1024370>,rtc<1793952598>,ax<222>,ay<-5>,az<2021>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1430>,vbat<2087>,crc<11623>
+REC,seq<1327>,tick<132701>,press<1024370>,rtc<1793952598>,ax<221>,ay<0>,az<2018>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1430>,vbat<2089>,crc<62781>
+SD: drained 1 batch (stored 0, ram=1 recs) REC,seq<1328>,tick<132801>,press<1024370>,rtc<1793952598>,ax<222>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1430>,vbat<2104>,crc<25211>
+pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1329>,tick<132901>,press<1024370>,rtc<1793952598>,ax<221>,ay<-1>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1430>,vbat<2091>,crc<21220>
+REC,seq<1330>,tick<133001>,press<1024370>,rtc<1793952598>,ax<219>,ay<-2>,az<2021>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2302>,humi<526>,light<1432>,vbat<2096>,crc<23287>
+REC,seq<1331>,tick<133101>,press<1024370>,rtc<1793952599>,ax<221>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1434>,vbat<2091>,crc<15240>
+SONAR: 112 mm (pulse 653 us, edges 259)
+REC,seq<1332>,tick<133201>,press<1024370>,rtc<1793952599>,ax<221>,ay<-2>,az<2015>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1430>,vbat<2092>,crc<18920>
+REC,seq<1333>,tick<133301>,press<1024370>,rtc<1793952599>,ax<221>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1428>,vbat<2087>,crc<33680>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1334>,tick<133401>,press<1024370>,rtc<1793952599>,ax<221>,ay<-3>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2103>,crc<28652>
+REC,seq<1335>,tick<133501>,press<1024370>,rtc<1793952599>,ax<221>,ay<-3>,az<2020>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1432>,vbat<2095>,crc<31499>
+REC,seq<1336>,tick<133601>,press<1024370>,rtc<1793952599>,ax<220>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1434>,vbat<2085>,crc<36973>
+IDLE: REC,seq<1337>,tick<133701>,press<1024370>,rtc<1793952599>,ax<221>,ay<0>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1434>,vbat<2091>,crc<9007>
+697/1000 ms  hook 776/s  blank 0
+REC,seq<1338>,tick<133801>,press<1024370>,rtc<1793952599>,ax<220>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1430>,vbat<2083>,crc<36512>
+REC,seq<1339>,tick<133901>,press<1024370>,rtc<1793952599>,ax<222>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1434>,vbat<2083>,crc<60839>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1340>,tick<134001>,press<1024370>,rtc<1793952599>,ax<222>,ay<-2>,az<2016>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1426>,vbat<2097>,crc<63714>
+REC,seq<1341>,tick<134101>,press<1024370>,rtc<1793952600>,ax<220>,ay<-1>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1430>,vbat<2095>,crc<17568>
+SONAR: 112 mm (pulse 654 us, edges 261)
+REC,seq<1342>,tick<134201>,press<1024380>,rtc<1793952600>,ax<220>,ay<-3>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1430>,vbat<2087>,crc<40192>
+REC,seq<1343>,tick<134301>,press<1024380>,rtc<1793952600>,ax<220>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2089>,crc<54623>
+REC,seq<1344>,tick<134401>,press<1024380>,rtc<1793952600>,ax<223>,ay<0>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1422>,vbat<2077>,crc<57225>
+REC,seq<1345>,tick<134501>,press<1024380>,rtc<1793952600>,ax<222>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1430>,vbat<2095>,crc<63753>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1346>,tick<134601>,press<1024380>,rtc<1793952600>,ax<219>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1428>,vbat<2079>,crc<32623>
+REC,seq<1347>,tick<134701>,press<1024380>,rtc<1793952600>,ax<223>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1430>,vbat<2081>,crc<37760>
+REC,seq<1348>,tick<134801>,press<1024380>,rtc<1793952600>,ax<221>,ay<-2>,az<2018>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1428>,vbat<2093>,crc<1358>
+DISP: avg=118286 us  max=194075 us  (per refresh)
+IDLE: 685/1000 ms  hook 780/s  blank 0
+REC,seq<1349>,tick<134901>,press<1024380>,rtc<1793952600>,ax<220>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1428>,vbat<2099>,crc<40823>
+REC,seq<1350>,tick<135001>,press<1024380>,rtc<1793952600>,ax<223>,ay<-4>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1428>,vbat<2085>,crc<32260>
+REC,seq<1351>,tick<135101>,press<1024380>,rtc<1793952600>,ax<222>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1432>,vbat<2095>,crc<8109>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1352>,tick<135201>,press<1024390>,rtc<1793952601>,ax<222>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1432>,vbat<2096>,crc<43042>
+SONAR: 112 mm (pulse 653 us, edges 263)
+REC,seq<1353>,tick<135301>,press<1024390>,rtc<1793952601>,ax<221>,ay<-1>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1430>,vbat<2096>,crc<5666>
+REC,seq<1354>,tick<135401>,press<1024390>,rtc<1793952601>,ax<222>,ay<-1>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2089>,crc<3120>
+SD: begin, Vref=1477 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1475
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready REC,seq<1355>,tick<135501>,press<1024390>,rtc<1793952601>,ax<221>,ay<-1>,az<2015>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1426>,vbat<2087>,crc<53063>
+after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1356>,tick<135601>,press<1024390>,rtc<1793952601>,ax<221>,ay<-5>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2089>,crc<17766>
+REC,seq<1357>,tick<135701>,press<1024390>,rtc<1793952601>,ax<220>,ay<-1>,az<2013>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1434>,vbat<2095>,crc<22304>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1358>,tick<135801>,press<1024390>,rtc<1793952601>,ax<220>,ay<0>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2097>,crc<16346>
+REC,seq<1359>,tick<135901>,press<1024390>,rtc<1793952601>,ax<220>,ay<-2>,az<2014>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1430>,vbat<2101>,crc<20648>
+IDLE: 645/1000 ms  hook 716/s  blank 0
+REC,seq<1360>,tick<136001>,press<1024390>,rtc<1793952601>,ax<221>,ay<-4>,az<2020>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1430>,vbat<2097>,crc<22851>
+REC,seq<1361>,tick<136101>,press<1024390>,rtc<1793952602>,ax<222>,ay<-1>,az<2021>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1434>,vbat<2093>,crc<16246>
+REC,seq<1362>,tick<136201>,press<1024390>,rtc<1793952602>,ax<221>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2093>,crc<61651>
+SONAR: 112 mm (pulse 654 us, edges 265)
+REC,seq<1363>,tick<136301>,press<1024400>,rtc<1793952602>,ax<221>,ay<-1>,az<2020>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<526>,light<1430>,vbat<2091>,crc<58244>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1364>,tick<136401>,press<1024400>,rtc<1793952602>,ax<222>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1440>,vbat<2101>,crc<48473>
+REC,seq<1365>,tick<136501>,press<1024400>,rtc<1793952602>,ax<221>,ay<-4>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2083>,crc<32212>
+REC,seq<1366>,tick<136601>,press<1024400>,rtc<1793952602>,ax<222>,ay<-3>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2095>,crc<52707>
+REC,seq<1367>,tick<136701>,press<1024400>,rtc<1793952602>,ax<222>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1426>,vbat<2091>,crc<46513>
+REC,seq<1368>,tick<136801>,press<1024400>,rtc<1793952602>,ax<223>,ay<-2>,az<2016>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1430>,vbat<2084>,crc<13882>
+REC,seq<1369>,tick<136901>,press<1024400>,rtc<1793952602>,ax<224>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1434>,vbat<2083>,crc<52838>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1370>,tick<137001>,press<1024400>,rtc<1793952602>,ax<222>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1436>,vbat<2091>,crc<60240>
+IDLE: 697/1000 ms  hook 780/s  blank 0
+REC,seq<1371>,tick<137101>,press<1024400>,rtc<1793952603>,ax<220>,ay<-2>,az<2015>,gx<2>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1433>,vbat<2085>,crc<63757>
+REC,seq<1372>,tick<137201>,press<1024400>,rtc<1793952603>,ax<222>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1432>,vbat<2105>,crc<57204>
+SONAR: 112 mm (pulse 653 us, edges 267)
+REC,seq<1373>,tick<137301>,press<1024410>,rtc<1793952603>,ax<224>,ay<-2>,az<2015>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1436>,vbat<2097>,crc<57685>
+REC,seq<1374>,tick<137401>,press<1024410>,rtc<1793952603>,ax<225>,ay<-2>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1434>,vbat<2087>,crc<7127>
+REC,seq<1375>,tick<137501>,press<1024410>,rtc<1793952603>,ax<222>,ay<-2>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1438>,vbat<2095>,crc<39807>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=36 ovr=0 hdrer=0 evter=1
+REC,seq<1376>,tick<137601>,press<1024410>,rtc<1793952603>,ax<221>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1434>,vbat<2096>,crc<41115>
+REC,seq<1377>,tick<137701>,press<1024410>,rtc<1793952603>,ax<220>,ay<-5>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1436>,vbat<2097>,crc<55675>
+REC,seq<1378>,tick<137801>,press<1024410>,rtc<1793952603>,ax<221>,ay<-4>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1436>,vbat<2093>,crc<10283>
+REC,seq<1379>,tick<137901>,press<1024410>,rtc<1793952603>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1440>,vbat<2105>,crc<4087>
+REC,seq<1380>,tick<138001>,press<1024410>,rtc<1793952603>,ax<222>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1436>,vbat<2108>,crc<54200>
+REC,seq<1381>,tick<138101>,press<1024410>,rtc<1793952604>,ax<222>,ay<-4>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<526>,light<1438>,vbat<2090>,crc<962>
+SD: drained 1 batch (stored 0, ram=0 recs) pending=37 ovr=0 hdrer=0 evter=1
+IDLE: 663/1000 ms  hook 741/s  blank 0
+REC,seq<1382>,tick<138201>,press<1024410>,rtc<1793952604>,ax<223>,ay<-3>,az<2022>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1436>,vbat<2087>,crc<16721>
+SONAR: 112 mm (pulse 654 us, edges 269)
+REC,seq<1383>,tick<138301>,press<1024400>,rtc<1793952604>,ax<219>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1440>,vbat<2086>,crc<54897>
+REC,seq<1384>,tick<138401>,press<1024400>,rtc<1793952604>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1436>,vbat<2093>,crc<21484>
+REC,seq<1385>,tick<138501>,press<1024400>,rtc<1793952604>,ax<223>,ay<-2>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1436>,vbat<2087>,crc<41827>
+REC,seq<1386>,tick<138601>,press<1024400>,rtc<1793952604>,ax<221>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1430>,vbat<2085>,crc<42561>
+SD: begin, Vref=1476 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1475
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1387>,tick<138701>,press<1024400>,rtc<1793952604>,ax<220>,ay<-1>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2301>,humi<525>,light<1442>,vbat<2097>,crc<27591>
+SD: drained 1 batch (stored 0, REC,seq<1388>,tick<138801>,press<1024400>,rtc<1793952604>,ax<221>,ay<-3>,az<2015>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1438>,vbat<2091>,crc<30324>
+ram=1 recs) pending=37 ovr=0 hdrer=0 evter=1
+REC,seq<1389>,tick<138901>,press<1024400>,rtc<1793952604>,ax<220>,ay<-3>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1440>,vbat<2091>,crc<37442>
+REC,seq<1390>,tick<139001>,press<1024400>,rtc<1793952604>,ax<221>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1438>,vbat<2093>,crc<16912>
+REC,seq<1391>,tick<139101>,press<1024400>,rtc<1793952605>,ax<222>,ay<-4>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1434>,vbat<2083>,crc<50344>
+REC,seq<1392>,tick<139201>,press<1024400>,rtc<1793952605>,ax<222>,ay<-3>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1436>,vbat<2089>,crc<7145>
+IDLE: 650/1000 ms  hook 724/s  blank 0
+REC,seq<1393>,tick<139301>,press<1024410>,rtc<1793952605>,ax<220>,ay<-3>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1448>,vbat<2091>,crc<742>
+SONAR: 112SD: drai mm (pulse ned 1 batch 653 us, edg(stored 0, res 271)
+am=2 recs) pending=37 ovr=0 hdrer=0 evter=1
+REC,seq<1394>,tick<139401>,press<1024410>,rtc<1793952605>,ax<220>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1442>,vbat<2105>,crc<56873>
+REC,seq<1395>,tick<139501>,press<1024410>,rtc<1793952605>,ax<221>,ay<-1>,az<2021>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1442>,vbat<2093>,crc<1099>
+REC,seq<1396>,tick<139601>,press<1024410>,rtc<1793952605>,ax<222>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1442>,vbat<2101>,crc<5728>
+REC,seq<1397>,tick<139701>,press<1024410>,rtc<1793952605>,ax<221>,ay<-4>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1442>,vbat<2089>,crc<50033>
+REC,seq<1398>,tick<139801>,press<1024410>,rtc<1793952605>,ax<221>,ay<-1>,az<2018>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1444>,vbat<2097>,crc<7821>
+REC,seq<1399>,tick<139901>,press<1024410>,rtc<1793952605>,ax<222>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1444>,vbat<2099>,crc<48327>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=37 ovr=0 hdrer=0 evter=1
+REC,seq<1400>,tick<140001>,press<1024410>,rtc<1793952605>,ax<221>,ay<-4>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1448>,vbat<2093>,crc<44378>
+STAT acq=1400 proc=1400 full=0 qmax=1 drop=0 i2c=1454 i2c_max=15553 sd_err=1 sd_last=13 sdstk=130
+REC,seq<1401>,tick<140101>,press<1024410>,rtc<1793952606>,ax<222>,ay<-1>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1444>,vbat<2099>,crc<9339>
+REC,seq<1402>,tick<140201>,press<1024410>,rtc<1793952606>,ax<221>,ay<-1>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1446>,vbat<2093>,crc<46335>
+REC,seq<1403>,tick<140301>,press<1024410>,rtc<1793952606>,ax<221>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1446>,vbat<2099>,crc<32073>
+SONAR: 112 mm (pulse 653 us, edges 273)
+REC,seq<1404>,tick<140401>,press<1024400>,rtc<1793952606>,ax<221>,ay<-4>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1438>,vbat<2087>,crc<42804>
+DISP: SLOW frame 140200 us !
+IDLE: 671/1000 ms  hook 771/s  blank 0
+REC,seq<1405>,tick<140501>,press<1024400>,rtc<1793952606>,ax<220>,ay<-3>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1453>,vbat<2099>,crc<51332>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=37 ovr=0 hdrer=0 evter=1
+REC,seq<1406>,tick<140601>,press<1024400>,rtc<1793952606>,ax<222>,ay<-3>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1446>,vbat<2095>,crc<61363>
+REC,seq<1407>,tick<140701>,press<1024400>,rtc<1793952606>,ax<222>,ay<-1>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1444>,vbat<2097>,crc<60934>
+REC,seq<1408>,tick<140801>,press<1024400>,rtc<1793952606>,ax<220>,ay<-5>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1444>,vbat<2085>,crc<953>
+REC,seq<1409>,tick<140901>,press<1024400>,rtc<1793952606>,ax<222>,ay<-1>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2300>,humi<525>,light<1448>,vbat<2095>,crc<1122>
+REC,seq<1410>,tick<141001>,press<1024400>,rtc<1793952606>,ax<220>,ay<-4>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1446>,vbat<2087>,crc<16313>
+REC,seq<1411>,tick<141101>,press<1024400>,rtc<1793952607>,ax<220>,ay<-3>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1446>,vbat<2093>,crc<21694>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=37 ovr=0 hdrer=0 evter=1
+REC,seq<1412>,tick<141201>,press<1024400>,rtc<1793952607>,ax<222>,ay<-3>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1446>,vbat<2087>,crc<36371>
+REC,seq<1413>,tick<141301>,press<1024400>,rtc<1793952607>,ax<220>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1448>,vbat<2099>,crc<5640>
+SONAR: 112 mm (pulse 653 us, edges 275)
+REC,seq<1414>,tick<141401>,press<1024390>,rtc<1793952607>,ax<223>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1448>,vbat<2089>,crc<54855>
+REC,seq<1415>,tick<141501>,press<1024390>,rtc<1793952607>,ax<223>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1446>,vbat<2093>,crc<23250>
+IDLE: 697/1000 ms  hook 777/s  blank 0
+REC,seq<1416>,tick<141601>,press<1024390>,rtc<1793952607>,ax<221>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1446>,vbat<2112>,crc<8564>
+REC,seq<1417>,tick<141701>,press<1024390>,rtc<1793952607>,ax<221>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1448>,vbat<2085>,crc<9815>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=37 ovr=0 hdrer=0 evter=1
+SD: begin, Vref=1472 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1477
+SD:REC,seq<1418>,tick<141801>,press<1024390>,rtc<1793952607>,ax<220>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1452>,vbat<2093>,crc<55921>
+ ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1419>,tick<141901>,press<1024390>,rtc<1793952607>,ax<220>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1452>,vbat<2083>,crc<61650>
+REC,seq<1420>,tick<142001>,press<1024390>,rtc<1793952607>,ax<222>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1452>,vbat<2093>,crc<57722>
+REC,seq<1421>,tick<142101>,press<1024390>,rtc<1793952608>,ax<221>,ay<-3>,az<2019>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1454>,vbat<2091>,crc<6267>
+REC,seq<1422>,tick<142201>,press<1024390>,rtc<1793952608>,ax<221>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1456>,vbat<2093>,crc<19886>
+REC,seq<1423>,tick<142301>,press<1024390>,rtc<1793952608>,ax<222>,ay<-4>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1446>,vbat<2085>,crc<56994>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=37 ovr=0 hdrer=0 evter=1
+REC,seq<1424>,tick<142401>,press<1024380>,rtc<1793952608>,ax<221>,ay<0>,az<2018>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1450>,vbat<2091>,crc<22557>
+SONAR: 112 mm (pulse 653 us, edges 277)
+REC,seq<1425>,tick<142501>,press<1024380>,rtc<1793952608>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1454>,vbat<2089>,crc<38228>
+REC,seq<1426>,tick<142601>,press<1024380>,rtc<1793952608>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1454>,vbat<2095>,crc<48784>
+IDLE: 645/1000 ms  hook 719/s  blank 0
+REC,seq<1427>,tick<142701>,press<1024380>,rtc<1793952608>,ax<221>,ay<-2>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1455>,vbat<2093>,crc<30582>
+REC,seq<1428>,tick<142801>,press<1024380>,rtc<1793952608>,ax<220>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1454>,vbat<2096>,crc<41536>
+REC,seq<1429>,tick<142901>,press<1024380>,rtc<1793952608>,ax<221>,ay<-4>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1450>,vbat<2073>,crc<22082>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=37 ovr=0 hdrer=0 evter=1
+REC,seq<1430>,tick<143001>,press<1024380>,rtc<1793952608>,ax<222>,ay<-4>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1456>,vbat<2095>,crc<61715>
+REC,seq<1431>,tick<143101>,press<1024380>,rtc<1793952609>,ax<220>,ay<-3>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1456>,vbat<2086>,crc<26871>
+REC,seq<1432>,tick<143201>,press<1024380>,rtc<1793952609>,ax<219>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1456>,vbat<2099>,crc<39851>
+REC,seq<1433>,tick<143301>,press<1024380>,rtc<1793952609>,ax<220>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1456>,vbat<2089>,crc<38054>
+REC,seq<1434>,tick<143401>,press<1024380>,rtc<1793952609>,ax<222>,ay<-3>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1458>,vbat<2095>,crc<15080>
+SONAR: 112 mm (pulse 653 us, edges 279)
+REC,seq<1435>,tick<143501>,press<1024380>,rtc<1793952609>,ax<222>,ay<-3>,az<2015>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1468>,vbat<2097>,crc<55021>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=37 ovr=0 hdrer=0 evter=1
+REC,seq<1436>,tick<143601>,press<1024380>,rtc<1793952609>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1458>,vbat<2095>,crc<12966>
+REC,seq<1437>,tick<143701>,press<1024380>,rtc<1793952609>,ax<223>,ay<-3>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1458>,vbat<2085>,crc<64860>
+DISP: avg=112962 us  max=194075 us  (per refresh)
+IDLE: 696/1000 ms  hook 780/s  blank 0
+REC,seq<1438>,tick<143801>,press<1024380>,rtc<1793952609>,ax<222>,ay<-5>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1466>,vbat<2097>,crc<51526>
+REC,seq<1439>,tick<143901>,press<1024380>,rtc<1793952609>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1464>,vbat<2093>,crc<65347>
+REC,seq<1440>,tick<144001>,press<1024380>,rtc<1793952609>,ax<222>,ay<-1>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1462>,vbat<2097>,crc<62921>
+REC,seq<1441>,tick<144101>,press<1024380>,rtc<1793952610>,ax<221>,ay<-2>,az<2022>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1460>,vbat<2093>,crc<22172>
+SD: drained 1 batch (stored 0, ram=0 recs) pending=38 ovr=0 hdrer=0 evter=1
+REC,seq<1442>,tick<144201>,press<1024380>,rtc<1793952610>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1466>,vbat<2093>,crc<1925>
+REC,seq<1443>,tick<144301>,press<1024380>,rtc<1793952610>,ax<221>,ay<-2>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1456>,vbat<2091>,crc<18040>
+REC,seq<1444>,tick<144401>,press<1024380>,rtc<1793952610>,ax<223>,ay<-3>,az<2020>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1462>,vbat<2089>,crc<3778>
+SONAR: 112 mm (pulse 654 us, edges 281)
+REC,seq<1445>,tick<144501>,press<1024380>,rtc<1793952610>,ax<223>,ay<-1>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1464>,vbat<2095>,crc<55319>
+REC,seq<1446>,tick<144601>,press<1024380>,rtc<1793952610>,ax<224>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1464>,vbat<2091>,crc<19298>
+REC,seq<1447>,tick<144701>,press<1024380>,rtc<1793952610>,ax<221>,ay<-3>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1458>,vbat<2085>,crc<34809>
+SD: drained 1 batch (stored 0, ram=1 recs) pending=38 ovr=0 hdrer=0 evter=1
+REC,seq<1448>,tick<144801>,press<1024380>,rtc<1793952610>,ax<222>,ay<-4>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1488>,vbat<2093>,crc<46024>
+IDLE: 691/1000 ms  hook 774/s  blank 0
+SD: begin, REC,seq<1449>,tick<144901>,press<1024380>,rtc<1793952610>,ax<220>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1466>,vbat<2098>,crc<42834>
+Vref=1475 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1470
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1450>,tick<145001>,press<1024380>,rtc<1793952610>,ax<223>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1456>,vbat<2097>,crc<16819>
+REC,seq<1451>,tick<145101>,press<1024380>,rtc<1793952611>,ax<221>,ay<-1>,az<2017>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1464>,vbat<2093>,crc<34703>
+REC,seq<1452>,tick<145201>,press<1024380>,rtc<1793952611>,ax<223>,ay<-1>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1466>,vbat<2087>,crc<31923>
+REC,seq<1453>,tick<145301>,press<1024380>,rtc<1793952611>,ax<221>,ay<-3>,az<2015>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1456>,vbat<2085>,crc<57431>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=38 ovr=0 hdrer=0 evter=1
+REC,seq<1454>,tick<145401>,press<1024380>,rtc<1793952611>,ax<222>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1468>,vbat<2095>,crc<5480>
+SONAR: 112 mm (pulse 653 us, edges 283)
+REC,seq<1455>,tick<145501>,press<1024380>,rtc<1793952611>,ax<222>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<525>,light<1466>,vbat<2091>,crc<919>
+REC,seq<1456>,tick<145601>,press<1024380>,rtc<1793952611>,ax<222>,ay<-3>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<525>,light<1464>,vbat<2097>,crc<24065>
+REC,seq<1457>,tick<145701>,press<1024380>,rtc<1793952611>,ax<220>,ay<-3>,az<2020>,gx<1>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2299>,humi<525>,light<1466>,vbat<2101>,crc<22446>
+REC,seq<1458>,tick<145801>,press<1024380>,rtc<1793952611>,ax<221>,ay<0>,az<2021>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2299>,humi<525>,light<1466>,vbat<2081>,crc<43988>
+REC,seq<1459>,tick<145901>,press<1024380>,rtc<1793952611>,ax<221>,ay<-4>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<525>,light<1462>,vbat<2083>,crc<22030>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=38 ovr=0 hdrer=0 evter=1
+REC,seq<1460>,tick<146001>,press<1024380>,rtc<1793952611>,ax<221>,ay<-3>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<525>,light<1464>,vbat<2087>,crc<53135>
+DISP: SLOW frame 133866 us !
+IDLE: 636/1000 ms  hook 730/s  blank 0
+REC,seq<1461>,tick<146101>,press<1024380>,rtc<1793952612>,ax<220>,ay<-3>,az<2014>,gx<1>,gy<-1>,gz<-1>,temp_ds<2125>,temp_chip<2297>,humi<525>,light<1472>,vbat<2099>,crc<43377>
+REC,seq<1462>,tick<146201>,press<1024380>,rtc<1793952612>,ax<220>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<525>,light<1470>,vbat<2089>,crc<27548>
+REC,seq<1463>,tick<146301>,press<1024380>,rtc<1793952612>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<525>,light<1466>,vbat<2081>,crc<40859>
+REC,seq<1464>,tick<146401>,press<1024380>,rtc<1793952612>,ax<223>,ay<-4>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2297>,humi<525>,light<1464>,vbat<2093>,crc<49745>
+REC,seq<1465>,tick<146501>,press<1024380>,rtc<1793952612>,ax<221>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1466>,vbat<2089>,crc<32080>
+SONAR: 112 mm (pulse 654 us, edges 285)
+SD: drained 1 batch (stored 0, ram=3 recs) pending=38 ovr=0 hdrer=0 evter=1
+REC,seq<1466>,tick<146601>,press<1024380>,rtc<1793952612>,ax<221>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1470>,vbat<2087>,crc<8675>
+REC,seq<1467>,tick<146701>,press<1024380>,rtc<1793952612>,ax<222>,ay<-3>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1472>,vbat<2093>,crc<24469>
+REC,seq<1468>,tick<146801>,press<1024380>,rtc<1793952612>,ax<219>,ay<-4>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1476>,vbat<2087>,crc<634>
+REC,seq<1469>,tick<146901>,press<1024380>,rtc<1793952612>,ax<219>,ay<-3>,az<2015>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1466>,vbat<2089>,crc<50133>
+REC,seq<1470>,tick<147001>,press<1024380>,rtc<1793952612>,ax<221>,ay<-1>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1470>,vbat<2087>,crc<36784>
+REC,seq<1471>,tick<147101>,press<1024380>,rtc<1793952613>,ax<222>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1474>,vbat<2091>,crc<40898>
+IDLE: 706/1000 ms  hook 785/s  blank 0
+SD: drained 1 batch (stored 0, ram=3 recs) pending=38 REC,seq<1472>,tick<147201>,press<1024380>,rtc<1793952613>,ax<221>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<525>,light<1472>,vbat<2091>,crc<53670>
+ovr=0 hdrer=0 evter=1
+REC,seq<1473>,tick<147301>,press<1024380>,rtc<1793952613>,ax<221>,ay<-3>,az<2015>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1468>,vbat<2083>,crc<57299>
+REC,seq<1474>,tick<147401>,press<1024380>,rtc<1793952613>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1474>,vbat<2097>,crc<7702>
+REC,seq<1475>,tick<147501>,press<1024380>,rtc<1793952613>,ax<221>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1476>,vbat<2091>,crc<31790>
+SONAR: 112 mm (pulse 654 us, edges 287)
+REC,seq<1476>,tick<147601>,press<1024390>,rtc<1793952613>,ax<222>,ay<-1>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1468>,vbat<2083>,crc<37971>
+REC,seq<1477>,tick<147701>,press<1024390>,rtc<1793952613>,ax<221>,ay<-2>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1474>,vbat<2085>,crc<9582>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=38 ovr=0 hdrer=0 evter=1
+REC,seq<1478>,tick<147801>,press<1024390>,rtc<1793952613>,ax<219>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1476>,vbat<2095>,crc<5065>
+REC,seq<1479>,tick<147901>,press<1024390>,rtc<1793952613>,ax<223>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1478>,vbat<2097>,crc<28118>
+REC,seq<1480>,tick<148001>,press<1024390>,rtc<1793952613>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1474>,vbat<2097>,crc<17685>
+SD: begin, Vref=1477 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1473
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1481>,tick<148101>,press<1024390>,rtc<1793952614>,ax<220>,ay<-3>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1478>,vbat<2095>,crc<18871>
+REC,seq<1482>,tick<148201>,press<1024390>,rtc<1793952614>,ax<221>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1470>,vbat<2085>,crc<11221>
+IDLE: 643/1000 ms  hook 717/s  blank 0
+REC,seq<1483>,tick<148301>,press<1024390>,rtc<1793952614>,ax<221>,ay<-3>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1476>,vbat<2087>,crc<49622>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=38 ovr=0 hdrer=0 evter=1
+REC,seq<1484>,tick<148401>,press<1024390>,rtc<1793952614>,ax<221>,ay<-5>,az<2020>,gx<0>,gy<-1>,gz<-1>,temp_ds<2125>,temp_chip<2298>,humi<526>,light<1484>,vbat<2091>,crc<45017>
+REC,seq<1485>,tick<148501>,press<1024390>,rtc<1793952614>,ax<221>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2297>,humi<526>,light<1484>,vbat<2091>,crc<30680>
+SONAR: 112 mm (pulse 654 us, edges 289)
+REC,seq<1486>,tick<148601>,press<1024390>,rtc<1793952614>,ax<221>,ay<-4>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<526>,light<1480>,vbat<2091>,crc<19931>
+REC,seq<1487>,tick<148701>,press<1024390>,rtc<1793952614>,ax<220>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1480>,vbat<2093>,crc<8925>
+REC,seq<1488>,tick<148801>,press<1024390>,rtc<1793952614>,ax<222>,ay<-2>,az<2016>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<526>,light<1486>,vbat<2108>,crc<60096>
+REC,seq<1489>,tick<148901>,press<1024390>,rtc<1793952614>,ax<223>,ay<-2>,az<2021>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1482>,vbat<2091>,crc<51900>
+SD: drained 1 batch (stored 0, ram=5 recs) REC,seq<1490>,tick<149001>,press<1024390>,rtc<1793952614>,ax<220>,ay<-2>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1480>,vbat<2089>,crc<5829>
+pending=38 ovr=0 hdrer=0 evter=1
+REC,seq<1491>,tick<149101>,press<1024390>,rtc<1793952615>,ax<221>,ay<-2>,az<2020>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1484>,vbat<2112>,crc<19224>
+REC,seq<1492>,tick<149201>,press<1024390>,rtc<1793952615>,ax<221>,ay<-2>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1482>,vbat<2089>,crc<953>
+REC,seq<1493>,tick<149301>,press<1024390>,rtc<1793952615>,ax<222>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2299>,humi<526>,light<1482>,vbat<2097>,crc<9775>
+IDLE: 699/1000 ms  hook 778/s  blank 0
+REC,seq<1494>,tick<149401>,press<1024390>,rtc<1793952615>,ax<222>,ay<-4>,az<2017>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1484>,vbat<2089>,crc<39051>
+REC,seq<1495>,tick<149501>,press<1024390>,rtc<1793952615>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1484>,vbat<2089>,crc<31824>
+SD: drained 1 batch (stored 1, ram=1 recs) pending=39 ovr=0 hdrer=0 evter=1
+SONAR: 112 mm (pulse 654 us, edges 291)
+REC,seq<1496>,tick<149601>,press<1024370>,rtc<1793952615>,ax<220>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1476>,vbat<2081>,crc<37888>
+REC,seq<1497>,tick<149701>,press<1024370>,rtc<1793952615>,ax<221>,ay<-3>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1484>,vbat<2089>,crc<39850>
+REC,seq<1498>,tick<149801>,press<1024370>,rtc<1793952615>,ax<219>,ay<-1>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<526>,light<1486>,vbat<2089>,crc<34616>
+REC,seq<1499>,tick<149901>,press<1024370>,rtc<1793952615>,ax<221>,ay<-3>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<526>,light<1494>,vbat<2087>,crc<36976>
+REC,seq<1500>,tick<150001>,press<1024370>,rtc<1793952615>,ax<222>,ay<-1>,az<2019>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1486>,vbat<2089>,crc<34989>
+STAT acq=1500 proc=1500 full=0 qmax=1 drop=0 i2c=1457 i2c_max=15553 sd_err=1 sd_last=13 sdstk=130
+REC,seq<1501>,tick<150101>,press<1024370>,rtc<1793952616>,ax<221>,ay<-3>,az<2013>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2296>,humi<526>,light<1484>,vbat<2091>,crc<63162>
+SD: drained 1 batch (stored 0, ram=0 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1502>,tick<150201>,press<1024370>,rtc<1793952616>,ax<220>,ay<-3>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1492>,vbat<2095>,crc<26954>
+REC,seq<1503>,tick<150301>,press<1024370>,rtc<1793952616>,ax<223>,ay<-3>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1486>,vbat<2093>,crc<22957>
+REC,seq<1504>,tick<150401>,press<1024370>,rtc<1793952616>,ax<224>,ay<-3>,az<2015>,gx<1>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1484>,vbat<2087>,crc<27376>
+IDLE: 682/1000 ms  hook 760/s  blank 0
+REC,seq<1505>,tick<150501>,press<1024370>,rtc<1793952616>,ax<222>,ay<-1>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<526>,light<1490>,vbat<2096>,crc<8779>
+REC,seq<1506>,tick<150601>,press<1024380>,rtc<1793952616>,ax<219>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<526>,light<1480>,vbat<2075>,crc<8579>
+SONAR: 112 mm (pulse 653 us, edges 293)
+REC,seq<1507>,tick<150701>,press<1024380>,rtc<1793952616>,ax<222>,ay<-3>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1488>,vbat<2089>,crc<63557>
+SD: drained 1 batch (stored 0, ram=1 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1508>,tick<150801>,press<1024380>,rtc<1793952616>,ax<221>,ay<-3>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1486>,vbat<2083>,crc<61198>
+REC,seq<1509>,tick<150901>,press<1024380>,rtc<1793952616>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1488>,vbat<2103>,crc<12238>
+REC,seq<1510>,tick<151001>,press<1024380>,rtc<1793952616>,ax<219>,ay<-4>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2298>,humi<525>,light<1482>,vbat<2083>,crc<40088>
+REC,seq<1511>,tick<151101>,press<1024380>,rtc<1793952617>,ax<221>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1492>,vbat<2095>,crc<56951>
+SD: begin, Vref=1473 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1477
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+REC,seq<1512>,tick<151201>,press<1024380>,rtc<1793952617>,ax<223>,ay<-2>,az<2020>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1492>,vbat<2081>,crc<18723>
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1513>,tick<151301>,press<1024380>,rtc<1793952617>,ax<221>,ay<-3>,az<2022>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1494>,vbat<2091>,crc<49814>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1514>,tick<151401>,press<1024380>,rtc<1793952617>,ax<220>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1490>,vbat<2095>,crc<56547>
+REC,seq<1515>,tick<151501>,press<1024380>,rtc<1793952617>,ax<222>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1490>,vbat<2091>,crc<13336>
+IDLE: 642/1000 ms  hook 716/s  blank 0
+REC,seq<1516>,tick<151601>,press<1024380>,rtc<1793952617>,ax<222>,ay<-1>,az<2018>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1488>,vbat<2083>,crc<47488>
+SONAR: 112 mm (pulse 653 us, edges 295)
+REC,seq<1517>,tick<151701>,press<1024370>,rtc<1793952617>,ax<220>,ay<-4>,az<2016>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1490>,vbat<2089>,crc<32535>
+REC,seq<1518>,tick<151801>,press<1024370>,rtc<1793952617>,ax<221>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1494>,vbat<2091>,crc<17239>
+REC,seq<1519>,tick<151901>,press<1024370>,rtc<1793952617>,ax<220>,ay<-3>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1496>,vbat<2095>,crc<34932>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1520>,tick<152001>,press<1024370>,rtc<1793952617>,ax<220>,ay<-2>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1492>,vbat<2083>,crc<38921>
+REC,seq<1521>,tick<152101>,press<1024370>,rtc<1793952618>,ax<219>,ay<-4>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1490>,vbat<2093>,crc<52997>
+REC,seq<1522>,tick<152201>,press<1024370>,rtc<1793952618>,ax<220>,ay<-3>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1492>,vbat<2091>,crc<21040>
+REC,seq<1523>,tick<152301>,press<1024370>,rtc<1793952618>,ax<223>,ay<1>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1494>,vbat<2099>,crc<23460>
+REC,seq<1524>,tick<152401>,press<1024370>,rtc<1793952618>,ax<222>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1496>,vbat<2091>,crc<61183>
+REC,seq<1525>,tick<152501>,press<1024370>,rtc<1793952618>,ax<221>,ay<-1>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1492>,vbat<2083>,crc<62552>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1526>,tick<152601>,press<1024370>,rtc<1793952618>,ax<223>,ay<-4>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1496>,vbat<2085>,crc<14941>
+SONAR: 112 mm (pulse 653 us, edges 297)
+REC,seq<1527>,tick<152701>,press<1024380>,rtc<1793952618>,ax<221>,ay<-1>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1494>,vbat<2085>,crc<2649>
+DISP: SLOW frame 139869 us !
+DISP: avg=115569 us  max=194075 us  (per refresh)
+IDLE: 671/1000 ms  hook 774/s  blank 0
+REC,seq<1528>,tick<152801>,press<1024380>,rtc<1793952618>,ax<221>,ay<-4>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1500>,vbat<2105>,crc<4512>
+REC,seq<1529>,tick<152901>,press<1024380>,rtc<1793952618>,ax<220>,ay<-4>,az<2021>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1496>,vbat<2095>,crc<17980>
+REC,seq<1530>,tick<153001>,press<1024380>,rtc<1793952618>,ax<220>,ay<-1>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1504>,vbat<2095>,crc<42317>
+REC,seq<1531>,tick<153101>,press<1024380>,rtc<1793952619>,ax<220>,ay<-4>,az<2021>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1496>,vbat<2091>,crc<3238>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1532>,tick<153201>,press<1024380>,rtc<1793952619>,ax<221>,ay<-2>,az<2020>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1504>,vbat<2087>,crc<60373>
+REC,seq<1533>,tick<153301>,press<1024380>,rtc<1793952619>,ax<219>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1494>,vbat<2089>,crc<34559>
+REC,seq<1534>,tick<153401>,press<1024380>,rtc<1793952619>,ax<221>,ay<-4>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1494>,vbat<2087>,crc<59171>
+REC,seq<1535>,tick<153501>,press<1024380>,rtc<1793952619>,ax<223>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1492>,vbat<2087>,crc<61355>
+REC,seq<1536>,tick<153601>,press<1024380>,rtc<1793952619>,ax<224>,ay<-4>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1492>,vbat<2099>,crc<6693>
+SONAR: 112 mm (pulse 653 us, edges 299)
+REC,seq<1537>,tick<153701>,press<1024370>,rtc<1793952619>,ax<222>,ay<-4>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1498>,vbat<2108>,crc<14015>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1538>,tick<153801>,press<1024370>,rtc<1793952619>,ax<220>,ay<-4>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1498>,vbat<2087>,crc<25188>
+IDLE: 701/1000 ms  hook 785/s  blank 0
+REC,seq<1539>,tick<153901>,press<1024370>,rtc<1793952619>,ax<222>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1498>,vbat<2104>,crc<47543>
+REC,seq<1540>,tick<154001>,press<1024370>,rtc<1793952619>,ax<220>,ay<-1>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1494>,vbat<2093>,crc<42820>
+REC,seq<1541>,tick<154101>,press<1024370>,rtc<1793952620>,ax<223>,ay<-4>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1496>,vbat<2095>,crc<45250>
+REC,seq<1542>,tick<154201>,press<1024370>,rtc<1793952620>,ax<222>,ay<-1>,az<2020>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1502>,vbat<2101>,crc<59449>
+SD: begin, Vref=1473 (1489=3.3V, bigger=lower)
+REC,seq<1543>,tick<154301>,press<1024370>,rtc<1793952620>,ax<219>,ay<-2>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1494>,vbat<2100>,crc<50916>
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1477
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+SD: drained 1 batch (stored 0, ram=5 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1544>,tick<154401>,press<1024370>,rtc<1793952620>,ax<223>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1498>,vbat<2093>,crc<60292>
+REC,seq<1545>,tick<154501>,press<1024370>,rtc<1793952620>,ax<221>,ay<0>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1498>,vbat<2091>,crc<19484>
+REC,seq<1546>,tick<154601>,press<1024370>,rtc<1793952620>,ax<222>,ay<-2>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1498>,vbat<2093>,crc<28264>
+REC,seq<1547>,tick<154702>,press<1024370>,rtc<1793952620>,ax<221>,ay<-5>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1500>,vbat<2091>,crc<13541>
+SONAR: 112 mm (pulse 654 us, edges 301)
+REC,seq<1548>,tick<154801>,press<1024370>,rtc<1793952620>,ax<223>,ay<-3>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1496>,vbat<2089>,crc<21150>
+REC,seq<1549>,tick<154901>,press<1024370>,rtc<1793952620>,ax<221>,ay<-3>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1486>,vbat<2093>,crc<21827>
+SD: draiIDLE:ned 1 batch 648/1000 ms (stored 0,  hook 723/s ram=5 recs  blank 0
+) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1550>,tick<155001>,press<1024370>,rtc<1793952620>,ax<222>,ay<-1>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1500>,vbat<2099>,crc<32424>
+REC,seq<1551>,tick<155101>,press<1024370>,rtc<1793952621>,ax<219>,ay<-3>,az<2020>,gx<0>,gy<0>,gz<-1>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1496>,vbat<2101>,crc<38730>
+REC,seq<1552>,tick<155201>,press<1024370>,rtc<1793952621>,ax<220>,ay<-2>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1500>,vbat<2093>,crc<35488>
+REC,seq<1553>,tick<155301>,press<1024370>,rtc<1793952621>,ax<221>,ay<-3>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1502>,vbat<2091>,crc<12413>
+REC,seq<1554>,tick<155401>,press<1024370>,rtc<1793952621>,ax<220>,ay<-2>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1498>,vbat<2095>,crc<45513>
+REC,seq<1555>,tick<155501>,press<1024370>,rtc<1793952621>,ax<221>,ay<-1>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1500>,vbat<2099>,crc<64120>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=40 ovr=0 hdrer=0 evter=1
+REC,seq<1556>,tick<155601>,press<1024370>,rtc<1793952621>,ax<222>,ay<-1>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1502>,vbat<2095>,crc<11718>
+REC,seq<1557>,tick<155701>,press<1024370>,rtc<1793952621>,ax<221>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1498>,vbat<2085>,crc<43676>
+SONAR: 112 mm (pulse 653 us, edges 303)
+REC,seq<1558>,tick<155801>,press<1024360>,rtc<1793952621>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2297>,humi<525>,light<1502>,vbat<2085>,crc<18456>
+REC,seq<1559>,tick<155901>,press<1024360>,rtc<1793952621>,ax<221>,ay<-2>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1502>,vbat<2091>,crc<31301>
+REC,seq<1560>,tick<156001>,press<1024360>,rtc<1793952621>,ax<220>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1506>,vbat<2095>,crc<44144>
+IDLE: 669/1000 ms  hook 748/s  blank 0
+REC,seq<1561>,tick<156101>,press<1024360>,rtc<1793952622>,ax<220>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1500>,vbat<2087>,crc<31815>
+SD: drained 1 batch (stored 0, ram=0 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1562>,tick<156201>,press<1024360>,rtc<1793952622>,ax<220>,ay<-3>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1502>,vbat<2095>,crc<52654>
+REC,seq<1563>,tick<156301>,press<1024360>,rtc<1793952622>,ax<221>,ay<-3>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1506>,vbat<2095>,crc<4580>
+REC,seq<1564>,tick<156401>,press<1024360>,rtc<1793952622>,ax<221>,ay<-2>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1506>,vbat<2101>,crc<62169>
+REC,seq<1565>,tick<156501>,press<1024360>,rtc<1793952622>,ax<222>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1502>,vbat<2093>,crc<13633>
+REC,seq<1566>,tick<156601>,press<1024360>,rtc<1793952622>,ax<221>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1506>,vbat<2099>,crc<34876>
+REC,seq<1567>,tick<156701>,press<1024360>,rtc<1793952622>,ax<219>,ay<-2>,az<2021>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1506>,vbat<2087>,crc<31786>
+SD: drained 1 batch (stored 0, ram=1 recs) pending=41 ovr=0 hdrer=0 evter=1
+SONAR: 112 mm (pulse 653 us, edges 305)
+REC,seq<1568>,tick<156801>,press<1024360>,rtc<1793952622>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1500>,vbat<2097>,crc<24919>
+REC,seq<1569>,tick<156901>,press<1024360>,rtc<1793952622>,ax<220>,ay<-1>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1506>,vbat<2089>,crc<58201>
+REC,seq<1570>,tick<157001>,press<1024360>,rtc<1793952622>,ax<219>,ay<-2>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1498>,vbat<2081>,crc<19396>
+REC,seq<1571>,tick<157101>,press<1024360>,rtc<1793952623>,ax<220>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1520>,vbat<2091>,crc<8822>
+IDLE: 697/1000 ms  hook 777/s  blank 0
+REC,seq<1572>,tick<157201>,press<1024360>,rtc<1793952623>,ax<222>,ay<-2>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1508>,vbat<2104>,crc<613>
+REC,seq<1573>,tick<157301>,press<1024360>,rtc<1793952623>,ax<222>,ay<-2>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1508>,vbat<2095>,crc<60857>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1574>,tick<157401>,press<1024360>,rtc<1793952623>,ax<224>,ay<-5>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1512>,vbat<2092>,crc<14019>
+SD: begin, Vref=1473 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1473
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+REC,seq<1575>,tick<157501>,press<1024360>,rtc<1793952623>,ax<220>,ay<-2>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1508>,vbat<2087>,crc<15350>
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1576>,tick<157601>,press<1024360>,rtc<1793952623>,ax<220>,ay<-3>,az<2019>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1512>,vbat<2112>,crc<58820>
+REC,seq<1577>,tick<157701>,press<1024360>,rtc<1793952623>,ax<221>,ay<-1>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1508>,vbat<2097>,crc<30029>
+SONAR: 112 mm (pulse 654 us, edges 307)
+REC,seq<1578>,tick<157801>,press<1024350>,rtc<1793952623>,ax<224>,ay<-3>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1520>,vbat<2087>,crc<44261>
+REC,seq<1579>,tick<157901>,press<1024350>,rtc<1793952623>,ax<221>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1504>,vbat<2083>,crc<33123>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1580>,tick<158001>,press<1024350>,rtc<1793952623>,ax<224>,ay<-1>,az<2017>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1512>,vbat<2097>,crc<6812>
+REC,seq<1581>,tick<158101>,press<1024350>,rtc<1793952624>,ax<222>,ay<-3>,az<2016>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1518>,vbat<2101>,crc<20306>
+REC,seq<1582>,tick<158201>,press<1024350>,rtc<1793952624>,ax<220>,ay<-3>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1508>,vbat<2093>,crc<15443>
+IDLE: 644/1000 ms  hook 717/s  blank 0
+REC,seq<1583>,tick<158301>,press<1024350>,rtc<1793952624>,ax<221>,ay<-2>,az<2019>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1510>,vbat<2093>,crc<12571>
+REC,seq<1584>,tick<158401>,press<1024350>,rtc<1793952624>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1516>,vbat<2085>,crc<22672>
+REC,seq<1585>,tick<158501>,press<1024350>,rtc<1793952624>,ax<222>,ay<-1>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1514>,vbat<2085>,crc<43536>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1586>,tick<158601>,press<1024350>,rtc<1793952624>,ax<223>,ay<-2>,az<2016>,gx<-1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1512>,vbat<2093>,crc<31241>
+REC,seq<1587>,tick<158701>,press<1024350>,rtc<1793952624>,ax<222>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1514>,vbat<2081>,crc<62032>
+REC,seq<1588>,tick<158801>,press<1024360>,rtc<1793952624>,ax<222>,ay<-3>,az<2021>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1518>,vbat<2100>,crc<5144>
+SONAR: 112 mm (pulse 654 us, edges 309)
+REC,seq<1589>,tick<158901>,press<1024360>,rtc<1793952624>,ax<220>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1518>,vbat<2112>,crc<9227>
+REC,seq<1590>,tick<159001>,press<1024360>,rtc<1793952624>,ax<221>,ay<-3>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2296>,humi<525>,light<1518>,vbat<2089>,crc<20320>
+REC,seq<1591>,tick<159101>,press<1024360>,rtc<1793952625>,ax<220>,ay<-4>,az<2016>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1518>,vbat<2087>,crc<4225>
+SD: drained 1 batch (stored 0, ram=3 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1592>,tick<159201>,press<1024360>,rtc<1793952625>,ax<222>,ay<-2>,az<2016>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1518>,vbat<2087>,crc<43405>
+REC,seq<1593>,tick<159301>,press<1024360>,rtc<1793952625>,ax<221>,ay<-4>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1518>,vbat<2091>,crc<8666>
+REC,seq<1594>,tick<159401>,press<1024360>,rtc<1793952625>,ax<220>,ay<-4>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1520>,vbat<2095>,crc<44447>
+DISP: SLOW frame 127196 us !
+IDLE: 684/1000 ms  hook 775/s  blank 0
+REC,seq<1595>,tick<159501>,press<1024360>,rtc<1793952625>,ax<220>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1522>,vbat<2089>,crc<33639>
+REC,seq<1596>,tick<159601>,press<1024360>,rtc<1793952625>,ax<222>,ay<-1>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1516>,vbat<2087>,crc<56571>
+REC,seq<1597>,tick<159701>,press<1024360>,rtc<1793952625>,ax<222>,ay<-4>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1516>,vbat<2085>,crc<37162>
+SD: drained 1 batch (stored 0, ram=4 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1598>,tick<159801>,press<1024360>,rtc<1793952625>,ax<222>,ay<-3>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1518>,vbat<2089>,crc<48432>
+SONAR: 112 mm (pulse 654 us, edges 311)
+REC,seq<1599>,tick<159901>,press<1024350>,rtc<1793952625>,ax<220>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1526>,vbat<2091>,crc<5541>
+REC,seq<1600>,tick<160001>,press<1024350>,rtc<1793952625>,ax<218>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1516>,vbat<2103>,crc<26521>
+STAT acq=1600 proc=1600 full=0 qmax=1 drop=0 i2c=1454 i2c_max=15553 sd_err=1 sd_last=13 sdstk=130
+REC,seq<1601>,tick<160101>,press<1024350>,rtc<1793952626>,ax<221>,ay<-3>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1519>,vbat<2089>,crc<29408>
+REC,seq<1602>,tick<160201>,press<1024350>,rtc<1793952626>,ax<219>,ay<-2>,az<2020>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1526>,vbat<2089>,crc<11322>
+REC,seq<1603>,tick<160301>,press<1024350>,rtc<1793952626>,ax<221>,ay<-4>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1516>,vbat<2091>,crc<38801>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1604>,tick<160401>,press<1024350>,rtc<1793952626>,ax<220>,ay<-3>,az<2021>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1520>,vbat<2080>,crc<31361>
+REC,seq<1605>,tick<160501>,press<1024350>,rtc<1793952626>,ax<222>,ay<-4>,az<2018>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1524>,vbat<2091>,crc<53565>
+IDLE: 688/1000 ms  hook 767/s  blank 0
+SD: begin, Vref=1475 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1475REC,seq<1606>,tick<160601>,press<1024350>,rtc<1793952626>,ax<221>,ay<-2>,az<2021>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1528>,vbat<2092>,crc<62112>
+
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x01
+SD: ACMD41 #4 R1=0x00
+SD: ACMD41 ready after 4 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1607>,tick<160701>,press<1024350>,rtc<1793952626>,ax<221>,ay<-3>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1522>,vbat<2088>,crc<3627>
+REC,seq<1608>,tick<160801>,press<1024350>,rtc<1793952626>,ax<223>,ay<-2>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1520>,vbat<2089>,crc<40214>
+SONAR: 112 mm (pulse 654 us, edges 313)
+REC,seq<1609>,tick<160901>,press<1024350>,rtc<1793952626>,ax<222>,ay<-3>,az<2020>,gx<0>,gy<0>,gz<-1>,temp_ds<2125>,temp_chip<2294>,humi<525>,light<1524>,vbat<2091>,crc<4803>
+SD: drained 1 batch (stored 0, ram=5 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1610>,tick<161001>,press<1024350>,rtc<1793952626>,ax<220>,ay<-3>,az<2017>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2295>,humi<525>,light<1526>,vbat<2095>,crc<15855>
+REC,seq<1611>,tick<161101>,press<1024350>,rtc<1793952627>,ax<221>,ay<-3>,az<2016>,gx<1>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2295>,humi<525>,light<1522>,vbat<2087>,crc<64264>
+REC,seq<1612>,tick<161201>,press<1024350>,rtc<1793952627>,ax<222>,ay<-5>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2295>,humi<525>,light<1520>,vbat<2095>,crc<32994>
+REC,seq<1613>,tick<161301>,press<1024350>,rtc<1793952627>,ax<223>,ay<-4>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2293>,humi<525>,light<1520>,vbat<2097>,crc<28182>
+REC,seq<1614>,tick<161401>,press<1024350>,rtc<1793952627>,ax<220>,ay<-4>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2295>,humi<525>,light<1518>,vbat<2085>,crc<16854>
+REC,seq<1615>,tick<161501>,press<1024350>,rtc<1793952627>,ax<222>,ay<-2>,az<2017>,gx<0>,gy<-1>,gz<0>,temp_ds<2125>,temp_chip<2295>,humi<525>,light<1528>,vbat<2093>,crc<50113>
+SD: drained 1 batch (stored 0, ram=6 recs) pending=41 ovr=0 hdrer=0 evter=1
+REC,seq<1616>,tick<161601>,press<1024350>,rtc<1793952627>,ax<221>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2296>,humi<525>,light<1528>,vbat<2087>,crc<60793>
+DISP: avg=111827 us  max=194075 us  (per refresh)
+IDLE: 644/1000 ms  hook 724/s  blank 0
+REC,seq<1617>,tick<161701>,press<1024350>,rtc<1793952627>,ax<222>,ay<-2>,az<2017>,gx<1>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2296>,humi<525>,light<1520>,vbat<2095>,crc<30849>
+REC,seq<1618>,tick<161801>,press<1024350>,rtc<1793952627>,ax<223>,ay<-2>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2125>,temp_chip<2294>,humi<525>,light<1522>,vbat<2097>,crc<29235>
+SONAR: 112 mm (pulse 654 us, edges 315)
+REC,seq<1619>,tick<161901>,press<1024360>,rtc<1793952627>,ax<220>,ay<-4>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1524>,vbat<2091>,crc<55459>
+REC,seq<1620>,tick<162001>,press<1024360>,rtc<1793952627>,ax<221>,ay<-3>,az<2015>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1528>,vbat<2091>,crc<43710>
+REC,seq<1621>,tick<162101>,press<1024360>,rtc<1793952628>,ax<220>,ay<-4>,az<2017>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1520>,vbat<2093>,crc<40101>
+SD: drained 1 batch (stored 0, ram=0 recs) pending=42 ovr=0 hdrer=0 evter=1
+REC,seq<1622>,tick<162201>,press<1024360>,rtc<1793952628>,ax<221>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1526>,vbat<2098>,crc<11453>
+REC,seq<1623>,tick<162301>,press<1024360>,rtc<1793952628>,ax<223>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1522>,vbat<2079>,crc<34502>
+REC,seq<1624>,tick<162401>,press<1024360>,rtc<1793952628>,ax<222>,ay<-4>,az<2018>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2293>,humi<525>,light<1522>,vbat<2077>,crc<10274>
+REC,seq<1625>,tick<162501>,press<1024360>,rtc<1793952628>,ax<218>,ay<-3>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1522>,vbat<2091>,crc<59234>
+REC,seq<1626>,tick<162601>,press<1024360>,rtc<1793952628>,ax<221>,ay<-2>,az<2018>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1524>,vbat<2091>,crc<64707>
+REC,seq<1627>,tick<162701>,press<1024360>,rtc<1793952628>,ax<220>,ay<-4>,az<2016>,gx<0>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2293>,humi<525>,light<1532>,vbat<2095>,crc<64538>
+IDLE: 699/1000 ms  hook 778/s  blank 0
+SD: drained 1 batch (stored 0, ram=1 recs) pending=42 ovr=0 hdrer=0 evter=1
+REC,seq<1628>,tick<162801>,press<1024360>,rtc<1793952628>,ax<223>,ay<-2>,az<2019>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2295>,humi<525>,light<1526>,vbat<2087>,crc<9460>
+REC,seq<1629>,tick<162901>,press<1024370>,rtc<1793952628>,ax<219>,ay<-5>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1526>,vbat<2085>,crc<53624>
+SONAR: 112 mm (pulse 653 us, edges 317)
+REC,seq<1630>,tick<163001>,press<1024370>,rtc<1793952628>,ax<220>,ay<-3>,az<2019>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1524>,vbat<2097>,crc<29901>
+REC,seq<1631>,tick<163101>,press<1024370>,rtc<1793952629>,ax<221>,ay<-2>,az<2015>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1522>,vbat<2095>,crc<20817>
+REC,seq<1632>,tick<163201>,press<1024370>,rtc<1793952629>,ax<223>,ay<-4>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1520>,vbat<2080>,crc<42473>
+REC,seq<1633>,tick<163301>,press<1024370>,rtc<1793952629>,ax<221>,ay<-3>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1520>,vbat<2087>,crc<3036>
+SD: drained 1 batch (stored 0, ram=2 recs) pending=42 ovr=0 hdrer=0 evter=1
+REC,seq<1634>,tick<163401>,press<1024370>,rtc<1793952629>,ax<221>,ay<-4>,az<2016>,gx<0>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1522>,vbat<2108>,crc<4050>
+REC,seq<1635>,tick<163501>,press<1024370>,rtc<1793952629>,ax<222>,ay<-2>,az<2020>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2293>,humi<525>,light<1520>,vbat<2095>,crc<12415>
+REC,seq<1636>,tick<163601>,press<1024370>,rtc<1793952629>,ax<221>,ay<-3>,az<2014>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2293>,humi<525>,light<1520>,vbat<2085>,crc<17198>
+REC,seq<1637>,tick<163701>,press<1024370>,rtc<1793952629>,ax<222>,ay<-3>,az<2019>,gx<1>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2293>,humi<525>,light<1520>,vbat<2089>,crc<51576>
+SD: begin, Vref=1471 (1489=3.3V, bigger=lower)
+SD: reset clocks done
+SD: CMD0 ok; CMD8 R1=0x01 echo=01 AA is_sd2=1
+SD: Vref baseline = 1479
+SD: ACMD41 #1 R1=0x01
+SD: ACMD41 #2 R1=0x01
+SD: ACMD41 #3 R1=0x00
+SD: ACMD41 ready after 3 tries
+SD: [1] f_mount FAILED fr=13
+SD: ERR fr=13 site=3
+REC,seq<1638>,tick<163801>,press<1024370>,rtc<1793952629>,ax<221>,ay<-2>,az<2019>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2294>,humi<525>,light<1522>,vbat<2096>,crc<20083>
+IDLE: 642/1000 ms  hook 716/s  blank 0
+REC,seq<1639>,tick<163901>,press<1024370>,rtc<1793952629>,ax<221>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2293>,humi<525>,light<1520>,vbat<2087>,crc<29648>
+SONAR: 112 mm (pulse 653 us, edges 319)
+SD: drained 1 batch (stored 0, ram=2 recs) pending=42 ovr=0 hdrer=0 evter=1
+REC,seq<1640>,tick<164001>,press<1024380>,rtc<1793952629>,ax<221>,ay<-3>,az<2021>,gx<1>,gy<-1>,gz<-1>,temp_ds<2131>,temp_chip<2293>,humi<525>,light<1522>,vbat<2097>,crc<48053>
+REC,seq<1641>,tick<164101>,press<1024380>,rtc<1793952630>,ax<221>,ay<-2>,az<2014>,gx<1>,gy<0>,gz<0>,temp_ds<2131>,temp_chip<2293>,humi<525>,light<1514>,vbat<2085>,crc<22330>
+REC,seq<1642>,tick<164201>,press<1024380>,rtc<1793952630>,ax<219>,ay<-2>,az<2018>,gx<0>,gy<-1>,gz<0>,temp_ds<2131>,temp_chip<2293>,humi<525>
+#CAP,1793952657,end bytes=135168 gaps=0
