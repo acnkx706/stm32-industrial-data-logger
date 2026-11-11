@@ -445,7 +445,7 @@ static uint8_t Golden_WriteAll(uint8_t slow)
 #define DC_LOG_INJECT_TEST 0u
 #define DC_LOG_N       256u            /* ★ = DC_LOG_SEC_SZ / DC_LOG_REC_SZ。*/
 
-#define DC_MAGIC_D     0x44434435u      /* ★ 'DCD6' 测试版专用（正式版是 DCD5）
+#define DC_MAGIC_D     0x44434435u      /* ★ 0x...4435 = "DCD5"（当前正式版）
                                           *
                                           *  ★ 为什么每次改槽数都要升一版：
                                           *    · 槽号是取模算的，基数一变 ⇒ 旧指针读出来全错位

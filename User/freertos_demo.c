@@ -36,18 +36,18 @@
  *  数据记录仪 —— 应用层（任务总装）
  *      数据流：task_ACQ --Record_t--> [xQueueRec] --> task_PROC
  *              --拼CSV行+乒乓缓冲(SD_BufAcquire/SD_LogEnqueue)--> task_SD --> FatFs --> SD 卡
- *      任务表（2026-10-19 按代码一个个核过）：
- *              ACQ 6/256/100ms   PROC 2/256/队列   KEY 2/128/20ms
- *              DISP 1/256/200ms  SENSOR 1/128/队列 GOLDEN 1/256/后台
- *              SD 1/384/队列 （384 字 = 2026-10-19 修正后的值，见 task_sd.h）
+ *      任务表（2026-11-11 按当前宏重核，旧表 7 个栈值全错）：
+ *              ACQ 6/128/100ms   PROC 2/320/队列   KEY 2/64/20ms
+ *              DISP 1/224/200ms  SENSOR 1/320/1s   GOLDEN 1/192/后台
+ *              SD 1/448/队列 （448 字 = 1,792 B，见 task_sd.h）
  *          ★ 共 7 个（+ START 建完自删 + IDLE 系统自带）
- *          ★ 原表漏了 SENSOR 与 GOLDEN，且 SD 的栈写成 256。
+ *          ★ 栈数字一律以各 TASK_*_STACK_SIZE 宏为准，本表只是索引。
  *  ★ 每个为什么（优先级/栈大小/快照为何要进临界区/踩过哪些坑）都在：
  *      stm32\学习笔记\30-项目设计说明-为什么这么写.md
  *============================================================================*/
 /******************************************************************************
- *  任务配置（动态方式，栈与 TCB 都由 xTaskCreate 从 heap_4 里分配。
- *            ★ 原写"静态方式：句柄 + 栈数组 + TCB 三样都要自己定义"，已过期）
+ *  任务配置（**全静态**：xTaskCreateStatic + .bss 里的栈数组与 TCB，
+ *            与 heap 无关；`configTOTAL_HEAP_SIZE` 只有 64 B，见 FreeRTOSConfig.h:151）
  ******************************************************************************/
 
 /* start_task：装配工 —— 建完其它任务就自删（理由见 30 号文档 §一） */
@@ -146,7 +146,7 @@ void task_DISP(void *pvParameters);
 static volatile uint8_t s_oled_wiggle = 0u;
 
 /* task_SD：SD 卡落盘任务（乒乓缓冲的接收方，task_sd.c 实现本体）
- * ★ 优先级/栈大小用 task_sd.h 的定版宏（1 / 384 字），别在这里手抄数字 ——
+ * ★ 优先级/栈大小用 task_sd.h 的定版宏（1 / 448 字），别在这里手抄数字 ——
  *   两处漂移是事故温床（改了宏忘了改这里，或反之） */
 TaskHandle_t    task_sd_handler;
 void task_SD(void *pvParameters);

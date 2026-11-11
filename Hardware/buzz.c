@@ -121,6 +121,8 @@ uint8_t Buzz_IsSilent(void)
  *
  *  ★ 存在哪：BKP_DR4（备份域有电池 ⇒ 断电也记得）
  *    DR1=RTC 魔数 DR2=升级标志 DR3=回退标志 DR5=对时魔数 ⇒ DR4 空闲。
+ *    ⚠️ `Boot/boot_flag.h` 原写"DR4 预留给低功耗主动睡眠标记"，但那个方案从未实施；
+ *      2026-11-11 复查定为 **DR4 归本文件**，低功耗若要做改用 DR7。
  *
  *  ★ 为什么要自己解锁备份域：本函数可能在 MyRTC_Init 之前被调用
  *    （Buzz_Init 在 App_InitUi 里，而 RTC 在下一步）。
