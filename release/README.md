@@ -38,21 +38,22 @@
 | 文件 | 说明 | 大小 |
 |---|---|---:|
 | `APP.hex` | Intel HEX，基地址 `0x08004000` | 见文件 |
-| `APP.bin` | 原始二进制（镜像版本 7） | 70,720 B |
+| `APP.bin` | 原始二进制（镜像版本 7） | 70,844 B |
 | `APP_v5_20261107.bin` | **两版之前**的 v5（镜像版本 5），仅作历史对照；**不要拿它升级**，会被防回滚拒绝 | 69,956 B |
 | `BOOT.hex` | Intel HEX，基地址 `0x08000000`，含 U3 暂存升级 | 32,480 B |
 | `BOOT.bin` | 原始二进制，基地址 `0x08000000` | 11,528 B |
-| `build.log` | App 构建，Code 66,608 / RO 4,032 / ZI 16,168，0 Error / 0 Warning | 见文件 |
+| `build.log` | App 构建，Code 66,804 / RO 3,960 / ZI 16,168，0 Error / 0 Warning | 见文件 |
 | `build_boot.log` | Boot 构建，Code 11,184 / RO 296 / ZI 5,456，0 Error / 0 Warning | 847 B |
 | `SHA256SUMS` | 上面几个文件的 SHA256 | — |
 
 ## 烧录
 
 1. 先烧 `BOOT.hex` 到 `0x08000000`（16 KB 区），再烧 `APP.hex` 到 `0x08004000`。
-2. 串口 115200 应看到 `APP: ver 75` 与 `APP: img ver=6 build=20261109`；
+2. 串口 115200 应看到 `APP: ver 76` 与 `APP: img ver=7 build=20261110`；
    `STAT` 里 `acq=proc`、`drop=0`。
 3. 以后升级**不需要 ST-Link**：跑 `杂项文件\PC工具\flash_app.py`，走串口即可
-   （串口升级会检查 `img_min_ver`，所以必须装 ≥6 的镜像）。
+   （串口升级会检查 `img_min_ver`；本版镜像版本 7，装完下限会被抬到 7，
+   **之后不能再退回 5/6 的旧 bin**）。
 
 ## 校验
 

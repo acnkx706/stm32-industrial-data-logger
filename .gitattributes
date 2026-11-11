@@ -22,3 +22,7 @@
 *.bin      binary
 *.o        binary
 *.crf      binary
+
+# 校验清单不能做换行转换：CRLF 会让 sha256sum -c 把 \r 读进文件名
+# （2026-11-11 复查实测：第 7 行因此报 FAILED open or read）
+release/SHA256SUMS -text
