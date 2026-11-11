@@ -819,5 +819,60 @@ void OLED_BusStress(void)
 	Serial_Printf("OLED: stress 8x128 bytes, lost ACK = %u\r\n", (unsigned)bad);
 }
 
+/*==============================================================================
+ *  ★ 运行期一次体检（2026-11-11 加，串口命令 A1 触发）
+ *
+ *  ★ 解决什么问题：
+ *    · 屏"看着亮但不更新"时，分不清是"总线在丢"还是"面板自己黑"
+ *    · 万用表量 SDA 没用——ACK 是微秒级脉冲，表根本看不见
+ *
+ *  ★ 判据（从左到右读）：
+ *    · idleSDA=0  ⇒ 线上没有上拉 / 被拉死（正常情况下必须是 1）
+ *    · idleSCL=0  ⇒ 同上
+ *    · ack88/ack00/ackAF 全 1 ⇒ 地址、控制字、命令三字节都被应答
+ *    · p3C=1 p3D=1 同时成立 ⇒ 不正常（一块屏只应答一个地址）
+ *============================================================================*/
+void OLED_DiagOnce(void)
+{
+	uint8_t sda_idle, scl_idle, a_addr, a_ctrl, a_cmd, p3c, p3d;
+	uint8_t pu_sda, pu_scl;
+	GPIO_InitTypeDef gi;
+
+	OLED_I2C_Init();                       /* ★ 确保引脚是开漏输出。 */
+	OLED_W_SDA(1);                         /* ★ 松手，让上拉把它拉高。 */
+	OLED_W_SCL(1);
+	DWT_Delay_us(20);
+
+	sda_idle = (GPIO_ReadInputDataBit(GPIOB, OLED_PIN_SDA) == 0u) ? 0u : 1u;
+	scl_idle = (GPIO_ReadInputDataBit(GPIOB, OLED_PIN_SCL) == 0u) ? 0u : 1u;
+
+	/* ★ 2026-11-11 补：内上拉判别
+	 *   开漏松手时，"线断了悬空"和"被短到地"读出来都是 0，分不开。
+	 *   打开芯片内部上拉（约 40kΩ）再读：悬空 ⇒ 1，短地/被从机拉住 ⇒ 0。 */
+	gi.GPIO_Pin   = (uint16_t)(OLED_PIN_SDA | OLED_PIN_SCL);
+	gi.GPIO_Mode  = GPIO_Mode_IPU;
+	gi.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &gi);
+	DWT_Delay_us(50);
+	pu_sda = (GPIO_ReadInputDataBit(GPIOB, OLED_PIN_SDA) == 0u) ? 0u : 1u;
+	pu_scl = (GPIO_ReadInputDataBit(GPIOB, OLED_PIN_SCL) == 0u) ? 0u : 1u;
+	OLED_I2C_Init();                       /* ★ 恢复开漏输出，别把引脚留在输入态 */
+
+	OLED_I2C_Start();
+	a_addr = OLED_SendByteAck(0x78);       /* 地址 */
+	a_ctrl = OLED_SendByteAck(0x00);       /* 控制字：命令 */
+	a_cmd  = OLED_SendByteAck(0xAF);       /* 开显示（无害） */
+	OLED_I2C_Stop();
+
+	p3c = OLED_Probe(0x3Cu);
+	p3d = OLED_Probe(0x3Du);
+
+	Serial_Printf("OLED: diag idleSDA=%u idleSCL=%u puSDA=%u puSCL=%u ack88=%u ack00=%u ackAF=%u p3C=%u p3D=%u\r\n",
+	              (unsigned)sda_idle, (unsigned)scl_idle,
+	              (unsigned)pu_sda, (unsigned)pu_scl,
+	              (unsigned)a_addr, (unsigned)a_ctrl, (unsigned)a_cmd,
+	              (unsigned)p3c, (unsigned)p3d);
+}
+
 /* ★ 2026-10-17：本行以下是空行，只为消掉 warning #1-D
  *   「last line of file ends without a newline」（文件末尾缺换行） */

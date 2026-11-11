@@ -1609,6 +1609,16 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 		Serial_Printf("OLED: reinit done\r\n");
 	}
 
+	/* ★ 2026-11-11 加：A1 = 立刻做一次 OLED 体检
+	 *   用途：屏"看着亮但不更新"时，分不清总线在丢还是面板自己黑
+	 *   判据：idleSDA 必须是 1；p3C 和 p3D 不能同时为 1
+	 *   副作用：会发一条 0xAF（开显示），无破坏 */
+	if ((n == 2u) && (s[0] == 'A') && (s[1] == '1'))
+	{
+		OLED_DiagOnce();
+		return;
+	}
+
 	/* ★ 2026-11-10 加：M1 / M0 = 蜂鸣器静音开关（台面调试用）
 	 *   卡一拔 g_sd_error=1，蜂鸣器就一直响，读卡、拷数据期间没法工作。
 	 *   状态存进 BKP_DR4（有电池）⇒ 复位、重烧、断电都记得，不用每次重发。

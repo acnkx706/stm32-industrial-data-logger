@@ -55,11 +55,11 @@
 const AppMeta_t g_app_meta =
 {
 	APP_META_MAGIC,
-	7u,                        /* ★ 镜像版本（防回滚判据）
-	                            *   2026-11-10：6 -> 7（FAT 本地时间 + M0/M1 静音）
+	8u,                        /* ★ 镜像版本（防回滚判据）
+	                            *   2026-11-11：7 -> 8（关机保尾批 + A1 诊断命令）
 	                            *   只增不减，小于参数区 img_min_ver 会被拒绝安装
 	                            *   板子 / 源码 / 发布物 三者必须同时改 */
-	20261110u,                 /* ★ 构建标识，只给人看 */
+	20261111u,                 /* ★ 构建标识，只给人看 */
 	0u
 };
 #include "ProbeConfig.h"
@@ -83,7 +83,7 @@ const AppMeta_t g_app_meta =
 /* ★ 2026-11-06（EXP-02）：测试固件版本串带后缀，串口一眼可分辨 */
 #define APP_VER_STR   "APP: ver 74-EXP02 (2026-11-06 dsh: SD latency + stall)"
 #else
-#define APP_VER_STR   "APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)"
+#define APP_VER_STR   "APP: ver 77 (2026-11-11 dsh: shutdown keeps tail batch + A1 diag)"
 #endif
 /*==============================================================================
  *  ★ 2026-10-22 main() 拆分（纯搬代码，不改任何逻辑）

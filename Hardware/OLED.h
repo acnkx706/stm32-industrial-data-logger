@@ -39,4 +39,5 @@ void    OLED_PinSlowToggle(uint8_t low);
 
 /* ★ 2026-11-04 加：全屏写 + 逐字节数应答（判"雪花是总线丢还是面板坏"） */
 void    OLED_BusStress(void);
+void    OLED_DiagOnce(void);       /* ★ 2026-11-11：串口 A1 触发的运行期体检 */
 #endif

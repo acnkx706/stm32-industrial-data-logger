@@ -1,0 +1,104 @@
+#### CONSOLE START 2026-11-11 11:38:41
+11:38:41.963 REC,seq<1101>,tick<110101>,press<1025570>,rtc<1794368190>,ax<239>,ay<14>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2336>,humi<440>,light<612>,vbat<2093>,crc<29478>
+11:38:42.062 REC,seq<1102>,tick<110201>,press<1025570>,rtc<1794368191>,ax<237>,ay<17>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<612>,vbat<2087>,crc<44495>
+11:38:42.162 REC,seq<1103>,tick<110301>,press<1025570>,rtc<1794368191>,ax<239>,ay<18>,az<2012>,gx<0>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<616>,vbat<2087>,crc<7442>
+11:38:42.262 REC,seq<1104>,tick<110401>,press<1025570>,rtc<1794368191>,ax<237>,ay<16>,az<2013>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2335>,humi<440>,light<616>,vbat<2091>,crc<19680>
+11:38:42.362 REC,seq<1105>,tick<110501>,press<1025570>,rtc<1794368191>,ax<238>,ay<15>,az<2013>,gx<1>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2335>,humi<440>,light<616>,vbat<2087>,crc<12941>
+11:38:42.462 REC,seq<1106>,tick<110601>,press<1025570>,rtc<1794368191>,ax<237>,ay<18>,az<2013>,gx<1>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<614>,vbat<2083>,crc<64413>
+11:38:42.520 SONAR: no echo (pulse 2814 us, edges 210, echo=0)
+11:38:42.562 REC,seq<1107>,tick<110701>,press<1025580>,rtc<1794368191>,ax<239>,ay<16>,az<2014>,gx<0>,gy<0>,gz<-1>,temp_ds<2100>,temp_chip<2335>,humi<440>,light<616>,vbat<2091>,crc<55558>
+11:38:42.662 REC,seq<1108>,tick<110801>,press<1025580>,rtc<1794368191>,ax<238>,ay<16>,az<2014>,gx<0>,gy<0>,gz<1>,temp_ds<2100>,temp_chip<2335>,humi<440>,light<614>,vbat<2087>,crc<11440>
+11:38:42.678 IDLE: 651/1000 ms  hook 747/s  blank 0
+11:38:42.762 REC,seq<1109>,tick<110901>,press<1025580>,rtc<1794368191>,ax<238>,ay<17>,az<2011>,gx<1>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2335>,humi<440>,light<616>,vbat<2087>,crc<60305>
+11:38:42.862 REC,seq<1110>,tick<111001>,press<1025580>,rtc<1794368191>,ax<238>,ay<14>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<616>,vbat<2089>,crc<21402>
+11:38:42.962 REC,seq<1111>,tick<111101>,press<1025580>,rtc<1794368191>,ax<238>,ay<14>,az<2012>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<616>,vbat<2085>,crc<55377>
+11:38:43.062 REC,seq<1112>,tick<111201>,press<1025580>,rtc<1794368192>,ax<238>,ay<16>,az<2013>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2333>,humi<440>,light<619>,vbat<2089>,crc<23535>
+11:38:43.162 REC,seq<1113>,tick<111301>,press<1025580>,rtc<1794368192>,ax<240>,ay<18>,az<2015>,gx<1>,gy<-1>,gz<-1>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<614>,vbat<2093>,crc<15140>
+11:38:43.262 REC,seq<1114>,tick<111401>,press<1025580>,rtc<1794368192>,ax<237>,ay<16>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<616>,vbat<2087>,crc<54496>
+11:38:43.362 REC,seq<1115>,tick<111501>,press<1025580>,rtc<1794368192>,ax<240>,ay<16>,az<2012>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2333>,humi<440>,light<618>,vbat<2091>,crc<57657>
+11:38:43.462 REC,seq<1116>,tick<111601>,press<1025580>,rtc<1794368192>,ax<240>,ay<18>,az<2014>,gx<1>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2335>,humi<440>,light<616>,vbat<2085>,crc<20662>
+11:38:43.562 REC,seq<1117>,tick<111701>,press<1025580>,rtc<1794368192>,ax<237>,ay<12>,az<2003>,gx<-3>,gy<3>,gz<10>,temp_ds<2100>,temp_chip<2333>,humi<440>,light<614>,vbat<2095>,crc<64556>
+11:38:43.584 SONAR: no echo (pulse 2939 us, edges 212, echo=0)
+11:38:43.662 REC,seq<1118>,tick<111801>,press<1025580>,rtc<1794368192>,ax<230>,ay<13>,az<2008>,gx<2>,gy<-2>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<636>,vbat<2097>,crc<12858>
+11:38:43.762 REC,seq<1119>,tick<111901>,press<1025580>,rtc<1794368192>,ax<242>,ay<14>,az<2012>,gx<0>,gy<0>,gz<-2>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<616>,vbat<2091>,crc<49001>
+11:38:43.814 IDLE: 695/1000 ms  hook 791/s  blank 0
+11:38:43.862 REC,seq<1120>,tick<112001>,press<1025580>,rtc<1794368192>,ax<238>,ay<14>,az<2013>,gx<0>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<620>,vbat<2093>,crc<36949>
+11:38:43.962 REC,seq<1121>,tick<112101>,press<1025580>,rtc<1794368192>,ax<238>,ay<16>,az<2014>,gx<-1>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<622>,vbat<2093>,crc<39233>
+11:38:44.061 REC,seq<1122>,tick<112201>,press<1025580>,rtc<1794368193>,ax<238>,ay<15>,az<2014>,gx<0>,gy<0>,gz<1>,temp_ds<2100>,temp_chip<2333>,humi<440>,light<624>,vbat<2091>,crc<16508>
+11:38:44.161 REC,seq<1123>,tick<112301>,press<1025580>,rtc<1794368193>,ax<239>,ay<17>,az<2013>,gx<0>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<626>,vbat<2091>,crc<3345>
+11:38:44.261 REC,seq<1124>,tick<112401>,press<1025580>,rtc<1794368193>,ax<236>,ay<16>,az<2015>,gx<0>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2333>,humi<440>,light<626>,vbat<2095>,crc<6850>
+11:38:44.361 REC,seq<1125>,tick<112501>,press<1025580>,rtc<1794368193>,ax<241>,ay<15>,az<2015>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<628>,vbat<2089>,crc<12638>
+11:38:44.461 REC,seq<1126>,tick<112601>,press<1025580>,rtc<1794368193>,ax<240>,ay<16>,az<2016>,gx<0>,gy<0>,gz<1>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<624>,vbat<2097>,crc<15449>
+11:38:44.561 REC,seq<1127>,tick<112701>,press<1025580>,rtc<1794368193>,ax<239>,ay<15>,az<2011>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<440>,light<626>,vbat<2089>,crc<41378>
+11:38:44.640 SONAR: no echo (pulse 2960 us, edges 214, echo=0)
+11:38:44.666 REC,seq<1128>,tick<112801>,press<1025580>,rtc<1794368193>,ax<240>,ay<16>,az<2011>,gx<1>,gy<0>,gz<1>,temp_ds<2100>,temp_chip<2334>,humi<439>,light<626>,vbat<2093>,crc<57353>
+11:38:44.765 REC,seq<1129>,tick<112901>,press<1025580>,rtc<1794368193>,ax<238>,ay<16>,az<2014>,gx<0>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2333>,humi<439>,light<626>,vbat<2083>,crc<2797>
+11:38:44.866 REC,seq<1130>,tick<113001>,press<1025580>,rtc<1794368193>,ax<238>,ay<16>,az<2016>,gx<0>,gy<-1>,gz<0>,temp_ds<2100>,temp_chip<2333>,humi<439>,light<622>,vbat<2081>,crc<60207>
+11:38:44.934 IDLE: 688/1000 ms  hook 768/s  blank 0
+11:38:44.965 REC,seq<1131>,tick<113101>,press<1025580>,rtc<1794368193>,ax<236>,ay<13>,az<2014>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2334>,humi<439>,light<620>,vbat<2087>,crc<9269>
+11:38:45.065 REC,seq<1132>,tick<113201>,press<1025580>,rtc<1794368194>,ax<240>,ay<16>,az<2011>,gx<0>,gy<0>,gz<0>,temp_ds<2100>,temp_chip<2333>,humi<439>,light<622>,vbat<2089>,crc<46957>
+11:38:45.165 REC,seq<1133>,tick<113301>,press<1025580>,rtc<1794368194>,ax<239>,ay<16>,az<2015>,gx<0>,gy<0>,gz<1>,temp_ds<2100>,temp_chip<2333>,humi<439>,light<618>,vbat<2083>,crc<61857>
+
+#### （中间 REC 行已省略，共 
+20150
+ 行）
+
+#### SENT -> L1  @11:39:05
+11:39:38.702 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:39:38.726 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:39:38.912 OLED: stress 8x128 bytes, lost ACK = 0
+11:39:38.915 BUZZ: silent (restored from BKP_DR4)
+11:41:09.632 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:41:09.657 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:41:09.843 OLED: stress 8x128 bytes, lost ACK = 0
+11:41:09.846 BUZZ: silent (restored from BKP_DR4)
+11:43:39.518 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:43:39.542 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:43:39.728 OLED: stress 8x128 bytes, lost ACK = 0
+11:43:39.731 BUZZ: silent (restored from BKP_DR4)
+11:43:57.417 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:43:57.441 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:43:57.627 OLED: stress 8x128 bytes, lost ACK = 0
+11:43:57.630 BUZZ: silent (restored from BKP_DR4)
+11:45:53.445 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:45:53.447 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:45:53.448 OLED: stress 8x128 bytes, lost ACK = 0
+11:45:53.448 BUZZ: silent (restored from BKP_DR4)
+11:45:56.788 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:45:56.812 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:45:56.999 OLED: stress 8x128 bytes, lost ACK = 0
+11:45:57.002 BUZZ: silent (restored from BKP_DR4)
+11:49:15.755 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:49:15.779 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:49:15.966 OLED: stress 8x128 bytes, lost ACK = 0
+11:49:15.969 BUZZ: silent (restored from BKP_DR4)
+#### SENT -> A1  @11:49:22
+11:49:22.959 OLED: diag idleSDA=0 idleSCL=1 ack88=1 ack00=1 ackAF=1 p3C=1 p3D=1
+#### SENT -> A1  @11:50:13
+11:50:13.429 OLED: diag idleSDA=0 idleSCL=0 ack88=1 ack00=1 ackAF=1 p3C=1 p3D=1
+#### SENT -> A1  @11:51:30
+11:51:30.506 OLED: diag idleSDA=0 idleSCL=0 ack88=1 ack00=1 ackAF=1 p3C=1 p3D=1
+11:52:31.227 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:52:31.252 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:52:31.438 OLED: stress 8x128 bytes, lost ACK = 0
+11:52:31.441 BUZZ: silent (restored from BKP_DR4)
+#### SENT -> A1  @11:52:38
+11:52:38.435 OLED: diag idleSDA=0 idleSCL=0 puSDA=1 puSCL=0 ack88=1 ack00=1 ackAF=1 p3C=1 p3D=1
+#### SENT -> A1  @11:55:07
+11:55:07.385 OLED: diag idleSDA=0 idleSCL=0 puSDA=0 puSCL=1 ack88=1 ack00=1 ackAF=1 p3C=1 p3D=1
+11:57:36.784 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+11:57:36.808 OLED: found 2, ACK addr=1 ctrl=1 cmd=1
+11:57:36.994 OLED: stress 8x128 bytes, lost ACK = 0
+11:57:36.997 BUZZ: silent (restored from BKP_DR4)
+#### SENT -> A1  @11:57:58
+11:57:58.461 OLED: diag idleSDA=0 idleSCL=0 puSDA=0 puSCL=0 ack88=1 ack00=1 ackAF=1 p3C=1 p3D=1
+#### SENT -> A1  @12:01:38
+12:01:38.789 OLED: diag idleSDA=0 idleSCL=0 puSDA=1 puSCL=1 ack88=1 ack00=1 ackAF=1 p3C=1 p3D=1
+12:03:51.861 APP: ver 76 (2026-11-10 dsh: lock+FAT+t0+bkp mute)
+12:03:51.886 OLED: found 1, ACK addr=1 ctrl=1 cmd=1
+12:03:52.072 OLED: stress 8x128 bytes, lost ACK = 0
+12:03:52.075 BUZZ: silent (restored from BKP_DR4)
+12:06:21.220 APP: ver 77 (2026-11-11 dsh: shutdown keeps tail batch + A1 diag)
+12:06:21.242 OLED: found 1, ACK addr=1 ctrl=1 cmd=1
+12:06:21.429 OLED: stress 8x128 bytes, lost ACK = 0
+12:06:21.432 BUZZ: silent (restored from BKP_DR4)
