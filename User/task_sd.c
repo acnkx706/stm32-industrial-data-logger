@@ -2132,8 +2132,16 @@ void task_SD(void *pvParameters)
 				 *   ★ 这种时候屏上绝不能显示 DATA SAVED。
 				 *   ★ 这是复盘里最让人难受的一条：
 				 *     没插卡、按电源键、屏上写着"数据已保存，可以断电" */
-				g_shutdown_saved = 0u;
-				Serial_Printf("SD: shutdown while NOT MOUNTED -> NOTHING saved\r\n");
+
+				/* ★ 2026-11-11 修（复查报告 F07）：关机前先把手里的数据交给 W25
+				 *   原来这里直接 continue，攒批缓冲和工作队列里那 1~2 批
+				 *   既不进 W25 也不进 SD，而 W25 恰恰就是为无卡场景准备的。
+				 *   顺序：先抽干队列（进缓存），再刷剩余攒批。 */
+				(void)Sd_DrainToCache();
+				(void)Sd_DsFlush();
+
+				g_shutdown_saved = 0u;      /* ★ 卡上没有，屏幕仍报 NOT SAVED */
+				Serial_Printf("SD: shutdown while NOT MOUNTED -> last batch cached in W25, card copy NOT saved\r\n");
 			}
 
 			/* ★ 2026-10-18 加：关机完成 ⇒ 运行期故障标志作废
