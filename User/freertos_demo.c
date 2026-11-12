@@ -383,7 +383,7 @@ volatile uint8_t g_pause = 0;       /* 0=采集运行  1=采集暂停 */
  *     保存反而会让"上次谁调过"变成不可预测的状态
  *   ⚠️ 必须在 task_PROC 里读它，所以也要 volatile */
 volatile uint8_t g_rec_echo = (uint8_t)PROC_SERIAL_ECHO;
-volatile uint8_t g_echo_tip = 0u;   /* 屏上提示剩余拍数：50 拍 = 2 秒 */
+volatile uint8_t g_echo_tip = 0u;   /* 屏上提示剩余帧数：10 帧 × 200 ms = 2 秒 */
 
 /* ★ 2026-11-09 加：OLED 多页显示（PA0 短按翻页）
  *   · g_page：当前页 0=实时数据 1=存储 2=运行
@@ -1213,7 +1213,7 @@ void task_KEY(void *pvParameters)
 			 *   · 故障行（ERR / FAIL / LOST / recovered）不受它管，照样出
 			 *   · 手动打统计（PB11）也不受它管，按了就有 */
 			g_print_quiet = (uint8_t)((g_rec_echo != 0u) ? 0u : 1u);
-			g_echo_tip = 50u;                   /* ★ 屏上提示 50 拍 = 2 秒 */
+			g_echo_tip = 10u;                   /* ★ 10 帧 × 200 ms = 2 秒（原 50 帧其实是 10 秒）*/
 			/* ★ 按键反馈（2026-10-13 加）
 			 *   ★ 为什么可以在这里调：Buzz_Request 只置一个标志位。
 			 *     · 不打印，不阻塞，不碰 GPIO。
@@ -1594,7 +1594,7 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	{
 		g_rec_echo    = (uint8_t)((s[1] == '1') ? 1u : 0u);
 		g_print_quiet = (uint8_t)((g_rec_echo != 0u) ? 0u : 1u);   /* ★ 同上：连诊断一起静默 */
-		g_echo_tip    = 50u;
+		g_echo_tip    = 10u;                  /* ★ 10 帧 × 200 ms = 2 秒 */
 		Serial_Printf("ECHO: %s\r\n", (g_rec_echo != 0u) ? "ON" : "OFF");
 	}
 
@@ -1946,7 +1946,10 @@ void task_DISP(void *pvParameters)
 		t0 = DWT->CYCCNT;
 		did_refresh = 0u;   
 
-		/* ★ 2026-11-09 加：回显提示倒计时（每帧 200ms，50 拍 = 2 秒）
+		/* ★ 2026-11-09 加：回显提示倒计时（每帧 200ms）
+		 *   ★ 2026-11-12 修：原来写 50，注释却声称"= 2 秒"
+		 *     实际 50 × 200 ms = 10 秒，屏上提示挂太久
+		 *     现在 10 帧 = 2 秒
 		 *   · 放帧首、不参与计时：它只有一次减法，成本可以忽略 */
 		if (g_echo_tip != 0u) { g_echo_tip--; }
 
