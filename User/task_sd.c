@@ -44,6 +44,7 @@
  *   ★ 不加这一行 ⇒ 编译器隐式声明，返回类型全按 int 处理
  *     → 参数/返回值都不校验 ⇒ 出错时查不出来 */
 #include "golden.h"
+#include "buzz.h"
 /* ★ 2026-10-19 加：验"文件尾行 CRC"要用它（与 PC 侧同一套参数）*/
 #include "Crc16.h"
 #include "exp02.h"          /* EXP-02 钩子，TEST_EXP02=0 时全为空宏 */
@@ -482,8 +483,19 @@ static uint32_t SD_ReadLastLine(FIL *fp, char *line, uint16_t linesz)
  *   ★ 原来 3 处各写一份字面量（AppendEvidence / AppendEventLine / 挂载写表头）
  *     ⇒ ~104B × 3 浪费 200 多字节 Flash，而且"三处必须一字不差"只靠人肉 
  *   ★ 改列序/列名 = 只改这一行（PC 侧 check_csv_crc.py 记得同步）*/
+/* ★ 2026-11-15 改：表头补齐到 512 字节，让后续每批写入扇区对齐
+ * · 做什么：内容 83 字节 + 427 个空格 + CRLF = 刚好 512
+ * · 为什么：原来 85 字节 ⇒ 之后每批写入偏移 ≡ 85 (mod 512)，永远不对齐
+ *   FatFs 在非扇区边界写入必须走"读-改-写"：
+ *   512 字节数据要 2 次读 + 2 次写 = 4 次卡片操作，而不是 1 次
+ *   而每次卡片操作背后可能有 10~250ms 的内部编程等待
+ * · 影响什么：CSV 第一行多 427 个空格，列数仍是 17
+ *   按 startswith("seq,") 认表头的解析器不受影响
+ * · 怎么验证：改后 SD: W 的 avg/max 应明显下降 */
 static const char SD_CSV_HDR[] =
-    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,crc\r\n";
+    "seq,tick,press,rtc,ax,ay,az,gx,gy,gz,temp_ds,temp_chip,humi,light,vbat,sonar_mm,crc"
+    "                                                                                                                                                                                                                                                                                                                                                                                                                                           "
+    "\r\n";
 
 /*============================================================================
  *  ★ F2：把"偏差那一行"留证据（用户设计，2026-10-12）
@@ -2383,6 +2395,45 @@ void task_SD(void *pvParameters)
 		 *   · 刷在这里的好处：刷完立刻被下面的回写搬进卡，一次搬完 */
 		(void)Sd_DsFlush();                     /* ★ 这里的战果用不上，显式丢弃。*/
 
+		/* ★ 2026-11-15 加：积压清理（bulk drain）
+		 * · 做什么：积压超过 64 批时，在下面"每轮 1 批"之前再多搬最多 6 批
+		 * · 为什么：原来的"每轮 1 批"假设积压只有几十批（拔卡几十秒），
+		 *   实测拔卡两天会积到 3419 批 ⇒ 1.93 批/秒要倒 30 分钟。
+		 *   而倒灌速率 = 主循环迭代率，跟 SD 卡快慢、SPI 时钟都无关。
+		 * · 影响什么：积压时本轮最多多花 6×(10~250ms)；
+		 *   此时数据本来就在缓存里，拖慢正常落盘可以接受。
+		 * · 怎么验证：left 值下降速率应从 1.93 批/秒升到 10+ 批/秒 */
+		if (DropCache_PendingBatches() > 64u)
+		{
+			uint8_t dc_n;
+
+			for (dc_n = 0u; dc_n < 6u && DropCache_PendingBatches() > 64u; dc_n++)
+			{
+				uint16_t dclen = 0u;
+
+				if (DropCache_PeekBatch(s_cbuf, &dclen) == 0u)
+				{
+					DropCache_PopBatch();          /* 坏项：跳过，与下面同一处理 */
+					continue;
+				}
+				fr = f_write(&s_log_file, s_cbuf, (UINT)dclen, &bw);
+				if ((fr == FR_OK) && (bw == (UINT)dclen))
+				{
+					fr = f_sync(&s_log_file);
+				}
+				if (fr != FR_OK)
+				{
+					sd_set_err((uint8_t)fr, 4u);   /* site 4 = 缓存回写失败 */
+					mounted = 0;
+					break;
+				}
+				DropCache_PopBatch();
+			}
+			if (mounted == 0u)
+			{
+				continue;
+			}
+		}
 		if (DropCache_PendingBatches() != 0u)
 		{
 				/* ★ 2026-10-23：s_cbuf 已提升为文件级，与挂载抽样窗共用（省 512B）*/
@@ -2781,3 +2832,4 @@ void task_SD(void *pvParameters)
 		}
 	}
 }
+

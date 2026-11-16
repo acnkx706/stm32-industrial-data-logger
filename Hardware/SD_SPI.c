@@ -79,7 +79,7 @@
 #define SD_DUMMY            0xFF    /* 哑元字节：全双工总线上"只收不发"就喂 0xFF */
 
 #define SD_INIT_SPEED       SPI_BaudRatePrescaler_256   /* 72M/256 = 281.25kHz ≤400kHz */
-#define SD_FAST_SPEED       SPI_BaudRatePrescaler_8     /* 72M/8   = 9MHz              */
+#define SD_FAST_SPEED       SPI_BaudRatePrescaler_4     /* 72M/4  = 18MHz (2026-11-15 从 9MHz 提上来) */
 
 #define SD_PWR_SETTLE_MS    10      /* 上电稳定等待（模块稳压 + 卡内上电时序） */
 #define SD_IDLE_RETRY       300     /* CMD0 重发次数上限（换卡瞬间/慢启动卡） */
@@ -1717,3 +1717,4 @@ void SD_BootTest(void)
 #endif /* PROBE_SD_FAKECARD */
 }
 #endif /* TEST_SD_ON */
+

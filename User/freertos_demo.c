@@ -38,10 +38,27 @@
  *              --拼CSV行+乒乓缓冲(SD_BufAcquire/SD_LogEnqueue)--> task_SD --> FatFs --> SD 卡
  *      任务表（2026-11-11 按当前宏重核，旧表 7 个栈值全错）：
  *              ACQ 6/128/100ms   PROC 2/320/队列   KEY 2/64/20ms
- *              DISP 1/224/200ms  SENSOR 1/320/1s   GOLDEN 1/192/后台
+ *              SVC 1/224/200ms  SENSOR 1/320/1s   GOLDEN 1/192/后台
  *              SD 1/448/队列 （448 字 = 1,792 B，见 task_sd.h）
  *          ★ 共 7 个（+ START 建完自删 + IDLE 系统自带）
  *          ★ 栈数字一律以各 TASK_*_STACK_SIZE 宏为准，本表只是索引。
+ *
+ *  ★ 2026-11-15 加：每个任务【实际】在干什么（名字只能当线索）
+ *    · ACQ    ：100ms 采样，组 Record_t 入队
+ *    · PROC   ：收记录 → 拼 CSV 行 → 填乒乓缓冲 → 交 task_SD
+ *    · KEY    ：20ms 扫按键
+ *    · SVC    ：名字叫"服务任务"，实际是全部非数据链路的活 ——
+ *               OLED 刷新 / 蜂鸣器节奏(Buzz_Poll) / 数据丢失告警检测 /
+ *               串口命令解析(U M0 M1 T) / 关机握手 / 镜像确认 / RTC 校准
+ *               ★ 原来叫 DISP（"显示"），名不副实：它早就不只管显示了
+ *    · SENSOR ：读 DS18B20 / DHT22 / BMP280 / MPU6050 / 光敏 / 超声波
+ *    · SD     ：乒乓缓冲写卡 + W25Q64 缓存倒灌
+ *    · GOLDEN ：后台把内部 Flash 拷到 W25Q64 金副本
+ *
+ *  ★ 为什么数据丢失告警检测放在 SVC 而不是 SD：
+ *      卡一拔，task_SD 会卡在 300 次 CMD0 重试里（2026-11-15 实测 19.4 秒），
+ *      检测放在那个任务的循环里会被一起阻塞 —— 而那正是最该报警的时刻。
+ *      SVC 是 200ms 固定帧、只读计数器，不会被 SD 阻塞。
  *  ★ 每个为什么（优先级/栈大小/快照为何要进临界区/踩过哪些坑）都在：
  *      stm32\学习笔记\30-项目设计说明-为什么这么写.md
  *============================================================================*/
@@ -88,24 +105,24 @@ void task_PROC(void *pvParameters);
 TaskHandle_t    task_key_handler;
 void task_KEY(void *pvParameters);
 
-/* task_DISP：OLED 显示（200ms 刷一次）
+/* task_SVC：OLED 显示（200ms 刷一次）
  * ★ 本任务是 OLED 的唯一所有者，别的任务一律不许碰屏 */
 /* ★ 2026-10-19 记录一个坑（曾把优先级改成 3，已改回 1）：
  *   当时以为"屏冻住"是同优先级被时间片切碎 ⇒ 软件 I2C 时序被拉长。
  *   ★ 实测证明不是，真因是 Clk_CalibOnce() 阻塞本任务 11 秒。
  *     （已搬到 task_GOLDEN，见本文件 task_GOLDEN）
  *   ⇒ 优先级恢复为 1，保持 20 小时长稳验证过的那套调度*/
-#define TASK_DISP_PRIO              1
-#define TASK_DISP_STACK_SIZE        224  /* ★ 2026-10-19 R4：256 → 224，省 128 B
+#define TASK_SVC_PRIO              1
+#define TASK_SVC_STACK_SIZE        224  /* ★ 2026-10-19 R4：256 → 224，省 128 B
                                           *  ★ 实测最深 150 字，而且是 S 命令那趟
                                           *    撑上去的 
                                           *  ★ 为什么，App_RequestUpgrade() /
-                                          *     S 那条路会在 DISP 栈上调
+                                          *     S 那条路会在 SVC 栈上调
                                           *     Golden_SaveCurrent()（2~3 秒的整份备份）
                                           *     ⇒ 水位从 126 掉到 106（多吃了 20 字）
                                           *  ★ 150 × 1.3 ≈ 195 ⇒ 224 有 49% 余量 */
-TaskHandle_t    task_disp_handler;
-void task_DISP(void *pvParameters);
+TaskHandle_t    task_svc_handler;
+void task_SVC(void *pvParameters);
 
 /* ★ 2026-10-18 加：OLED 超时黑屏（低功耗改造 序 3）
  *
@@ -119,21 +136,21 @@ void task_DISP(void *pvParameters);
  *  ★ 谁算"有人在看"：现在只有按键会刷新 g_ui_act_tick。
  *     · 串口命令不算—— 现场没有 PC，不必为它亮屏。
  *
- *  ★ 关机态（SAFE TO OFF）绝不黑屏，见 task_DISP 里的判断。
+ *  ★ 关机态（SAFE TO OFF）绝不黑屏，见 task_SVC 里的判断。
  *     因为那正是"必须让人看见"的唯一状态*/
 /* ★ 2026-11-04 改：30000u -> 0u（台面调试期不黑屏）
- *   · 0 时 task_DISP 走"强制亮屏"分支，每帧续期 g_ui_act_tick
+ *   · 0 时 task_SVC 走"强制亮屏"分支，每帧续期 g_ui_act_tick
  *   · 测低功耗之前必须改回 30000u：屏占 6~7 mA
  *     是这台机器上唯一还能靠软件砍掉的一块 */
 #define OLED_BLANK_MS               0u
 
 /* ★ 2026-11-04 临时：屏晃线测试开关（1 = 开，0 = 关）
  *
- * ★ 做什么：task_DISP 每 500ms 交替发 0xA5（全显，整屏白）和 0xA4（回显存）
+ * ★ 做什么：task_SVC 每 500ms 交替发 0xA5（全显，整屏白）和 0xA4（回显存）
  *   · 目的：查"总线 ACK 全 1 但屏黑"到底是面板坏，还是接线虚
  *   · 一边晃线、一边动接插件，只要闪过一次白 ⇒ 就是接触问题
  *
- * ★ 为什么放在 task_DISP 里而不是开机时：
+ * ★ 为什么放在 task_SVC 里而不是开机时：
  *   · 开机时跑，屏闪完就没了，人还没开始晃线
  *   · 放在这里可以一直闪，而且帧号会让串口日志能算出真实间隔
  *
@@ -249,14 +266,14 @@ typedef struct {
 } Stat_t;
 Stat_t g_stat;
 
-/* 串口静音开关：1 = 压掉 IDLE / SONAR / DISP 的周期性打印。
+/* 串口静音开关：1 = 压掉 IDLE / SONAR / SVC 的周期性打印。
  *
  * 做了什么：这几处打印平时是好事，但全速延迟测试一跑就是十几分钟，
- *          每 1 秒一条 IDLE、每 5 秒一条 DISP，正好插进 LAT 汇总行中间，
+ *          每 1 秒一条 IDLE、每 5 秒一条 SVC，正好插进 LAT 汇总行中间，
  *          把整行数据撕成两半（2026-11-06 100k 那轮的 f_write 汇总行就是这么丢的）。
  * 为什么：与其在 PC 侧写容错解析，不如从源头保证一次性数据不被别的任务插话。
  * 影响什么：只在测试跑批期间置 1，正式固件永远是 0，行为不变。
- * 怎么验证：全速跑完，日志里 LAT,SUM 两行完整、没有 DISP:/IDLE: 插进中间。 */
+ * 怎么验证：全速跑完，日志里 LAT,SUM 两行完整、没有 SVC:/IDLE: 插进中间。 */
 volatile uint8_t g_print_quiet = 0u;
 
 /* ★ 2026-11-06（EXP-02）：测试模块用 #include 并在本编译单元。
@@ -278,7 +295,7 @@ volatile uint8_t g_print_quiet = 0u;
  *    · ⇒ 只有加了 WFI 之后这个换算才成立。
  *      所以它同时也是"WFI 到底生效没有"的判据（前后差一个数量级）
  *
- *  ★ 必须 volatile：空闲任务写、task_DISP(prio2) 读。
+ *  ★ 必须 volatile：空闲任务写、task_SVC(prio2) 读。
  *    （不加会被编译器缓存进寄存器，读到永远是旧值）*/
 volatile uint32_t g_idle_cnt = 0u;
 
@@ -307,7 +324,7 @@ volatile uint32_t g_ui_act_tick = 0u;
  *     · 黑屏时第一下按键只该唤醒，不该执行功能。
  *     · 而按键里有个暂停采集，用户只想看一眼屏 ⇒ 结果把记录停了。
  *       ★ 现场无人值守 ⇒ 停了也没人知道，这是真会丢数据的动作 
- *   ★ 谁写谁读：task_DISP 写、task_KEY 读 ⇒ 必须 volatile*/
+ *   ★ 谁写谁读：task_SVC 写、task_KEY 读 ⇒ 必须 volatile*/
 volatile uint8_t  g_oled_blanked = 0u;
 
 volatile uint16_t g_i2c_us_last = 0;
@@ -388,7 +405,7 @@ volatile uint8_t g_echo_tip = 0u;   /* 屏上提示剩余帧数：10 帧 × 200 
 /* ★ 2026-11-09 加：OLED 多页显示（PA0 短按翻页）
  *   · g_page：当前页 0=实时数据 1=存储 2=运行
  *   · g_page_next：按键只置这个标志（task_KEY 不许直接画屏）
- *   · 由 task_DISP 在帧首消费：翻页 + 标记整屏重画 */
+ *   · 由 task_SVC 在帧首消费：翻页 + 标记整屏重画 */
 volatile uint8_t g_page      = 0u;
 volatile uint8_t g_page_next = 0u;
 
@@ -411,7 +428,7 @@ extern volatile uint32_t g_sd_free_mb;
  *   · 换成 uxTaskGetSystemState()（数组由调用者给）
  *     ⇒ 这 512 B 缓冲和那个 1 KB 堆一起不用了，并且 heap_4.o 会被链接器丢弃 */
 /* ★ 2026-10-18 改：8 → 12 
- *   ★ 现在实际有：START(已删) / ACQ / PROC / KEY / DISP / sensor / SD / GOLD / IDLE
+ *   ★ 现在实际有：START(已删) / ACQ / PROC / KEY / SVC / sensor / SD / GOLD / IDLE
  *     = 9 个（含 IDLE，不含已自删的 start_task）。
  *   ★ 而原来只给 8 个槽 ⇒ uxTaskGetSystemState 只会填前 8 个
  *     ⇒ 栈水位表被截断，最后一个（通常是 IDLE 或 GOLD）看不到 
@@ -455,8 +472,8 @@ static StackType_t  s_proc_stack  [TASK_PROC_STACK_SIZE];
 static StaticTask_t s_proc_tcb;
 static StackType_t  s_key_stack   [TASK_KEY_STACK_SIZE];
 static StaticTask_t s_key_tcb;
-static StackType_t  s_disp_stack  [TASK_DISP_STACK_SIZE];
-static StaticTask_t s_disp_tcb;
+static StackType_t  s_svc_stack  [TASK_SVC_STACK_SIZE];
+static StaticTask_t s_svc_tcb;
 static StackType_t  s_sensor_stack[TASK_SENSOR_STACK_SIZE];
 static StaticTask_t s_sensor_tcb;
 static StackType_t  s_sd_stack    [TASK_SD_STACK_SIZE];
@@ -499,7 +516,7 @@ static BaseType_t MakeTask(TaskFunction_t fn, const char *name, uint32_t depth,
 	if      (fn == task_ACQ)    { stk = s_acq_stack;    tcb = &s_acq_tcb;    }
 	else if (fn == task_PROC)   { stk = s_proc_stack;   tcb = &s_proc_tcb;   }
 	else if (fn == task_KEY)    { stk = s_key_stack;    tcb = &s_key_tcb;    }
-	else if (fn == task_DISP)   { stk = s_disp_stack;   tcb = &s_disp_tcb;   }
+	else if (fn == task_SVC)   { stk = s_svc_stack;   tcb = &s_svc_tcb;   }
 	else if (fn == task_sensor) { stk = s_sensor_stack; tcb = &s_sensor_tcb; }
 	else if (fn == task_SD)     { stk = s_sd_stack;     tcb = &s_sd_tcb;     }
 	else if (fn == task_GOLDEN) { stk = s_golden_stack; tcb = &s_golden_tcb; }
@@ -620,15 +637,15 @@ void start_task(void *pvParameters)
 	{
 		fail_mask |= (1u << 2);		/* bit2 = KEY 没建起来 */
 	}
-	/* ★ task_DISP 也在这里创建（OLED 唯一所有者；prio 1 最低，不影响采集） */
-	if (MakeTask(  (TaskFunction_t )   task_DISP,
-                   (char *         )   "DISP",
-                   (uint32_t       )   TASK_DISP_STACK_SIZE,
+	/* ★ task_SVC 也在这里创建（OLED 唯一所有者；prio 1 最低，不影响采集） */
+	if (MakeTask(  (TaskFunction_t )   task_SVC,
+                   (char *         )   "SVC",
+                   (uint32_t       )   TASK_SVC_STACK_SIZE,
                    (void *         )   NULL,
-                   (UBaseType_t    )   TASK_DISP_PRIO,
-                   (TaskHandle_t * )   &task_disp_handler) != pdPASS)
+                   (UBaseType_t    )   TASK_SVC_PRIO,
+                   (TaskHandle_t * )   &task_svc_handler) != pdPASS)
 	{
-		fail_mask |= (1u << 3);		/* bit3 = DISP 没建起来 */
+		fail_mask |= (1u << 3);		/* bit3 = SVC 没建起来 */
 	}
 
 	if (MakeTask(  (TaskFunction_t )   task_sensor,
@@ -700,7 +717,7 @@ void start_task(void *pvParameters)
 		 * 表是 const，落在 .rodata（Flash），不占 RAM。*/
 		static const char *const k_task_name[7] =
 		{
-			"ACQ", "PROC", "KEY", "DISP", "sensor", "SD", "GOLD"
+			"ACQ", "PROC", "KEY", "SVC", "sensor", "SD", "GOLD"
 		};
 		uint32_t i;
 
@@ -1172,17 +1189,17 @@ void task_KEY(void *pvParameters)
 	{
 		uint8_t ev = Key_Scan();
 
-		/* ★ 2026-10-18 加：有按键就记一笔"有人在看"，供 task_DISP 超时黑屏用。
+		/* ★ 2026-10-18 加：有按键就记一笔"有人在看"，供 task_SVC 超时黑屏用。
 		 *   ★ 本任务禁止打印，这里只写一个 uint32，不违反约定*/
 		if (ev != 0u)
 		{
 			g_ui_act_tick = (uint32_t)xTaskGetTickCount();
 
 			/* ★ 黑屏时的第一下按键只唤醒，不执行功能。
-			 *   · 判据 g_oled_blanked 由 task_DISP 维护。
+			 *   · 判据 g_oled_blanked 由 task_SVC 维护。
 			 *   · 为什么要"吃掉"这一下：按键里有暂停采集/安全关机。
 			 *     用户只想看一眼屏 ⇒ 结果把记录停了，而现场没人知道 
-			 *   · 屏会在 ≤200ms 内自己亮起（task_DISP 下一帧）不用管*/
+			 *   · 屏会在 ≤200ms 内自己亮起（task_SVC 下一帧）不用管*/
 			if (g_oled_blanked != 0u)
 			{
 				ev = 0u;                /* ★ 这一下只唤醒，不往下面走*/
@@ -1209,7 +1226,7 @@ void task_KEY(void *pvParameters)
 		{
 			g_rec_echo = (uint8_t)((g_rec_echo != 0u) ? 0u : 1u);
 			/* ★ 2026-11-09：关回显 = 连"周期性诊断"一起静默（只剩故障行）
-			 *   · 复用现成的 g_print_quiet：IDLE / SONAR / DISP 已经在判它
+			 *   · 复用现成的 g_print_quiet：IDLE / SONAR / SVC 已经在判它
 			 *   · 故障行（ERR / FAIL / LOST / recovered）不受它管，照样出
 			 *   · 手动打统计（PB11）也不受它管，按了就有 */
 			g_print_quiet = (uint8_t)((g_rec_echo != 0u) ? 0u : 1u);
@@ -1218,7 +1235,7 @@ void task_KEY(void *pvParameters)
 			 *   ★ 为什么可以在这里调：Buzz_Request 只置一个标志位。
 			 *     · 不打印，不阻塞，不碰 GPIO。
 			 *     → 完全符合本任务"不许打印"的约束
-			 *   ★ 实际发声由 task_DISP 的 Buzz_Poll() 负责*/
+			 *   ★ 实际发声由 task_SVC 的 Buzz_Poll() 负责*/
 			Buzz_Request(BUZZ_EV_KEY);
 		}
 
@@ -1235,7 +1252,7 @@ void task_KEY(void *pvParameters)
 		 *
 		 *   ★ 为什么本任务里只置标志，什么都不干：
 		 *     · 本任务栈只有 128 字，而且约定禁止打印。
-		 *     · 真正的落盘在 task_SD，真正的显示在 task_DISP
+		 *     · 真正的落盘在 task_SD，真正的显示在 task_SVC
 		 *
 		 *   ★ 为什么req 和 done 两个都要判：
 		 *     · done 是最终状态，但它要等 SD 落完盘才置位（最多 1 秒）
@@ -1293,11 +1310,11 @@ void task_KEY(void *pvParameters)
  *    MCU → PC：TIME OK -> 2026-10-12 23:46:45 (unix=...)
  *               TIME BAD (...) ← 格式错 / 超范围 / RTC 没配。
  *
- *  ★ 为什么放进 task_DISP：
+ *  ★ 为什么放进 task_SVC：
  *    · task_KEY 的注释明确写着本任务不许打印（它优先级 2，偏高）
  *    · 而 Serial_Printf 是忙等发送，一行约 5ms。
  *      → 在高优先级任务里打印会压住低优先级任务。
- *    · task_DISP 优先级 1，而且是输出类任务。
+ *    · task_SVC 优先级 1，而且是输出类任务。
  *      → 回显确认信息是它的本职
  *    · 代价：延迟 ≤200ms—— 对"对时"完全无所谓
  *
@@ -1334,8 +1351,8 @@ void task_KEY(void *pvParameters)
 /* ★ 2026-10-18 加：升级 / 回退 / 备份期间的专用界面
  *
  *  ★ 为什么可以直接在这里画屏：
- *    · task_DISP 是 OLED 的唯一所有者。
- *    · 而这几条命令的解析（TimeSync_Handle）就跑在 task_DISP 里
+ *    · task_SVC 是 OLED 的唯一所有者。
+ *    · 而这几条命令的解析（TimeSync_Handle）就跑在 task_SVC 里
  *      （由帧尾的 TimeSync_Poll() 调进来）
  *    ⇒ 所以这里画屏不违反"唯一所有者"规矩。
  *
@@ -1344,7 +1361,7 @@ void task_KEY(void *pvParameters)
  *    · 而升级界面正好压在正常画面上⇒ 不补满就露馅 
  *
  *  ★ 为什么这个界面特别重要：
- *    · 存金副本要2~3 秒，这期间整个 DISP 任务卡住不动。
+ *    · 存金副本要2~3 秒，这期间整个 SVC 任务卡住不动。
  *      → 屏上还停着"正常采集画面" ⇒ 看起来像没反应 / 像死机
  *    · 而这 2~3 秒恰恰是最不能断电的时候。
  *
@@ -1372,10 +1389,10 @@ static void Ui_Msg(const char *l1, const char *l2, const char *l3, const char *l
 	 *       （而这恰恰是最不能断电的窗口）
 	 *   ★ 修法：画之前自己先把面板点亮。
 	 *     · 不能靠黑屏状态机的"下一帧边沿"，上面说了轮不到。
-	 *     · task_DISP 是 OLED 的唯一所有者。
-	 *       而本函数只被 task_DISP 里的命令处理调用，不越权。
+	 *     · task_SVC 是 OLED 的唯一所有者。
+	 *       而本函数只被 task_SVC 里的命令处理调用，不越权。
 	 *     · 这里不碰那两个 static 状态变量。
-	 *       （它们是 task_DISP 的私有 static，这里够不着）
+	 *       （它们是 task_SVC 的私有 static，这里够不着）
 	 *       而是顺手续期 idle 计时。
 	 *       ⇒ 下一帧状态机看到 idle_ms ≈ 0，自己就会走"唤醒边沿"。
 	 *         把 s_blanked / g_oled_blanked 一并归位 
@@ -1425,7 +1442,7 @@ static void App_RequestUpgrade(uint8_t force)
 	 *    · 后台是500ms 一页，传完要 110 秒。
 	 *    · 而升级请求马上就要软复位，等不起
 	 *
-	 *  ★ 代价：本任务（DISP）会卡约 2~3 秒。
+	 *  ★ 代价：本任务（SVC）会卡约 2~3 秒。
 	 *    · 但这是用户主动要求升级，慢一点完全可以接受。
 	 *    · 而且采集链优先级更高，它抢占得到 CPU，不受影响
 	 *
@@ -1578,7 +1595,7 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *    → 所以中途掉电，头没写，旧备份自动保留
 	 *      （绝不会出现"存到一半把好备份毁了"）
 	 *
-	 *  ★ 副作用：DISP 任务会卡约 2~3 秒。
+	 *  ★ 副作用：SVC 任务会卡约 2~3 秒。
 	 *    · 和 U 那条路一样，采集链优先级更高，不受影响
 	 *    · 期间 OLED 不刷新，正常。
 	 *
@@ -1602,7 +1619,7 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *   · 用途：屏自己黑掉、保活（每 5 秒补发 0xAF）也救不回来那种
 	 *     （面板复位把寻址模式/方向也弄乱了）
 	 *   · 会重跑一遍 OLED_Init（含 100ms 上电延时），下一帧自动整屏重画
-	 *   · 只在 task_DISP 里执行，一次性开销 */
+	 *   · 只在 task_SVC 里执行，一次性开销 */
 	if ((n == 2u) && (s[0] == 'L') && (s[1] == '1'))
 	{
 		OLED_Init();
@@ -1728,7 +1745,7 @@ static void TimeSync_Poll(void)
  *    · 测 1 秒 ⇒ 量化误差 ±1000 ppm ⇒ 和要测的量同级 ⇒ 没用。
  *    · 测 10 秒 ⇒ 误差 ±100 ppm ⇒ 够用 
  *
- *  ★ 为什么放在本任务（task_DISP）：
+ *  ★ 为什么放在本任务（task_SVC）：
  *    · 它是最低优先级 + 输出类任务，卡它 10 秒不伤数据链路。
  *    · 绝对不能放 task_PROC，那里停 10 秒 = 数据断流 10 秒
  *    · 等的时候用 vTaskDelay，不空转 ⇒ 不烧 CPU。
@@ -1767,7 +1784,7 @@ static void Clk_CalibOnce(void)
 }
 
 
-/* task_DISP：① 先拷快照 ② 状态字定长防残影
+/* task_SVC：① 先拷快照 ② 状态字定长防残影
  * ③ 第4行的心跳数字用来区分暂停和卡死——没有它这个验收项无法判定
  * ④ 第4行 13~16 列是 SD 错误码 E:xx（Y2）——OLED 从"坏了"升级到"为什么"
  * ★ 2026-10-17 加 ⑤：时间不可信时第 4 行常驻显示 T?*/
@@ -1830,7 +1847,7 @@ static void Ui_DrawPage(uint8_t page)
 	}
 }
 
-void task_DISP(void *pvParameters)
+void task_SVC(void *pvParameters)
 {
 	Stat_t snap;
 	uint32_t frame = 0;		/* 心跳计数：每帧 +1（用来证明屏是活的） */
@@ -1908,7 +1925,7 @@ void task_DISP(void *pvParameters)
 		 *  ★ 位置在 frame++ 之前 ⇒ 此处 frame 还是上一轮的值
 		 *    ⇒ == 200 对应"第 201 轮开头"，时间上无差别*/
 		/* ★ 2026-10-19 教训（保留成注释，不再留死代码）：
-		 *   校准绝不能放在 task_DISP 里。
+		 *   校准绝不能放在 task_SVC 里。
 		 *   · Clk_CalibOnce() 故意阻塞约 11 秒。
 		 *   · 放这里 ⇒ 屏 11 秒不更新 + 蜂鸣器卡在最后状态
 		 *     （Buzz_Poll() 也在本任务里）
@@ -1973,7 +1990,7 @@ void task_DISP(void *pvParameters)
 		/* ★ 2026-10-18 加：OLED 超时黑屏判定（低功耗改造 序 3）
 		 *
 		 *  ★ 为什么放在屏幕的唯一所有者里：
-		 *    · task_DISP 是 OLED 的唯一所有者，别人一律不许碰屏。
+		 *    · task_SVC 是 OLED 的唯一所有者，别人一律不许碰屏。
 		 *    · ⇒ 开关屏也只能在这里判 
 		 *
 		 *  ★ 关机态绝不黑屏：
@@ -2016,7 +2033,7 @@ void task_DISP(void *pvParameters)
 				 *  ★ 改法：只要还在"强制亮屏"，就当成刚刚有人看过。
 				 *     ⇒ 强制条件解除后，仍然有完整 30 秒
 				 *
-				 *  ★ 为什么由 task_DISP 写这个全局也安全：
+				 *  ★ 为什么由 task_SVC 写这个全局也安全：
 				 *     · 写的是 uint32 ⇒ CM3 上单条 STR，天然原子。
 				 *     · 另一个写者是 task_KEY，两边都只是"更新成当前 tick"。
 				 *       ⇒ 谁后写都无害*/
@@ -2060,7 +2077,7 @@ void task_DISP(void *pvParameters)
 
 			/* ★ 2026-11-09 加：面板保活（每 5 秒补发一次"开电荷泵 + 开显示"）
 			 *   ★ 为什么需要（实测两次）：屏幕自己黑掉，而固件这边
-			 *     DISP 在正常刷、blank=0（以为亮着），整机只能靠复位才恢复
+			 *     SVC 在正常刷、blank=0（以为亮着），整机只能靠复位才恢复
 			 *   ★ 机理判断：面板被干扰复位 / 瞬时掉电后 SSD1306 回到默认态
 			 *     （显示关 + 电荷泵关），而 s_oled_on 还停在 1
 			 *     ⇒ OLED_DisplayOn() 里那句 if (s_oled_on != 0) return 永远早退
@@ -2094,7 +2111,7 @@ void task_DISP(void *pvParameters)
 		 *   曾加过"SD 故障期每秒做一次 OLED 总线恢复"。
 		 *   · 依据是"屏冻住 = I2C 从机被卡在事务中途"。
 		 *   · 实测推翻：sda/scl 全程高电平（总线从未被拉低）。
-		 *     真因 = Clk_CalibOnce() 阻塞 DISP 11 秒。
+		 *     真因 = Clk_CalibOnce() 阻塞 SVC 11 秒。
 		 *   · 而且它有副作用：每秒重发 0x8D 0x14
 		 *     （电荷泵 关→开）⇒ 面板瞬间灭再亮
 		 *     ⇒ 用户实测"屏幕切换时闪得挺明显"
@@ -2441,13 +2458,67 @@ void task_DISP(void *pvParameters)
 		 *     · SD 一恢复就自动停（Clear）。
 		 *   ★ ② 按键反馈在 task_KEY 里请求，这里只负责发声*/
 #if (TEST_EXP02 != 0)
-		/* ★ 2026-11-06（EXP-02）：测试固件屏蔽 SD 错误蜂鸣。
+		/* ★ 2026-11-06（EXP-02）：测试固件屏蔽告警音。
 		 *   · 夜间无人值守跑注入测试，卡偶发错误不该把人吵醒
 		 *   · 正式固件（TEST_EXP02=0）走下面的原逻辑，行为不变 */
 		Buzz_Clear(BUZZ_EV_SD_ERR);
+		Buzz_Clear(BUZZ_EV_DATA_LOSS);
 #else
-		if (g_sd_error != 0u) { Buzz_Request(BUZZ_EV_SD_ERR); }
-		else                  { Buzz_Clear(BUZZ_EV_SD_ERR);   }
+		/* ★ 2026-11-15 改：SD 故障升级为"数据丢失"告警（理由见 buzz.h）
+		 *
+		 * ★ 为什么从 task_SD 挪到本任务：
+		 *   卡一拔掉，task_SD 会卡在"300 次 CMD0 重试"里（实测 19.4 秒），
+		 *   检测放在那个任务的循环顶部会被一起阻塞 19 秒 ——
+		 *   而那 19 秒正是最该报警的时刻。
+		 *   本任务 200ms 一帧、只读计数器，永远不会被 SD 阻塞。
+		 *
+		 * · 三个触发条件：卡错误 / 积压超 200 批 / 溢出计数变化
+		 * · 只在状态变化时打日志，避免刷屏
+		 * · 怎么验证：拔卡应立即听到"两短一停"，插回立即停
+		 */
+		{
+			static uint8_t  s_dl_on       = 0u;
+			static uint16_t s_dl_ovr_pre  = 0u;
+			static uint8_t  s_dl_ovr_hold = 0u;
+			static uint8_t  s_dl_inited   = 0u;
+			uint16_t ovr_now  = DropCache_OverflowCount();
+			uint16_t pend_now = DropCache_PendingBatches();
+			uint8_t  dl_now   = 0u;
+
+			/* 首轮只对齐基线：ovr 是 W25 里的历史累计值，静态变量初值是 0，
+			 * 不跳过的话每次开机都会误报一次 */
+			if (s_dl_inited == 0u)
+			{
+				s_dl_inited  = 1u;
+				s_dl_ovr_pre = ovr_now;
+			}
+			else if (ovr_now != s_dl_ovr_pre)
+			{
+				s_dl_ovr_pre  = ovr_now;
+				s_dl_ovr_hold = 20u;
+			}
+			if (s_dl_ovr_hold != 0u) { s_dl_ovr_hold--; }
+
+			if ((g_sd_error != 0u) || (pend_now > 200u) || (s_dl_ovr_hold != 0u))
+			{
+				dl_now = 1u;
+			}
+
+			if (dl_now != s_dl_on)
+			{
+				s_dl_on = dl_now;
+				Serial_Printf("ALARM: DATA_LOSS %s (pend=%u ovr=%u sd_err=%u)\r\n",
+				              (dl_now != 0u) ? "ON" : "OFF",
+				              (unsigned)pend_now, (unsigned)ovr_now,
+				              (unsigned)g_sd_error);
+				if (dl_now != 0u) { Buzz_Request(BUZZ_EV_DATA_LOSS); }
+				else              { Buzz_Clear(BUZZ_EV_DATA_LOSS);   }
+			}
+
+			/* 旧的 SD 故障音不再用：它和 DATA_LOSS 覆盖同一件事，
+			 * 两个同时响会让人听到"节奏突然变了"。 */
+			Buzz_Clear(BUZZ_EV_SD_ERR);
+		}
 #endif
 		Buzz_Poll();
 
@@ -2456,7 +2527,7 @@ void task_DISP(void *pvParameters)
 		 *     而下面那行的位置在 t0 = DWT->CYCCNT 之后 ⇒
 		 *     这 10 秒被当成"一帧的耗时"。
 		 *   ★ 后果（2026-10-18 烧完第一次实测就撞上了）。
-		 *     DISP: avg=82044 us max=10581722 us ⇒ max = 10.58 秒。
+		 *     SVC: avg=82044 us max=10581722 us ⇒ max = 10.58 秒。
 		 *     而 s_us_max 不清零⇒ 每次开机 max 都被顶到 ~10 秒
 		 *     ⇒ 判据「max 比 avg 重要」直接作废
 		 *   ★ 已挪到循环开头，t0 = DWT->CYCCNT 之前
@@ -2494,7 +2565,7 @@ void task_DISP(void *pvParameters)
 		 *   180 ms = 124 × 1.45，只有真被拖住才报 */
 		if ((dt_us > 180000u) && (g_print_quiet == 0u))
 		{
-			Serial_Printf("DISP: SLOW frame %u us !\r\n", (unsigned)dt_us);
+			Serial_Printf("SVC: SLOW frame %u us !\r\n", (unsigned)dt_us);
 		}
 
 		/* ★ 每 8 次刷新（= 5 秒）报一次汇总，看趋势用*/
@@ -2502,7 +2573,7 @@ void task_DISP(void *pvParameters)
 		{
 			if (g_print_quiet == 0u)
 			{
-				Serial_Printf("DISP: avg=%u us  max=%u us  (per refresh)\r\n",
+				Serial_Printf("SVC: avg=%u us  max=%u us  (per refresh)\r\n",
 				              (unsigned)(s_us_sum / s_cnt), (unsigned)s_us_max);
 			}
 			s_cnt    = 0u;
@@ -2570,7 +2641,7 @@ void task_DISP(void *pvParameters)
  *      全在 golden.c 里，这个任务体只是个壳
  *    ★ 为什么要单独开一个任务，不塞进现有的：
  *      · 它要主动让出 CPU，每页停 500ms。
- *      · 塞进 DISP → OLED 刷新会被拖慢。
+ *      · 塞进 SVC → OLED 刷新会被拖慢。
  *        塞进 SD → 落盘会被拖慢
  *      → 独立一个最低优先级任务，谁都不影响
  *============================================================================*/
@@ -2580,7 +2651,7 @@ void task_GOLDEN(void *pvParameters)
 
 	/* ★ 2026-10-19 加：时钟校准搬到这里做 
 	 *   ★ 为什么搬：它故意阻塞约 11 秒（等 RTC 走满 10 秒）
-	 *     · 原来在 task_DISP 里，⇒ 屏冻 11 秒 + 蜂鸣器卡住
+	 *     · 原来在 task_SVC 里，⇒ 屏冻 11 秒 + 蜂鸣器卡住
 	 *       （实测：IDLE 空档 11.36 秒，用户反复报告）
 	 *   ★ 为什么放这里：
 	 *     · 本任务优先级 1，本来就"闲睡 5 秒"，无时限要求。
@@ -2755,7 +2826,7 @@ void task_sensor(void *pvParameters)
 		 *  ★ 为什么敢在这个任务里"等"这 25ms：
 		 *    · 本任务优先级 1（最低的非空闲任务）
 		 *    · 等的时候用的是 vTaskDelay(1)，CPU 让给别人。
-		 *    ⇒ ACQ(6)/PROC(2)/SD/KEY/DISP 全都照跑 
+		 *    ⇒ ACQ(6)/PROC(2)/SD/KEY/SVC 全都照跑 
 		 *
 		 *  ★ 结果只打串口，暂不进 CSV：
 		 *    · 进 CSV 要改 16 列契约 + 行 CRC 锚点 0x2189。

@@ -63,6 +63,11 @@ static uint8_t s_key_fr = 0u;    /* ★ 按键剩余帧数（一次型） */
 static uint8_t s_silent = 0u;    /* ★ 静音。 */
 static uint8_t s_on     = 0u;    /* ★ 当前 GPIO 状态（避免重复写寄存器） */
 static uint8_t s_phase  = 0u;    /* ★ 持续型的翻转相位。 */
+/* ★ 2026-11-15 加：两级告警（理由见 buzz.h） */
+static uint8_t s_data_loss = 0u; /* ★ 数据丢失标志（持续型） */
+static uint8_t s_sensor    = 0u; /* ★ 传感器故障标志（持续型） */
+static uint8_t s_dl_ph     = 0u; /* ★ 两短一停的相位（12 帧一循环） */
+static uint8_t s_sn_ph     = 0u; /* ★ 一短一停的相位（8 帧一循环） */
 
 void Buzz_Request(uint8_t ev)
 {
@@ -86,6 +91,14 @@ void Buzz_Request(uint8_t ev)
 	{
 		s_sd_err = 1u;
 	}
+	if ((ev & BUZZ_EV_DATA_LOSS) != 0u)
+	{
+		s_data_loss = 1u;
+	}
+	if ((ev & BUZZ_EV_SENSOR) != 0u)
+	{
+		s_sensor = 1u;
+	}
 }
 
 void Buzz_Clear(uint8_t ev)
@@ -94,6 +107,16 @@ void Buzz_Clear(uint8_t ev)
 	{
 		s_sd_err = 0u;
 		s_phase  = 0u;           /* ★ 复位相位，下次从"响"开始。 */
+	}
+	if ((ev & BUZZ_EV_DATA_LOSS) != 0u)
+	{
+		s_data_loss = 0u;
+		s_dl_ph     = 0u;
+	}
+	if ((ev & BUZZ_EV_SENSOR) != 0u)
+	{
+		s_sensor = 0u;
+		s_sn_ph  = 0u;
 	}
 	/* ★ 按键是一次性的，没有"清除"语义。 */
 }
@@ -173,16 +196,46 @@ void Buzz_Poll(void)
 		return;
 	}
 
-	/* ★ ② 持续性事件：SD 故障 → 每帧翻转出"滴滴"
+	/* ★ ② 数据丢失：两短一停（比 SD 故障更急）
+	 *   12 帧一循环 ≈ 2.4 秒：响 2 帧、停 1 帧、响 2 帧、停 7 帧 */
+	/* ★ ③ 持续性事件：SD 故障 → 每帧翻转出"滴滴"
 	 *   ★ 频率：200ms 一帧，每帧翻转
 	 *     → 200ms 响 + 200ms 停= 周期 400ms ≈ 2.5Hz 很醒目
 	 *     ★ 2026-10-19 修正：原注释写"100ms 响 + 100ms 停 ≈ 5Hz"
 	 *       那是把 200ms 一帧误当成 100ms 半周期，实际帧长 200ms。 */
+	if (s_data_loss != 0u)
+	{
+		s_dl_ph = (uint8_t)((s_dl_ph + 1u) % 12u);
+		if ((s_dl_ph < 2u) || ((s_dl_ph >= 3u) && (s_dl_ph < 5u)))
+		{
+			if (s_on == 0u) { Buzz_ON(); s_on = 1u; }
+		}
+		else
+		{
+			if (s_on != 0u) { Buzz_OFF(); s_on = 0u; }
+		}
+		return;
+	}
+
 	if (s_sd_err != 0u)
 	{
 		s_phase = (uint8_t)(1u - s_phase);
 		if (s_phase != 0u) { Buzz_ON();  s_on = 1u; }
 		else               { Buzz_OFF(); s_on = 0u; }
+		return;
+	}
+
+	if (s_sensor != 0u)
+	{
+		s_sn_ph = (uint8_t)((s_sn_ph + 1u) % 8u);
+		if (s_sn_ph < 2u)
+		{
+			if (s_on == 0u) { Buzz_ON(); s_on = 1u; }
+		}
+		else
+		{
+			if (s_on != 0u) { Buzz_OFF(); s_on = 0u; }
+		}
 		return;
 	}
 
