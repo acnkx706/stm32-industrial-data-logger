@@ -59,3 +59,10 @@ _临时脚本/
 
 # 卡压力测试的运行状态（每次跑都会重建，不入库）
 evidence/card_health/card_stress_state.json
+
+# 派生缓存与编译产物（2026-11-16 加：标注会话的 npy 缓存、验证用 exe）
+# 为什么：session*.npy 是 1.9MB+900KB 的中间数据，可由 collect_labels.py 重跑得到；
+#        verify_model.exe 可由 verify_model.c 编译得到。都不该进仓库。
+evidence/**/*.npy
+evidence/**/*.exe
+evidence/**/that
