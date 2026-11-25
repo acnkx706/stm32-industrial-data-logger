@@ -2976,11 +2976,13 @@ void task_GOLDEN(void *pvParameters)
 void task_sensor(void *pvParameters)
 {
 	int16_t raw;
-	/* ★ DHT22 分频计数器（2026-10-11 加）
-	 *   · DHT22 要求采样间隔≥2 秒，而本任务节奏是 1 秒一拍。
-	 *   · 所以每 2 拍读一次（初值给 1 → 第一拍就变 2 → 首次立即读）
-	 *   ★ 用 static：生命周期贯穿整个任务*/
-	static uint32_t s_sensor_tick = 1u;
+	/* ★ 2026-11-25 改：DHT22 的读取节流改成按时间戳，不再数"拍"
+	 * · 为什么改：数"拍"依赖任务周期稳定，而本任务实测 0.8 秒/拍
+	 *   （vTaskDelay 750 + BMP280 25 + 超声波等待），3 拍只有 2.4 秒
+	 *   注释里写的"3 秒"从来没实现过；手册下限 2 秒只剩 20% 余量
+	 * · 影响什么：湿度刷新变成 4 秒一次，其它通道完全不受影响
+	 * · 怎么验证：发 H 看 ok 的增速，从"每次检查 +2"变成约 +1 */
+	static uint32_t s_dht_last_tick = 0u;
 
 	/* ★ 2026-11-04 加：DHT22 连续失败计数
 	 *   偶发失败（实测 3~6%）保留上一次的值，连续 3 次才写 65535 */
@@ -3063,9 +3065,14 @@ void task_sensor(void *pvParameters)
 		 *     本任务的抖动会让实际间隔偶尔略小于 2 秒 ⇒ 器件不响应
 		 *   · 实测：2 秒间隔时 120 条记录里有 15 条是 65535（12.5% 失败）
 		 *   · 改 3 秒，给抖动留一倍余量 */
-		s_sensor_tick++;
-		if ((s_sensor_tick % 3u) == 0u)
+		/* ★ 2026-11-25 改：按时间戳保证最小间隔，不再数"拍"
+		 * · 为什么改：见函数开头 s_dht_last_tick 那段说明
+		 *   社区口径（DHT22 库文档）：快于 2 秒会挂，3 秒以上才稳
+		 * · 影响什么：湿度 4 秒刷新一次，相对手册下限 2 秒留一倍余量
+		 * · 怎么验证：H 里 ok 每两次检查涨约 1，即间隔 4 秒 */
+		if ((uint32_t)(xTaskGetTickCount() - s_dht_last_tick) >= pdMS_TO_TICKS(4000))
 		{
+			s_dht_last_tick = xTaskGetTickCount();
 			uint16_t h_x10 = 0xFFFF;
 			int16_t  t_x10 = 0;
 
