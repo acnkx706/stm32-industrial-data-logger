@@ -49,4 +49,30 @@ extern volatile uint16_t g_dht_fail;
 extern volatile uint16_t g_dht_extra_us;
 extern volatile uint8_t  g_dht_line_high;
 
+/* ★ 2026-11-24 加：位宽体检（成功也记，不用等失败）
+ *
+ * ★ 为什么：3~6% 的偶发失败可遇不可求，等一次要几十分钟。
+ *   而"判决余量还剩多少"在成功读取时就能测出来 ——
+ *   余量最薄的那一项，就是将来失败的地方，不用等它坏。
+ *
+ * ★ 影响什么：正常读多 40 次 CYCCNT 差值；一帧的关中断总时长不变
+ *
+ * ★ 怎么验证：串口发 H，下一次读取（≤3 秒）后打出 40 位宽度与应答时序 */
+#define DHT22_BITS          40u   /* 湿度16 + 温度16 + 校验8；DHT22.c 的 DHT_BITS 由它派生 */
+
+extern volatile uint16_t g_dht_width[DHT22_BITS];   /* 每位高电平宽度 us */
+extern volatile uint8_t  g_dht_bits[DHT22_BITS];    /* 每位解出来的 0/1 */
+extern volatile uint16_t g_dht_ack_delay_us;        /* 释放 -> 器件拉低 us */
+extern volatile uint16_t g_dht_ack_low_us;          /* 应答低电平宽度 us */
+extern volatile uint16_t g_dht_ack_high_us;         /* 应答高电平宽度 us */
+extern volatile uint16_t g_dht_rc[7];               /* reason 0..6 各出现几次 */
+extern volatile uint8_t  g_dht_diag_ready;          /* 1 = 有完整帧可供体检 */
+extern volatile uint16_t g_dht_last_humi;           /* 上次成功解出的湿度 ×10 */
+extern volatile int16_t  g_dht_last_temp;           /* 上次成功解出的温度 ×10 */
+
+/* 打印上一次读的位宽明细与余量。只在任务里调，临界区内禁止（它会打印）。 */
+void DHT22_DumpDiag(void);
+
+extern volatile uint16_t g_dht_reinit_cnt;   /* 连续失败后重配引脚了几次 */
+extern volatile uint16_t g_dht_humi_ffff;    /* 帧校验通过但湿度字段是 0xFFFF 的次数 */
 #endif

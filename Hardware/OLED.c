@@ -309,7 +309,15 @@ void OLED_Clear(void)
   * @retval 无
   */
 void OLED_ShowChar(uint8_t Line, uint8_t Column, char Char)
-{      	
+{
+	/* ★ 2026-11-19 加：边界检查，防止越界回绕
+	 *   做了什么：Line/Column 超出 1~4 / 1~16 直接返回
+	 *   为什么：SSD1306 列地址只有 0~127，超出回绕到 0
+	 *            （x=128 回绕到 0、x=136 回绕到 8），会覆盖前面的内容
+	 *   影响什么：超长字符串被静默截断，不再破坏已有画面
+	 *   怎么验证：OLED_ShowString(1, 8, "26111901.CSV") 只显示 9 字符 */
+	if ((Line < 1u) || (Line > 4u) || (Column < 1u) || (Column > 16u)) { return; }
+
 	/* ★ 2026-10-14 改：8 个字节一次连续写，不再逐字节 Start/Stop
 	 *
 	 *   ★ 这是一帧耗时的主要来源

@@ -34,6 +34,7 @@
 #include "task.h"
 #include "queue.h"
 #include "ff.h"                         /* FatFs（FatFs\ 目录，裁剪版 R0.12c） */
+#include "uds.h"                        /* UDS 的 0x85 故障记录开关（2026-11-23 加） */
 #include "Serial.h"                     /* Serial_Printf：报挂载/失败信息 */
 #include "task_sd.h"
 #include "MyRTC.h"
@@ -48,6 +49,7 @@
 /* ★ 2026-10-19 加：验"文件尾行 CRC"要用它（与 PC 侧同一套参数）*/
 #include "Crc16.h"
 #include "exp02.h"          /* EXP-02 钩子，TEST_EXP02=0 时全为空宏 */
+#include "can_tx.h"         /* 2026-11-24：故障告警帧 0x080 的发送接口 */
 
 /*============================================================================
  *  配置常量（拍板后改这里，别散在流程里）
@@ -707,6 +709,125 @@ static void Loss_Flush(void)
 
 			Serial_Printf("SD: LOST record FAILED to write (pending kept)\r\n");
 			return;                      /* ★ 后面几个也别试了，卡坏了。*/
+		}
+	}
+}
+
+
+/*============================================================================
+ *  ★ 2026-11-21 加：模块故障事件记账（偶发故障排查用）
+ *
+ *  ★ 做了什么：任何模块读失败都能记一行到 90 号事件文件，
+ *   格式 "# FAIL,时间,ch=模块名,reason=原因码,count=次数"。
+ *
+ *  ★ 为什么：DHT22 这类单总线器件会偶发卡死，软件重启救不回来。
+ *   屏幕只能看当前值，必须靠历史记录才能定位"哪种失败、多频繁"。
+ *
+ *  ★ 影响什么：只读不写采集链路；一个 flush 周期每个通道最多写一条，
+ *   失败再频繁也不会写爆卡。写不进卡时走 W25 缓存，断电不丢证据。
+ *
+ *  ★ 怎么验证：把 ProbeConfig.h 的 TEST_EVENT_INJECT 改 1 重新编译，
+ *   开机后 90 号文件应出现 "# FAIL,...,ch=DHT,..." 行。
+ *============================================================================*/
+
+/* 通道名表（编号定义在 task_sd.h，调用方要用）
+ * 加新模块：在 task_sd.h 加编号，在这里加名字，两边顺序必须一致 */
+static const char *const s_ev_ch_name[EV_CH_N] = {
+	"DHT", "DS18B20", "BMP280", "MPU6050", "SD", "W25"
+};
+
+/* 待落盘的增量（任何任务可加，只有 task_SD 会清） */
+static volatile uint16_t s_ev_pend_count[EV_CH_N];
+static volatile uint8_t  s_ev_pend_reason[EV_CH_N];
+
+/* ★ 任何任务都能调，但中断里不许调（用了临界区） */
+void Event_LogFail(uint8_t ch, uint8_t reason)
+{
+	/* ★ 刷写期间不记故障（2026-11-23 加，UDS 的 0x85 服务控制）
+	 * · 升级时设备不采集、SD 也停了，故障统计会把"数据流断了"当成故障
+	 * · 不挡的话刷一次固件就往卡里写一堆假故障，事后看数据全被污染
+	 * · 门是 Uds_DtcDisabled()，只有 UDS 会话里能拨动，默认会话不许改 */
+	if (Uds_DtcDisabled() != 0u)
+	{
+		return;
+	}
+
+	if (ch >= EV_CH_N)
+	{
+		return;
+	}
+
+	taskENTER_CRITICAL();
+	s_ev_pend_reason[ch] = reason;
+	if (s_ev_pend_count[ch] < 0xFFFFu)
+	{
+		s_ev_pend_count[ch]++;
+	}
+	taskEXIT_CRITICAL();
+
+	/* ★ 2026-11-24 加：同时往网关发一条告警帧
+	 * · 放在临界区外面：CAN_TX_SendStd 要碰 CAN 寄存器，不该在临界区里做
+	 * · 发不出去就算了：丢一条告警不影响本地记录，网关那边有计数可以对照
+	 * · 次数只是快照：临界区外读，正好赶上别的任务加会差一两条，不用较真 */
+#if (CAN_EN != 0)
+	{
+		uint8_t d[8];
+
+		d[0] = ch;
+		d[1] = reason;
+		d[2] = (uint8_t)(s_ev_pend_count[ch] & 0xFFu);
+		d[3] = (uint8_t)((s_ev_pend_count[ch] >> 8) & 0xFFu);
+		d[4] = 0u;
+		d[5] = 0u;
+		d[6] = 0u;
+		d[7] = 0u;
+
+		(void)CAN_TX_SendStd(CAN_ID_ALARM, d, 8u);
+	}
+#endif
+}
+
+/* ★ 把故障增量冲进 90 号事件文件
+ * · 先清零、写成功才算数：写失败走 W25，再失败才补回 RAM
+ * · 全为 0 时不做任何 FatFs 操作（平时零开销）*/
+static void Event_Flush(void)
+{
+	char     line[120];
+	uint8_t  ch;
+	uint8_t  rsn;
+	uint16_t n;
+
+	for (ch = 0u; ch < EV_CH_N; ch++)
+	{
+		taskENTER_CRITICAL();
+		n   = s_ev_pend_count[ch];
+		rsn = s_ev_pend_reason[ch];
+		s_ev_pend_count[ch] = 0u;
+		taskEXIT_CRITICAL();
+
+		if (n == 0u)
+		{
+			continue;
+		}
+
+		(void)sprintf(line, "# FAIL,%lu,ch=%s,reason=%u,count=%u",
+		              (unsigned long)MyRTC_GetUnix(),
+		              s_ev_ch_name[ch], (unsigned)rsn, (unsigned)n);
+
+		if (SD_AppendEventLine(line) != FR_OK)
+		{
+			if (DropCache_PutEvent(line) != 0u)
+			{
+				continue;                /* 已存进 W25，断电也不丢 */
+			}
+
+			taskENTER_CRITICAL();
+			s_ev_pend_count[ch]  = (uint16_t)(s_ev_pend_count[ch] + n);
+			s_ev_pend_reason[ch] = rsn;
+			taskEXIT_CRITICAL();
+
+			Serial_Printf("SD: FAIL record FAILED to write (pending kept)\r\n");
+			return;                      /* 卡坏了，后面的通道也别试 */
 		}
 	}
 }
@@ -1543,6 +1664,17 @@ static uint8_t sd_note_failure(uint8_t *streak, uint8_t err, uint8_t site)
 {
 	(*streak)++;
 	sd_set_err(err, site);                  /* ★ Y2 + 2026-10-19：失败原因和站点一起上浮 */
+
+	/* ★ 2026-11-24 加：这次故障第一次出现就往网关报一条（0x080）
+	 * · 只在 streak 从 0 变 1 时报：连续失败是同一件事，报一次就够
+	 * · 不等 3 连击：真错误那条路径第一次就直接卸卷（调用点 2858 行），
+	 *   走不到 3 连击，等就永远不报了
+	 * · err 是 FatFs 的 FRESULT，site 是失败点编号，一起带上看得出是哪种坏 */
+	if (*streak == 1u)
+	{
+		Event_LogFail(EV_CH_SD, err);
+	}
+
 	if (*streak >= SD_FAIL_STREAK_LIMIT)
 	{
 		g_sd_error = 1;
@@ -2347,6 +2479,7 @@ void task_SD(void *pvParameters)
 		 *   · 位置：挂载态、每轮一次（没卡时攒着，有卡了补记）
 		 *   · 全为 0 时不做任何 FatFs 操作 ⇒ 平时零开销。*/
 		Loss_Flush();
+		Event_Flush();
 		/* ★ 2026-11-03 加：每天查一次剩余空间（内部按日期自限频，
 		 *   同一天直接 return，开销只是一次日期比较）*/
 		sd_space_check();

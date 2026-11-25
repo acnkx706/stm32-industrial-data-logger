@@ -128,8 +128,14 @@ uint8_t Param_Save(ParamRec_t *in)
 	rec = *in;
 	rec.magic   = PARAM_MAGIC;
 	rec.version = PARAM_VERSION;
-	seq         = (s_have != 0u) ? (uint16_t)(in->seq + 1u) : 1u;
-	rec.seq     = (uint32_t)seq;
+	/* ★ 2026-11-19 改：去掉 uint16 强转，和 App 版（User\boot_param.c）一致
+	 *   做了什么：seq 保持 uint32，不再截断成 uint16
+	 *   为什么：头文件说"两份必须一字不差"，但实现曾分叉
+	 *            截断会在 65536 次写入后回绕，导致 Param_Load 选错槽
+	 *   影响什么：seq 不再回绕；和 App 版行为一致
+	 *   怎么验证：boot_param.c 与 User\boot_param.c 的 seq 行完全相同 */
+	seq         = (s_have != 0u) ? (in->seq + 1u) : 1u;
+	rec.seq     = seq;
 	rec.crc     = Param_Crc16((const uint8_t *)&rec, (uint32_t)offsetof(ParamRec_t, crc));
 	rec.valid   = PARAM_ERASED;                /* ★ 先写 0xFFFF，最后单独写 0xFF01 */
 

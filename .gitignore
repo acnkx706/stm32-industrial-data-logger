@@ -66,3 +66,10 @@ evidence/card_health/card_stress_state.json
 evidence/**/*.npy
 evidence/**/*.exe
 evidence/**/that
+# 损坏的中间文件（2026-11-23 编码事故留下的 .damaged-YYYYMMDD 副本，不入库）
+*.damaged-*
+
+# release 里的裸固件 .bin 是调试产物（2026-11-25 清点：17 个未跟踪，共 1.32MB）
+# 注：已入库的 APP.bin / APP_v5_20261107.bin / BOOT.bin 不受影响（.gitignore 只管未跟踪文件）
+#     hex 照旧入库，见上面 !release/*.hex
+release/*.bin

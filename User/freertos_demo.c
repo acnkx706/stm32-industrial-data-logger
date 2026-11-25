@@ -31,7 +31,11 @@
 #include "boot_flag.h"             /* ★ 升级请求标志（★ 和 Boot\boot_flag.h 逐字节一致）*/
 #include "boot_param.h"            /* ★ 4KB 参数区：image_ok 确认（2026-11-07） */
 #include "Crc16.h"
-#include "exp02.h"   /* EXP-02 原型（TEST_EXP02=0 时全为空宏） */
+#include "iso_tp.h"                /* ★ ISO-TP 传输层（CAN-OTA 第一步，2026-11-23 加）*/
+#include "uds.h"                   /* ★ UDS 服务层（CAN-OTA 第二步，2026-11-23 加）*/
+#include "exp02.h"
+#include "can_tx.h"
+#include "i2c_link.h"   /* I2C_EN 开关与主机发送接口 */    /* CAN_EN 开关与发送接口（阶段 B）*/   /* EXP-02 原型（TEST_EXP02=0 时全为空宏） */
 /*==============================================================================
  *  数据记录仪 —— 应用层（任务总装）
  *      数据流：task_ACQ --Record_t--> [xQueueRec] --> task_PROC
@@ -96,12 +100,18 @@ void task_ACQ(void *pvParameters);
 TaskHandle_t    task_proc_handler;
 void task_PROC(void *pvParameters);
 
-/* task_KEY：20ms 扫键（扫描周期本身就是消抖基准）
- * ★ 本任务禁止 Serial_Printf：栈 128 字只剩约 96 字节余量，打印甩给 PROC */
+/* task_KEY：20ms 扫键 + 协议栈轮询（扫描周期本身就是消抖基准）
+ * ★ 本任务自己不许调 Serial_Printf，但轮询里的调试输出会经过它
+ *   ⇒ 栈按"最深的调用链"给，不是按"扫键"给 */
 #define TASK_KEY_PRIO               2
-#define TASK_KEY_STACK_SIZE         64   /* ★ 2026-10-19 R4：128 → 64，省 256 B
-                                          *  ★ 实测最深 23 字（水位 105/128）。
-                                          *  ★ 23 × 1.3 ≈ 30 ⇒ 64 有 178% 余量 */
+#define TASK_KEY_STACK_SIZE        320   /* ★ 2026-11-24：192 → 320，实测只剩 140 字节
+                                          *  ★ 为什么加这么多：轮询里会走到
+                                          *     ① W25 页写（Uds → ota_stage → W25Q64）
+                                          *     ② Serial_Printf（vsnprintf 要一两百字节）
+                                          *  ★ 原来只扫键时实测最深 23 字（水位 105/128）
+                                          *  ★ 加完看 GOLD 打的水位，别拿老数字当结论
+                                          *  ★ 2026-11-24 用串口 W 命令量（dump 开着）：KEY 只剩 35 字
+                                          *    = 140 字节，是全部任务里最紧的一个，于是加到 320 字 */
 TaskHandle_t    task_key_handler;
 void task_KEY(void *pvParameters);
 
@@ -595,6 +605,31 @@ void freertos_demo(void)
 	 *========================================================================*/
 	(void)Golden_Init();
 
+	/* ★ CAN 初始化必须在 vTaskStartScheduler() 之前
+	 * · 和队列、互斥量同一个时序要求
+	 * · CAN_EN=0 时这一整段不参与编译 */
+#if (CAN_EN != 0)
+	CAN_TX_Init();
+
+	/* ★ ISO-TP 必须排在 CAN_TX_Init 之后
+	 * · 它要用上一步配好的过滤器和位时序，这里只额外打开 FIFO0 中断
+	 * · 排在前面的话过滤器还没生效，中断收不到任何报文 */
+	IsoTp_Init();
+
+	/* ★ UDS 排在 ISO-TP 之后：它靠 ISO-TP 收发报文，自己是纯逻辑
+	 * · 初始化只清会话和计数，不碰任何硬件 */
+	Uds_Init();
+#endif
+#if (I2C_EN != 0)
+	I2C_Link_Init();
+#if (CAN_TX_LOOPBACK != 0)
+	/* ★ 回环自测：发一帧并等它完成，不用接任何硬件
+	 * · 打印 1 = 位时序和配置全对，0 = 超时
+	 * · 验证通过后把 CAN_TX_LOOPBACK 改回 0 重新编译 */
+	Serial_Printf("CAN selftest = %d\r\n", (int)CAN_TX_SelfTest());
+#endif
+#endif
+
 	vTaskStartScheduler();
 	
 	}
@@ -837,6 +872,18 @@ void task_ACQ(void *pvParameters)//100ms定时器
 	
 /* 打一次任务状态表 + 每个任务的栈水位（阶段1 验收项 4/5）。
  * 只在开机后调一次：任务表 200+ 字节，周期性打会把串口带宽吃光 */
+/* ★ 2026-11-24 加：串口敲 W 让 task_PROC 代打一次任务表
+ * · 为什么不直接在串口命令里打：命令跑在 task_KEY 上，栈只有 320 字，
+ *   而 Serial_Printf 里 char String[256] 是栈上局部数组，在它里面打等于自己踩自己
+ * · 所以这里只置标志，打印交给 task_PROC（栈 320 字）
+ */
+static volatile uint8_t s_diag_req = 0u;
+	
+	/* ★ 2026-11-24 加：DHT22 体检请求（串口发 H）
+	 * · 为什么不在命令处理里直接读：本任务不知道距上一次读取过了多久，
+	 *   若不足 2 秒，器件会按手册拒绝应答 ⇒ 查出来的"没应答"是假的
+	 * · 由 task_sensor 在下一次自然的 3 秒槽位上读完再打印，条件才合法 */
+	static volatile uint8_t s_dht_diag_req = 0u;
 static void print_task_diagnostics(void)
 {
 	UBaseType_t n, i;
@@ -978,6 +1025,160 @@ if (xQueueReceive(xQueueRec, &rec, pdMS_TO_TICKS(500)) == pdPASS)
 	/* ★ 再把 crc 作为第 16 列追加（串口回显也跟着用它）
 	 *   ★ 5 位十进制（16 位最大值 65535）*/
 	rowlen += sprintf(row + rowlen, ",%u", (unsigned)rec.crc);
+
+#if (CAN_EN != 0)
+	/* ★ 送一帧遥测给网关
+	 * · 挂在这里而不是新开任务：PROC 手上就有完整记录，不用再加共享变量
+	 * · 10 Hz 一帧，和采集节拍一致
+	 * · 温度 ×100 摄氏度、湿度 ×10 %RH、压力 ×10 Pa，都在这里换算成协议单位
+	 */
+	{
+		uint8_t  d[8];
+		uint32_t p_pa = rec.press / 10u;    /* ×10 Pa 换成 Pa */
+
+		d[0] = (uint8_t)((uint16_t)rec.temp_ds & 0xFFu);
+		d[1] = (uint8_t)(((uint16_t)rec.temp_ds >> 8) & 0xFFu);
+		d[2] = (uint8_t)(rec.humi & 0xFFu);
+		d[3] = (uint8_t)((rec.humi >> 8) & 0xFFu);
+		d[4] = (uint8_t)(p_pa & 0xFFu);
+		d[5] = (uint8_t)((p_pa >> 8) & 0xFFu);
+		d[6] = (uint8_t)((p_pa >> 16) & 0xFFu);
+		d[7] = (uint8_t)((p_pa >> 24) & 0xFFu);
+
+		/* ★ 0x28 关掉周期报文时不发
+		 * · 刷写期间总线上还在跑 10 Hz 业务数据，等于一边修路一边放车
+		 * · 只挡发送不挡计算：数据照样算好，恢复发送后立刻能发
+		 * · 不改 PROC 的结构，是因为这段已经跑稳了，重构的收益抵不上风险 */
+		if (Uds_CommDisabled() == 0u)
+		{
+			(void)CAN_TX_SendStd(CAN_ID_TELEMETRY, d, 8u);
+		}
+	}
+
+	/* ★ STAT 状态心跳（0x102），和 DATA 同频成对发送
+	 * 做什么：发序号、状态位、协议版本、采集时刻，网关据此判断丢帧和健康度
+	 * 为什么单独一帧：DATA 的 8 字节被三个物理量占满，塞不下序号
+	 * 影响什么：每秒多 10 帧，500 kbps 下只占 0.5% 带宽
+	 * 怎么验证：网关侧 rx 变成每秒 +20，seq 连号、drop 保持 0 */
+	{
+		uint8_t s[8];
+		uint8_t st = 0u;
+
+		/* 状态位定义见协议契约 4.4；拿不到依据的位一律置 0，不猜 */
+		if (rec.temp_ds != -32768)                             { st |= 0x01u; }
+		if (rec.humi != 0xFFFFu)                               { st |= 0x02u; }
+		if ((rec.press >= 300000u) && (rec.press <= 1100000u)) { st |= 0x04u; }
+		if ((rec.ax != 0) || (rec.ay != 0) || (rec.az != 0))   { st |= 0x08u; }
+		if (g_sd_error == 0u)                                  { st |= 0x10u; }
+		if (rec.rtc > 1700000000u)                             { st |= 0x20u; }
+		st |= 0x40u;
+
+		s[0] = (uint8_t)(rec.seq & 0xFFu);
+		s[1] = (uint8_t)((rec.seq >> 8) & 0xFFu);
+		s[2] = st;
+		/* ★ 2026-11-24：这里放"帧布局版本"，不是协议版本
+		 * · 2 = 三轴同帧（ax/ay/az 在 0x103，gx/gy/gz 在 0x104，电池和光照在帧尾）
+		 * · 网关收到不匹配的版本会拒绝解析 —— 否则两端不同步时数据安静错位，
+		 *   接口照样返回 200，只能靠人眼看出"电池 65408 mV"这种荒谬值
+		 * · 改了任何一帧的字节含义，这里必须 +1 */
+		s[3] = 2u;
+		s[4] = (uint8_t)(rec.rtc & 0xFFu);
+		s[5] = (uint8_t)((rec.rtc >> 8) & 0xFFu);
+		s[6] = (uint8_t)((rec.rtc >> 16) & 0xFFu);
+		s[7] = (uint8_t)((rec.rtc >> 24) & 0xFFu);
+
+		if (Uds_CommDisabled() == 0u)
+		{
+			(void)CAN_TX_SendStd(CAN_ID_STATUS, s, 8u);
+		}
+	}
+
+	/* ★ 第三帧：ax / ay / az / vbat（0x103，2026-11-24 加）
+	 * 做什么：把 0x101 装不下的四个量补上，网关的 Modbus 和网页才有这些数
+	 * 为什么四帧挤在同一拍发：姿态解算要的是同一时刻的重力向量和角速度，
+	 *   两帧交替发会让加速度和角速度差 100 ms，用它俩算出来的角度是歪的
+	 *   邮箱只有 3 个，所以第 4 帧要靠 CAN_TX_SendStdWait 睡 1 ms 等一个空出来
+	 * 影响什么：CAN 负载从每秒 30 帧涨到 40 帧，500 kbps 下占不到 1% 带宽
+	 * 怎么验证：网关侧 0x103 和 0x104 各每秒 10 帧，seq 连号、drop 保持 0 */
+	{
+		uint8_t e[8];
+
+		/* ★ 2026-11-24 重排：三个加速度轴必须落在同一帧
+		 * · 原来 ax/ay 在这一帧、az 在 0x104，两帧交替 ⇒ 三轴永远差 100 ms
+		 * · 姿态解算要的是"同一时刻的重力向量"，差一拍就算歪（实测偏 11 度）
+		 * · 电池让出前四个字节，挪到帧尾 */
+		e[0] = (uint8_t)((uint16_t)rec.ax & 0xFFu);
+		e[1] = (uint8_t)(((uint16_t)rec.ax >> 8) & 0xFFu);
+		e[2] = (uint8_t)((uint16_t)rec.ay & 0xFFu);
+		e[3] = (uint8_t)(((uint16_t)rec.ay >> 8) & 0xFFu);
+		e[4] = (uint8_t)((uint16_t)rec.az & 0xFFu);
+		e[5] = (uint8_t)(((uint16_t)rec.az >> 8) & 0xFFu);
+		e[6] = (uint8_t)(rec.vbat & 0xFFu);
+		e[7] = (uint8_t)((rec.vbat >> 8) & 0xFFu);
+
+		if (Uds_CommDisabled() == 0u)
+		{
+			(void)CAN_TX_SendStdWait(CAN_ID_EXTRA, e, 8u, 3u);
+		}
+	}
+
+	/* ★ 第四帧：gx / gy / gz / light（0x104，2026-11-24 加）
+	 * 做什么：把 0x101 和 0x103 装不下的最后四个量补上，网关就能拿到全部通道
+	 * 为什么和 0x103 同一拍：两者要配对算姿态，原因见上面 0x103 那段
+	 * 怎么验证：网关 /data 里 az/gx/gy/gz 与串口 REC 行一致 */
+	{
+		uint8_t f[8];
+
+		/* 同上：三个角速度轴放同一帧，光照挪到帧尾 */
+		f[0] = (uint8_t)((uint16_t)rec.gx & 0xFFu);
+		f[1] = (uint8_t)(((uint16_t)rec.gx >> 8) & 0xFFu);
+		f[2] = (uint8_t)((uint16_t)rec.gy & 0xFFu);
+		f[3] = (uint8_t)(((uint16_t)rec.gy >> 8) & 0xFFu);
+		f[4] = (uint8_t)((uint16_t)rec.gz & 0xFFu);
+		f[5] = (uint8_t)(((uint16_t)rec.gz >> 8) & 0xFFu);
+		f[6] = (uint8_t)(rec.light & 0xFFu);
+		f[7] = (uint8_t)((rec.light >> 8) & 0xFFu);
+
+		if (Uds_CommDisabled() == 0u)
+		{
+			(void)CAN_TX_SendStdWait(CAN_ID_EXTRA2, f, 8u, 3u);
+		}
+	}
+
+	/* ★ ISO-TP 收包处理（CAN-OTA 第一步，2026-11-23 加）
+	 * 做什么：检查多帧接收有没有超时；有整包就取出来（开 TEST_ISO_TP_DUMP 时串口回显）
+	 * 为什么挂这里：PROC 本来就是 100 ms 一拍的 CAN 发送点，同频挂上省一个新任务
+	 * 怎么验证：PC 发 256 字节报文，串口应打回一行 [ISOTP] n=256 crc=.... */
+	/* ★ 2026-11-23：ISO-TP / UDS 的轮询从这里搬走了
+	 * · 原因：PROC 是 100 ms 节拍，而一块 258 字节正好是一块，
+	 *   吞吐被钉死在 2.4 KB/s（实测），设计估算是 12 KB/s
+	 * · 现在挂在 task_KEY 的 20 ms 节拍上，吞吐 ×5，
+	 *   超时窗口也从"30 次轮询"变成"3 秒真时间"
+	 * · 为什么不是新开任务：task_KEY 本来就 20 ms 一拍而且很轻，
+	 *   把它的栈从 64 字加到 128 字比新开一个任务省得多也稳得多 */
+#endif
+
+#if (I2C_EN != 0)
+	/* ★ 送一帧遥测给 F407（I2C 主机写 8 字节）
+	 * · 走 I2C 而不是 CAN：CAN 的 TX 推挽不能并联，没有收发器做不了线与
+	 * · 阻塞约 1.6 ms，PROC 优先级 2 低于 ACQ 的 6，不会拖慢采集
+	 */
+	{
+		uint8_t  d2[8];
+		uint32_t p_pa2 = rec.press / 10u;
+
+		d2[0] = (uint8_t)((uint16_t)rec.temp_ds & 0xFFu);
+		d2[1] = (uint8_t)(((uint16_t)rec.temp_ds >> 8) & 0xFFu);
+		d2[2] = (uint8_t)(rec.humi & 0xFFu);
+		d2[3] = (uint8_t)((rec.humi >> 8) & 0xFFu);
+		d2[4] = (uint8_t)(p_pa2 & 0xFFu);
+		d2[5] = (uint8_t)((p_pa2 >> 8) & 0xFFu);
+		d2[6] = (uint8_t)((p_pa2 >> 16) & 0xFFu);
+		d2[7] = (uint8_t)((p_pa2 >> 24) & 0xFFu);
+
+		(void)I2C_Link_Send(d2, 8u);
+	}
+#endif
 
 	/* ---- 第②步：保证手里有缓冲（数据落卡 > 一切，串口回显排后面）----
 	 * 拿不到 = 两块都在 task_SD 手里写卡：丢本条保节拍，绝不阻塞等待
@@ -1129,8 +1330,10 @@ else
 	/* 开机 3 秒后打一次诊断（只打一次）：任务状态表 + 栈水位 */
 	/* ★ 开机 3 秒后打一次诊断（任务状态表 + 每个任务的栈水位）。
 	 *   ★ R4 定容就是靠它量的，见上面注释*/
-	if (!diag_done && xTaskGetTickCount() > pdMS_TO_TICKS(3000))
+	/* ★ 2026-11-24 加：串口敲 W 也能让它再打一次（量运行期的栈水位） */
+	if ((!diag_done && xTaskGetTickCount() > pdMS_TO_TICKS(3000)) || (s_diag_req != 0u))
 	{
+		if (s_diag_req != 0u) { s_diag_req = 0u; }
 		diag_done = 1;
 		print_task_diagnostics();
 	}
@@ -1183,6 +1386,44 @@ else
 /* task_KEY：KEY1=状态->标志位；KEY2=事件->任务通知。
  * 20ms 扫一次够用（按键抖动 <10ms），本任务不许打印 */
 /* 按键任务：扫键 -> 状态改标志 / 事件发通知 -> vTaskDelay。禁止打印 */
+/* ★ 执行网关下发的命令（2026-11-24 加）
+ * · 做什么：把 0x201 里的命令码翻译成一个动作，返回执行结果
+ * · 为什么集中在一处：命令以后会变多，散在各处就没人知道总共支持哪几条
+ * · 影响什么：只改全局标志和发通知，真正的动作由各自的任务完成
+ * · 怎么验证：F407 发 CMD 02，本机停止记录并在 0x301 回 result=0
+ */
+static uint8_t App_ExecCmd(uint8_t cmd)
+{
+	switch (cmd)
+	{
+	case CAN_CMD_REC_START:
+		/* 开始记录：关机态一起清掉，否则 task_SD 还停在"已卸卷"状态 */
+		g_pause         = 0u;
+		g_shutdown_req  = 0u;
+		g_shutdown_done = 0u;
+		return 0u;
+
+	case CAN_CMD_REC_STOP:
+		g_pause = 1u;
+		return 0u;
+
+	case CAN_CMD_PAGE_NEXT:
+		g_page_next = 1u;
+		return 0u;
+
+	case CAN_CMD_BUZZ:
+		Buzz_Request(BUZZ_EV_KEY);
+		return 0u;
+
+	case CAN_CMD_REPORT_NOW:
+		xTaskNotify(task_proc_handler, EVENTBIT_KEY2, eSetBits);
+		return 0u;
+
+	default:
+		/* 未知命令回 1，让网关能区分"没执行"和"执行失败" */
+		return 0x01u;
+	}
+}
 void task_KEY(void *pvParameters)
 {
 	for (;;)
@@ -1287,6 +1528,25 @@ void task_KEY(void *pvParameters)
 				g_pause        = 1u;
 				g_shutdown_req = 1u;
 				Buzz_Request(BUZZ_EV_KEY);
+			}
+		}
+
+		/* ★ 协议栈轮询挂这里（2026-11-23）：
+		 * · 20 ms 一拍，比原来 PROC 的 100 ms 快五倍，整包吞吐从 2.4 提到 ~12 KB/s
+		 * · 顺序有讲究：先让传输层算超时，再让 UDS 取包
+		 * · task_KEY 是轻任务，被一次 W25 页写（约 1~3 ms）拖一下没有副作用 */
+		IsoTp_Poll();
+		Uds_Poll();
+
+		/* ★ 2026-11-24 加：网关下发的命令在这里落地
+		 * · 每拍最多处理一条，单槽设计，撞车时后到的覆盖先到的
+		 * · ACK 一定要回，哪怕是错误码：网关靠它判断命令到底到没到 */
+		{
+			uint8_t c;
+
+			if (CAN_CmdTake(&c) != 0u)
+			{
+				CAN_CmdAck(c, App_ExecCmd(c));
 			}
 		}
 
@@ -1554,6 +1814,27 @@ static void TimeSync_Handle(const char *s, uint8_t n)
 	 *   ⚠️ 别担心和 Boot 的协议字母撞：
 	 *     · Boot 用 C/D/X。
 	 *     · 但那是另一个阶段，App 在跑的时候 Boot 根本不在 */
+	/* ★ W = 打一次任务表（含每个任务的剩余栈），2026-11-24 加
+	 * · 用途：量 task_KEY 跑过 CAN 命令之后的真实栈水位，
+	 *   开机 3 秒那次打印时命令路径还没走过，量到的是假的
+	 * · 这里只置标志，打印由 task_PROC 代做，原因见 s_diag_req 的注释
+	 */
+	if ((n == 1u) && (s[0] == 'W'))
+	{
+		s_diag_req = 1u;
+		return;
+	}
+
+	/* ★ 2026-11-24 加：H = DHT22 判决余量体检
+	 * · 打 40 位高电平宽度、应答时序、reason 0..6 的累计分布
+	 * · 为什么要它：3~6% 的偶发失败等不到，但"余量还剩多少"在成功时就能量
+	 * · 真正的读取在 task_sensor 的 3 秒槽位上做，这里只置标志 */
+	if ((n == 1u) && (s[0] == 'H'))
+	{
+		s_dht_diag_req = 1u;
+		Serial_Printf("DHT diag: armed, dump after the next read (<3s)\r\n");
+		return;
+	}
 	if ((n == 1u) && (s[0] == 'R'))
 	{
 		/* ★ 2026-10-18 加：回退也画屏。
@@ -1811,7 +2092,23 @@ static void Ui_DrawPage(uint8_t page)
 		/* ---- 存储页 ---- */
 		OLED_ShowString(1, 1, "SD ");
 		OLED_ShowString(1, 4, (g_sd_error != 0u) ? "ERR" : "OK ");
-		OLED_ShowString(1, 8, (char *)g_sd_name);         /* 12 字符 */
+		/* ★ 2026-11-19 改：只画前 8 字符，防止溢出回绕
+		 *   做了什么：从 g_sd_name 截前 8 字符到临时缓冲再画
+		 *   为什么：文件名 12 字符（"26111901.CSV"），从第 8 列起要 19 列
+		 *            而屏只有 16 列，超出部分会回绕覆盖前面的 "SD OK"
+		 *   影响什么：屏上只显示日期部分 "26111901"，扩展名不显示
+		 *   怎么验证：第一行是 "SD OK 26111901" 共 15 字符，第 16 列空 */
+		{
+			char    name8[9];
+			uint8_t k;
+
+			for (k = 0u; (k < 8u) && (g_sd_name[k] != '\0'); k++)
+			{
+				name8[k] = g_sd_name[k];
+			}
+			name8[k] = '\0';
+			OLED_ShowString(1, 8, name8);
+		}
 
 		OLED_ShowString(2, 1, "SIZE ");
 		OLED_ShowNum   (2, 6, g_sd_file_kb, 6);
@@ -2314,7 +2611,12 @@ void task_SVC(void *pvParameters)
 			}
 			if (g_press_x10pa > 0)
 			{
-				OLED_ShowNum(2, 8, (uint32_t)((uint32_t)g_press_x10pa / 10u), 4);
+				/* ★ 2026-11-19 修：单位算错，屏上显示的是假数
+				 *   做了什么：除数 /10 改成 /1000
+				 *   为什么：g_press_x10pa 单位是 Pa×10，hPa = Pa/100 = x10pa/1000
+				 *   影响什么：原来 1018960 取低 4 位显示 1896，现在显示 1018
+				 *   怎么验证：正常气压应显示 950~1050 之间 */
+				OLED_ShowNum(2, 8, (uint32_t)((uint32_t)g_press_x10pa / 1000u), 4);
 				OLED_ShowString(2, 12, "hPa ");
 			}
 			else
@@ -2788,8 +3090,27 @@ void task_sensor(void *pvParameters)
 					{
 						Serial_Printf("DHT: sensor lost (reason=%u, fails=%u)\r\n",
 						              (unsigned)g_dht_reason, (unsigned)s_dht_fail_run);
+
+						/* ★ 2026-11-21 加：同时写进 90 号事件文件
+						 * · 只在"有效 -> 无效"那一刻记一次，不刷屏
+						 * · 落盘由 task_SD 的 Event_Flush 负责，这里只往 RAM 攒
+						 * · 偶发单次失败不记（本来就被设计成忽略）*/
+						Event_LogFail(EV_CH_DHT, g_dht_reason);
 					}
 					g_humi_x10 = 0xFFFF;
+					/* ★ 2026-11-24 加：连续失败就自己重配一次单总线
+					 * · 依据（2026-11-24 扫卡实测）：6 次长故障（2.0~11.9 小时）全部
+					 *   结束在"重启前 2~3 秒"，从没有一次自己恢复
+					 *   ⇒ 驱动没有自愈路径，而 DHT22_Init() 只在开机调一次
+					 * · 做法：连续失败的第 3/8/13/18… 次（每 5 次约 12 秒）重配一次
+					 *   等价于把开机那一步搬到运行中来
+					 * · 代价：只在失败路径上跑，正常路径零开销
+					 * · 验证：H 里的 reinit 计数会涨；长故障应变成约 10 秒的短故障 */
+					if (((uint8_t)(s_dht_fail_run - 3u) % 5u) == 0u)
+					{
+						DHT22_Init();
+						if (g_dht_reinit_cnt < 0xFFFFu) { g_dht_reinit_cnt++; }
+					}
 				}
 			}
 
@@ -2813,6 +3134,15 @@ void task_sensor(void *pvParameters)
 				              (unsigned)g_dht_extra_us,
 				              (unsigned)g_dht_line_high);
 			}
+	
+				/* ★ 2026-11-24 加：体检请求 —— 在"刚读完这一拍"打印
+				 * · 放在读取之后：此时 g_dht_width / g_dht_ack_* 就是这一次的数据
+				 * · 只在请求时打，不刷屏 */
+				if (s_dht_diag_req != 0u)
+				{
+					s_dht_diag_req = 0u;
+					DHT22_DumpDiag();
+				}
 		}
 
 		/*========================================================================

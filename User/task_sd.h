@@ -184,6 +184,23 @@ BaseType_t SD_LogEnqueue(uint8_t *buf, uint16_t len, uint16_t nrec);
 #define LOSS_N            6u
 
 /* ★ 任何任务都可以调（内部进临界区，中断里不许调） */
+/*---------------- 模块故障事件记账（2026-11-21 加）----------------
+ * ★ 用途：任何模块读失败都能记一行到 90 号事件文件，供事后定位
+ *   · 记录格式：# FAIL,unix时间,ch=模块名,reason=原因码,count=这一轮次数
+ *   · 只有 task_SD 碰 FatFs，所以其他任务只能往 RAM 里攒，由 task_SD 冲刷
+ *   · 写不进卡时自动转存 W25 缓存，断电不丢证据
+ * ★ 加新模块：这里加编号，task_sd.c 的 s_ev_ch_name 表加名字，顺序一致 */
+#define EV_CH_DHT       0u
+#define EV_CH_DS18B20   1u
+#define EV_CH_BMP280    2u
+#define EV_CH_MPU6050   3u
+#define EV_CH_SD        4u
+#define EV_CH_W25       5u
+#define EV_CH_N         6u
+
+/* ★ 记一次模块故障（任何任务可调，中断里不许调）
+ *   ch = EV_CH_xxx，reason = 模块自己的原因码 */
+void Event_LogFail(uint8_t ch, uint8_t reason);
 void Loss_Add(uint8_t reason, uint16_t n);
 /* ★ 2026-11-06 加（EXP-02）：把 6 个原因的累计值拷出去（临界区内拷贝） */
 void Loss_GetTotals(uint32_t *out);

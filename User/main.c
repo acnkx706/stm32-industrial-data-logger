@@ -28,6 +28,8 @@
 #include "MyRTC.h"  
 #include "buzz.h"                  /* ★ 蜂鸣器服务（PB12，低电平触发） */
 #include "HC_SR04.h"               /* ★ 2026-10-20：超声波（PB5=TRIG / PB6=ECHO） */
+#include "task_sd.h"                /* ★ 2026-11-21：Event_LogFail / EV_CH_xxx */
+#include "ProbeConfig.h"            /* ★ 2026-11-21：TEST_EVENT_INJECT 开关 */
 #include "W25Q64.h"                /* ★ W25Q64 8MB SPI Flash
                                     *   ★ 引脚（2026-10-17 从 W25Q64.c:31~39 核出的真值）
                                     *     SCK=PA8 / MISO=PA11 / MOSI=PA12 / CS=PB13
@@ -55,11 +57,11 @@
 const AppMeta_t g_app_meta =
 {
 	APP_META_MAGIC,
-	9u,                        /* ★ 镜像版本（防回滚判据）
+	10u,                       /* ★ 镜像版本（防回滚判据）
 	                            *   2026-11-12：8 -> 9（回显提示 10 秒 -> 2 秒）
 	                            *   只增不减，小于参数区 img_min_ver 会被拒绝安装
 	                            *   板子 / 源码 / 发布物 三者必须同时改 */
-	20261115u,                 /* ★ 构建标识，只给人看（2026-11-15：表头512字节 + SPI18MHz + bulk drain） */
+	20261123u,                 /* ★ 构建标识，只给人看（2026-11-19：气压单位 / OLED边界 / 文件名截断） */
 	0u
 };
 #include "ProbeConfig.h"
@@ -83,7 +85,7 @@ const AppMeta_t g_app_meta =
 /* ★ 2026-11-06（EXP-02）：测试固件版本串带后缀，串口一眼可分辨 */
 #define APP_VER_STR   "APP: ver 74-EXP02 (2026-11-06 dsh: SD latency + stall)"
 #else
-#define APP_VER_STR   "APP: ver 78 (2026-11-12 dsh: echo hint 2s)"
+#define APP_VER_STR   "APP: ver 80-CAN (2026-11-23 dsh: CAN1 on + I2C off)"
 #endif
 /*==============================================================================
  *  ★ 2026-10-22 main() 拆分（纯搬代码，不改任何逻辑）
@@ -336,6 +338,16 @@ static void App_InitWire(void)
 	 *   ⇒ 运行时湿度永远 65535，屏上 H 那一格一直显示 --.-%
 	 *   （开机测试读在体检之前，所以"开机那次是好的"，最容易误导人） */
 	DHT22_Init();
+
+	/* ★ 2026-11-21 加：故障记录链路自检（探针，正式版必须关）
+	 * · 传感器焊死在板上拔不下来，只能用假注入验证"记录能否落盘"
+	 * · 打开 ProbeConfig.h 的 TEST_EVENT_INJECT 即可
+	 * · 验完必须改回 0 重烧：正式版不能留假记录污染证据文件 */
+#if (TEST_EVENT_INJECT)
+	Event_LogFail(EV_CH_DHT, 2u);
+	Event_LogFail(EV_CH_DS18B20, 1u);
+	Serial_Printf("[TEST] injected 2 fake fail records -> 90 file\r\n");
+#endif
 
 	/* ★ 2026-10-24：单次读自检搬进 DS18B20.c → DS18B20_BootTest()
 	 *   开关仍是 ProbeConfig.h 的 TEST_DS18B20_ON，与驱动内探针同一开关。 */

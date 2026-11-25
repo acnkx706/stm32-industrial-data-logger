@@ -49,6 +49,59 @@ static void Boot_DelayMs(uint16_t ms)
 	}
 }
 
+/*==============================================================================
+ *  ★ 上电窗口：开机后先听 300 ms，有人叫就进升级模式（2026-11-23 加）
+ *
+ *  ★ 为什么需要它：
+ *    · 原来进升级只有两条路：按着键复位，或 App 自己收到 U 再复位
+ *    · 而 App 要是半死不活（还活着，但转不到读串口那一步），
+ *      Boot 又认 App 有效 -> 直接跳过去 -> 串口再也进不来，只能拆板接 ST-LINK
+ *    · 工业界的 UDS Bootloader 都留这个窗口，常见 100 ms ~ 2 s，典型 200 ms
+ *
+ *  ★ 只认 Z / U / C 三个字母，别的字节一律丢掉：
+ *    · 防止串口线上的噪声把板子一直拖在升级模式
+ *    · Z 必须回一句 FAIL cmd：PC 探针就是靠这句话认出"对面是 Boot"
+ *    · 真被误触发也不怕，升级模式空闲 25 秒会自己跳回 App（见 Up_CanBootInstead）
+ *
+ *  ★ 返回 1 = 有人要升级；返回 0 = 没人理，正常跳 App
+ *============================================================================*/
+static uint8_t Boot_WaitWindow(uint16_t ms)
+{
+	uint16_t elapsed = 0u;
+	int16_t  c;
+
+	while (elapsed < ms)
+	{
+		BOOT_FEED_IWDG();
+
+		c = Serial_RxPop();
+		if (c >= 0)
+		{
+			if (c == 'Z')
+			{
+				Serial_SendString("FAIL cmd\r\n");
+				Serial_SendString("BOOT: probe in window -> upgrade mode\r\n");
+				return 1u;
+			}
+			if (c == 'U')
+			{
+				Serial_SendString("BOOT: 'U' in window -> upgrade mode\r\n");
+				return 1u;
+			}
+			if (c == 'C')
+			{
+				Serial_SendString("BOOT: 'C' in window -> boot the App\r\n");
+				return 0u;
+			}
+		}
+
+		Boot_DelayMs(1u);
+		elapsed++;
+	}
+
+	return 0u;
+}
+
 
 /*==============================================================================
  *  ★ 有没有人按住按键要强制进 Bootloader（2026-10-13 深夜加）
@@ -331,7 +384,15 @@ int main(void)
 	 *    · 按住按键 / BKP 写着升级请求 = 人的明确意图
 	 *    · 自动装回会把这个意图抢走，那是最不该发生的事
 	 *========================================================================*/
-	if ((app_ok == 0u) && (by_key == 0u))
+	/* ★ 2026-11-23（CAN-OTA）：把条件放宽到"App 有效但有人明确要升级"
+	 *   · 原来只在 App 无效时装暂存区那份，因为那时才有"救回来"的需求
+	 *   · 而 CAN-OTA 的流程是：App 收完整包 -> 写就绪头 -> 置升级标志 -> 复位
+	 *     此时 App 还是好的，按老条件会直接跳回 App，暂存那份永远装不上
+	 *   · 为什么敢放宽：只在 by_flag 置位时才走这条路，而 by_flag 只有
+	 *     "App 主动请求升级"或"串口工具发 U"这两种来源，都是人的明确意图
+	 *   · 暂存区没有就绪镜像时 Up_RecoverFromStage() 返回 0，照旧往下走，
+	 *     串口升级流程一个字都不变 */
+	if (((app_ok == 0u) || (by_flag != 0u)) && (by_key == 0u))
 	{
 		if (Up_RecoverFromStage() != 0u)
 		{
@@ -629,6 +690,14 @@ int main(void)
 	 *    · App 有效
 	 *  → 正常开机，跳
 	 *========================================================================*/
+	/* ★ 上电窗口：给 PC 300 ms 把板子拉进升级模式（理由见 Boot_WaitWindow）
+	 *   · 走到这里说明"没人请求升级 + App 有效"，本来下一步就是跳
+	 *   · 加了它之后，App 卡死也能从串口救回来，不用拆板接 ST-LINK */
+	if (Boot_WaitWindow(300u) != 0u)
+	{
+		BootUpgrade_Run();      /* ★ 永不返回，出口只有跳 App */
+	}
+
 	Serial_SendString("BOOT: no upgrade request -> normal boot\r\n");
 	Serial_SendString("BOOT: app valid -> jumping\r\n");
 
