@@ -916,6 +916,56 @@
               <FilePath>.\User\task_sd.h</FilePath>
             </File>
             <File>
+              <FileName>can_tx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\can_tx.c</FilePath>
+            </File>
+            <File>
+              <FileName>can_tx.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\can_tx.h</FilePath>
+            </File>
+            <File>
+              <FileName>iso_tp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\iso_tp.c</FilePath>
+            </File>
+            <File>
+              <FileName>iso_tp.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\iso_tp.h</FilePath>
+            </File>
+            <File>
+              <FileName>uds.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\uds.c</FilePath>
+            </File>
+            <File>
+              <FileName>uds.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\uds.h</FilePath>
+            </File>
+            <File>
+              <FileName>ota_stage.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\ota_stage.c</FilePath>
+            </File>
+            <File>
+              <FileName>ota_stage.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\ota_stage.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_link.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\i2c_link.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_link.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\User\i2c_link.h</FilePath>
+            </File>
+            <File>
               <FileName>ProbeConfig.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\User\ProbeConfig.h</FilePath>
